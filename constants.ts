@@ -1,0 +1,222 @@
+import type { Article, Podcast } from './types';
+
+export const tickerHeadlines: string[] = [
+  "Global markets react to new economic policies announced by the G7.",
+  "Tech giant unveils groundbreaking AI that can compose music.",
+  "BREAKING: Ceasefire negotiations reach a critical stage in ongoing conflict.",
+  "Health officials issue warning over new variant of influenza.",
+  "Sports exclusive: Underdog team pulls off historic championship win."
+];
+
+export const categories: string[] = [
+  "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Culture", "Entertainment", "Mahama Investigates"
+];
+
+export const featuredArticle: Article = {
+    id: 100,
+    title: "Live: Global Summit Addresses Climate Crisis with Bold New Pledges",
+    excerpt: "World leaders convene to finalize historic agreements aimed at curbing carbon emissions and funding green energy projects worldwide. Tensions rise as key nations debate the economic impact.",
+    content: "In a landmark session concluding today, leaders from the world's top economies have put forth a series of bold, legally-binding commitments to combat climate change. The agreement, hailed as the most significant environmental pact in a decade, focuses on a rapid transition to renewable energy sources, with a target of a 50% reduction in global carbon emissions by 2040. The summit was not without its controversies, however. Developing nations argued for greater financial support from wealthier countries to facilitate their green transitions, a point of contention that threatened to derail the talks until a last-minute compromise was reached. The final accord includes a multi-trillion dollar fund to support sustainable infrastructure projects globally. Activists are cautiously optimistic, stressing that the success of these pledges now hinges on immediate and transparent implementation.",
+    category: "Politics",
+    imageUrl: "https://picsum.photos/1600/900?grayscale&blur=2",
+    author: "Elena Petrova",
+    date: "October 26, 2023",
+    live: true,
+};
+
+export const trendingArticles: Article[] = [
+    {
+        id: 201,
+        title: "The AI Revolution in Healthcare: What's Next?",
+        excerpt: "From diagnostics to drug discovery, AI is reshaping the medical field.",
+        category: "Technology",
+        imageUrl: "https://picsum.photos/400/300?random=1",
+        author: "Johnathan Lee",
+        date: "3 hours ago",
+    },
+    {
+        id: 202,
+        title: "Market Analysis: Are We Heading for a Bull or Bear Market?",
+        excerpt: "Experts weigh in on the latest economic indicators and what they mean for investors.",
+        category: "Economy",
+        imageUrl: "https://picsum.photos/400/300?random=2",
+        author: "Sarah Jones",
+        date: "5 hours ago",
+    },
+    {
+        id: 203,
+        title: "Exclusive Interview with Hollywood's Hottest New Director",
+        excerpt: "A look into the creative process of the mind behind this year's biggest blockbuster.",
+        category: "Entertainment",
+        imageUrl: "https://picsum.photos/400/300?random=3",
+        author: "David Chen",
+        date: "1 day ago",
+    },
+     {
+        id: 204,
+        title: "How Space Tourism is Becoming a Reality",
+        excerpt: "The final frontier is now open for business, but what are the costs and risks involved?",
+        category: "Technology",
+        imageUrl: "https://picsum.photos/400/300?random=4",
+        author: "Maria Rodriguez",
+        date: "2 days ago",
+    },
+];
+
+
+export const articles: Article[] = [
+  {
+    id: 1,
+    title: "New Horizons in Renewable Energy: The Rise of Fusion Power",
+    excerpt: "Scientists have achieved a major breakthrough in nuclear fusion, potentially unlocking a clean and limitless source of energy for future generations.",
+    content: "In a pivotal experiment at the National Ignition Facility, scientists successfully produced a nuclear fusion reaction that resulted in a net energy gain. This long-awaited milestone overcomes a fundamental scientific barrier and paves the way for the development of fusion power plants. Unlike fission, fusion power does not produce long-lived radioactive waste and carries no risk of meltdown. While commercial fusion power is still likely decades away, this breakthrough represents a critical step towards a future powered by clean, safe, and virtually limitless energy, mimicking the same process that powers the sun.",
+    category: "Technology",
+    imageUrl: "https://picsum.photos/600/400?random=11",
+    author: "Dr. Evelyn Reed",
+    date: "October 25, 2023",
+  },
+  {
+    id: 2,
+    title: "Geopolitical Shifts: Analyzing the New Alliances in Asia",
+    excerpt: "A deep dive into the changing political landscape of Asia, as new trade deals and defense pacts reshape the balance of power in the region.",
+    content: "The recent signing of the Pan-Asian Trade Agreement (PATA) marks a significant recalibration of economic and political power in the East. The pact, which excludes Western nations, is poised to create the world's largest free-trade zone, fostering deeper integration among member countries. Simultaneously, new strategic defense collaborations are being forged, leading experts to believe a new multi-polar order is emerging. This analysis examines the key players, their motivations, and the potential ramifications for global stability and international relations.",
+    category: "World",
+    imageUrl: "https://picsum.photos/600/400?random=12",
+    author: "Kenji Tanaka",
+    date: "October 24, 2023",
+  },
+  {
+    id: 3,
+    title: "The Future of Urban Living: Smart Cities and Sustainable Infrastructure",
+    excerpt: "How technology is transforming our cities, from AI-managed traffic systems to green buildings that produce their own energy.",
+    content: "As the world's urban population continues to grow, cities are turning to technology to become more efficient, sustainable, and livable. This feature explores the concept of the 'smart city,' where a network of sensors and AI algorithms manages everything from traffic flow and energy consumption to public safety and waste management. We spotlight pioneering cities like Singapore and Seoul, which are implementing green building standards, autonomous public transport, and data-driven urban planning to create a blueprint for the metropolis of the future.",
+    category: "Technology",
+    imageUrl: "https://picsum.photos/600/400?random=13",
+    author: "Chloe Dubois",
+    date: "October 23, 2023",
+  },
+  {
+    id: 4,
+    title: "Cultural Renaissance: The Unseen Artists Redefining a Generation",
+    excerpt: "From digital art to immersive theatre, we spotlight the underground artists who are making waves and challenging cultural norms.",
+    content: "Beyond the mainstream galleries and theaters, a new wave of artists is leveraging technology and unconventional spaces to redefine the cultural landscape. This piece explores the burgeoning world of NFT art, the rise of immersive theatrical experiences that blur the line between audience and performer, and the community-driven creative movements flourishing on social media platforms. We interview several of these pioneering artists to understand what drives their work and how they are building a more inclusive and accessible art world.",
+    category: "Culture",
+    imageUrl: "https://picsum.photos/600/400?random=14",
+    author: "Marcus Aurelius",
+    date: "October 22, 2023",
+  },
+  {
+    id: 5,
+    title: "Investigative Report: The Hidden Environmental Cost of Fast Fashion",
+    excerpt: "Our months-long investigation uncovers the supply chains and environmental shortcuts that the fast fashion industry doesn't want you to see.",
+    content: "Fast fashion has made clothing more affordable than ever, but it comes at a steep environmental and human cost. Our investigation traces the journey of a simple t-shirt from cotton farms in developing countries to retail stores in the West. We uncover extensive water pollution from textile dyeing, the exploitation of garment workers, and the staggering amount of textile waste that ends up in landfills. This report exposes the true cost of cheap clothing and explores the growing movement towards sustainable and ethical fashion.",
+    category: "Mahama Investigates",
+    imageUrl: "https://picsum.photos/600/400?random=15",
+    author: "Aisha Khan",
+    date: "October 21, 2023",
+  },
+  {
+    id: 6,
+    title: "Champions League Final: A Tactical Breakdown of the Winning Strategy",
+    excerpt: "An in-depth analysis of the key moments and strategic decisions that led to last night's thrilling victory in the Champions League final.",
+    content: "It was a chess match on grass. The Champions League final was ultimately decided by a masterful tactical adjustment at halftime. This breakdown analyzes the high-pressing system employed in the first half, the crucial midfield substitution that changed the game's tempo, and the set-piece strategy that led to the winning goal. Using advanced metrics and player heatmaps, we dissect how the manager outwitted his opponent to secure the coveted trophy.",
+    category: "Sports",
+    imageUrl: "https://picsum.photos/600/400?random=16",
+    author: "Javier Morales",
+    date: "October 20, 2023",
+  },
+  {
+    id: 7,
+    title: "The Psychology of Misinformation: Why We Believe Fake News",
+    excerpt: "Experts in psychology and media studies explain the cognitive biases that make us vulnerable to misinformation and what we can do about it.",
+    content: "In an age of information overload, why does misinformation spread so effectively? This article delves into the psychology behind our susceptibility to fake news. We explore concepts like confirmation bias, the illusory truth effect, and the role of emotional arousal in overriding critical thinking. Experts provide insights into how social media algorithms amplify these vulnerabilities and offer practical strategies for developing better digital literacy and critical consumption of news.",
+    category: "Health",
+    imageUrl: "https://picsum.photos/600/400?random=17",
+    author: "Dr. Ben Carter",
+    date: "October 19, 2023",
+  },
+  {
+    id: 8,
+    title: "Global Economy Watch: Central Banks Coordinate to Tackle Inflation",
+    excerpt: "Central banks around the world have announced a coordinated effort to raise interest rates in a bid to control soaring inflation.",
+    content: "In a rare show of unity, the world's major central banks have announced a series of coordinated interest rate hikes to combat persistent global inflation. The move is intended to cool down overheating economies and stabilize prices, but it also carries the risk of triggering a recession. This report analyzes the factors driving inflation, the potential impact of the rate hikes on consumers and businesses, and the delicate balancing act policymakers face in trying to achieve a 'soft landing' for the global economy.",
+    category: "Economy",
+    imageUrl: "https://picsum.photos/600/400?random=18",
+    author: "Linda Hobbs",
+    date: "October 18, 2023",
+  },
+   {
+    id: 9,
+    title: "Ancient Rome: The Fall of an Empire",
+    excerpt: "A historical analysis of the factors that led to the collapse of the Roman Empire, from political instability to economic turmoil.",
+    content: "The fall of the Western Roman Empire was not a single event but a complex process that unfolded over centuries. This historical deep dive examines the multifaceted causes, including incessant barbarian invasions, internal political corruption, over-reliance on slave labor, and devastating plagues. We explore how the empire's vast size became its own undoing and how the eventual split between the Eastern and Western halves sealed its fate. This piece serves as a timeless lesson on the fragility of even the mightiest civilizations.",
+    category: "History",
+    imageUrl: "https://picsum.photos/600/400?random=19",
+    author: "Dr. Alistair Finch",
+    date: "October 17, 2023",
+  },
+];
+
+
+export const mahama360Articles: Article[] = [
+    {
+        id: 301,
+        title: "Virtual Tour: Inside the World's Most Advanced Tech Campus",
+        excerpt: "Step inside the sprawling campus of a tech behemoth with our interactive 360° tour.",
+        category: "360° Feature",
+        imageUrl: "https://picsum.photos/800/600?random=21",
+        author: "MNH 360",
+        date: "This Week"
+    },
+    {
+        id: 302,
+        title: "Live Dashboard: Tracking the Global Climate Pledges",
+        excerpt: "An interactive data visualization of climate commitments made by countries worldwide.",
+        category: "360° Feature",
+        imageUrl: "https://picsum.photos/800/600?random=22",
+        author: "MNH 360",
+        date: "Live Data"
+    },
+    {
+        id: 303,
+        title: "Interactive Story: The Journey of a Refugee",
+        excerpt: "Follow the perilous journey of a refugee from their homeland to a new life, told through interactive maps and personal stories.",
+        category: "360° Feature",
+        imageUrl: "https://picsum.photos/800/600?random=23",
+        author: "MNH 360",
+        date: "Special Feature"
+    }
+];
+
+export const podcasts: Podcast[] = [
+  {
+    id: 401,
+    title: "The Weekly Briefing: Decoding the Market",
+    excerpt: "Our experts break down the week's biggest economic news.",
+    category: "Economy",
+    imageUrl: "https://picsum.photos/600/400?random=31",
+    date: "New Episode",
+    episode: 132,
+    duration: "45 min"
+  },
+  {
+    id: 402,
+    title: "Tech Forward: The Future of AI",
+    excerpt: "A conversation with a leading AI researcher on ethics and innovation.",
+    category: "Technology",
+    imageUrl: "https://picsum.photos/600/400?random=32",
+    date: "Yesterday",
+    episode: 89,
+    duration: "62 min"
+  },
+  {
+    id: 403,
+    title: "Inside Politics: A Look at the Upcoming Election",
+    excerpt: "Analyzing the polls and strategies as election day approaches.",
+    category: "Politics",
+    imageUrl: "https://picsum.photos/600/400?random=33",
+    date: "This Week",
+    episode: 205,
+    duration: "55 min"
+  }
+]
