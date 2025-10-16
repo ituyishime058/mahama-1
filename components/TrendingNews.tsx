@@ -3,9 +3,10 @@ import type { Article } from '../types';
 
 interface TrendingNewsProps {
   articles: Article[];
+  onArticleClick: (article: Article) => void;
 }
 
-const TrendingNews: React.FC<TrendingNewsProps> = ({ articles }) => {
+const TrendingNews: React.FC<TrendingNewsProps> = ({ articles, onArticleClick }) => {
   return (
     <aside className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-extrabold mb-4 border-l-4 border-gold pl-3">
@@ -20,7 +21,7 @@ const TrendingNews: React.FC<TrendingNewsProps> = ({ articles }) => {
             <div>
               <p className="text-xs font-semibold uppercase text-deep-red">{article.category}</p>
               <h4 className="font-semibold leading-tight group-hover:underline">
-                <a href="#">{article.title}</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); onArticleClick(article); }}>{article.title}</a>
               </h4>
                <p className="text-xs text-slate-500 mt-1">{article.date}</p>
             </div>

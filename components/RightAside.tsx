@@ -7,13 +7,14 @@ import WeatherWidget from './WeatherWidget';
 
 interface RightAsideProps {
   trendingArticles: Article[];
+  onArticleClick: (article: Article) => void;
 }
 
-const RightAside: React.FC<RightAsideProps> = ({ trendingArticles }) => {
+const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick }) => {
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-28 space-y-8">
-        <TrendingNews articles={trendingArticles} />
+        <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
         <WeatherWidget />
         <CommunityPoll />
         <AdPlaceholder />

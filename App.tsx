@@ -17,7 +17,7 @@ import BookmarksModal from './components/BookmarksModal';
 import CategoryMenu from './components/CategoryMenu';
 import StockTicker from './components/StockTicker';
 import ScrollProgressBar from './components/ScrollProgressBar';
-import ArticleModal from './components/ArticleModal'; // New Import
+import ArticlePage from './components/ArticlePage'; // New Import
 import { articles, tickerHeadlines, categories, featuredArticle, trendingArticles, mahama360Articles, podcasts } from './constants';
 import type { Article } from './types';
 import { decode, decodeAudioData } from './utils/audio';
@@ -45,8 +45,11 @@ const App: React.FC = () => {
   const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
   
-  // Article Reading Modal State
+  // Article Page State
   const [readingArticle, setReadingArticle] = useState<Article | null>(null);
+  const [keyTakeaways, setKeyTakeaways] = useState<string[]>([]);
+  const [isFetchingTakeaways, setIsFetchingTakeaways] = useState(false);
+
 
   // AI Text-to-Speech State
   const [audioState, setAudioState] = useState<{
@@ -112,6 +115,13 @@ const App: React.FC = () => {
     }, 30000); // Shuffle articles every 30 seconds
     return () => clearInterval(interval);
   }, []);
+  
+  // Scroll to top when switching to article page
+  useEffect(() => {
+    if (readingArticle) {
+        window.scrollTo(0, 0);
+    }
+  }, [readingArticle]);
 
   // --- HANDLER FUNCTIONS ---
 
@@ -135,6 +145,7 @@ const App: React.FC = () => {
   
   const handleCategorySelect = (category: string) => {
     setActiveCategory(category);
+    setReadingArticle(null); // Go back to homepage if a category is selected from the menu
     setIsCategoryMenuOpen(false);
   };
   
@@ -162,7 +173,7 @@ const App: React.FC = () => {
     setRelatedArticles([]);
   };
 
-  const closeArticleModal = () => {
+  const handleGoHome = () => {
     setReadingArticle(null);
     stopCurrentAudio();
   };
@@ -195,6 +206,37 @@ const App: React.FC = () => {
       console.error("Error fetching related articles:", error);
     } finally {
       setIsFetchingRelated(false);
+    }
+  };
+  
+  // AI Key Takeaways Logic
+  const fetchKeyTakeaways = async (article: Article) => {
+    setIsFetchingTakeaways(true);
+    setKeyTakeaways([]);
+    try {
+      const prompt = `Analyze this news article and provide a bulleted list of 3-4 key takeaways. Focus on the most important facts and conclusions. Content: "${article.content || article.excerpt}"`;
+       const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              takeaways: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              }
+            }
+          }
+        },
+      });
+      const resultJson = JSON.parse(response.text);
+      setKeyTakeaways(resultJson.takeaways || []);
+    } catch (error) {
+      console.error("Error fetching key takeaways:", error);
+    } finally {
+      setIsFetchingTakeaways(false);
     }
   };
 
@@ -311,6 +353,71 @@ const App: React.FC = () => {
     }
   };
 
+  if (readingArticle) {
+    return (
+       <div className="bg-slate-100 dark:bg-navy text-slate-800 dark:text-slate-200 font-sans antialiased text-base">
+          <Header 
+            isDarkMode={isDarkMode} 
+            onSearchClick={() => setIsSearchOpen(true)}
+            onMenuClick={() => setIsCategoryMenuOpen(true)}
+            onLogoClick={handleGoHome}
+          />
+          <ArticlePage 
+            article={readingArticle}
+            relatedArticles={allArticles.filter(a => a.category === readingArticle.category && a.id !== readingArticle.id).slice(0, 4)}
+            onSummarize={handleSummarize}
+            onExplainSimply={handleExplainSimply}
+            onTextToSpeech={handleTextToSpeech}
+            audioState={{ playingArticleId: audioState.playingArticleId, isGenerating: audioState.isGenerating }}
+            isBookmarked={bookmarkedArticleIds.includes(readingArticle.id)}
+            onToggleBookmark={() => handleToggleBookmark(readingArticle.id)}
+            onFetchKeyTakeaways={fetchKeyTakeaways}
+            keyTakeaways={keyTakeaways}
+            isFetchingTakeaways={isFetchingTakeaways}
+          />
+          <Footer />
+          {/* Modals that can be triggered from the article page */}
+           <AIModal 
+              modalState={activeModal}
+              summary={summary}
+              explanation={explanation}
+              isLoading={isSummarizing || isExplaining}
+              error={summaryError || explanationError}
+              relatedArticles={relatedArticles}
+              isFetchingRelated={isFetchingRelated}
+              onClose={closeModal}
+            />
+            <SearchModal 
+              isOpen={isSearchOpen}
+              onClose={() => setIsSearchOpen(false)}
+              onSearch={handleSearch}
+              results={searchResults}
+              isLoading={isSearching}
+              error={searchError}
+            />
+             <CategoryMenu
+              isOpen={isCategoryMenuOpen}
+              onClose={() => setIsCategoryMenuOpen(false)}
+              categories={categories}
+              onCategorySelect={handleCategorySelect}
+              isDarkMode={isDarkMode}
+              toggleDarkMode={toggleDarkMode}
+              onFontSizeChange={handleFontSizeChange}
+              onBookmarksClick={() => {
+                setIsCategoryMenuOpen(false);
+                setIsBookmarksOpen(true);
+              }}
+            />
+             <BookmarksModal
+              isOpen={isBookmarksOpen}
+              onClose={() => setIsBookmarksOpen(false)}
+              bookmarkedArticles={allArticles.filter(article => bookmarkedArticleIds.includes(article.id))}
+              onToggleBookmark={handleToggleBookmark}
+            />
+        </div>
+    );
+  }
+
   return (
     <div className="bg-slate-100 dark:bg-navy text-slate-800 dark:text-slate-200 font-sans antialiased text-base">
       <ScrollProgressBar />
@@ -318,12 +425,13 @@ const App: React.FC = () => {
         isDarkMode={isDarkMode} 
         onSearchClick={() => setIsSearchOpen(true)}
         onMenuClick={() => setIsCategoryMenuOpen(true)}
+        onLogoClick={handleGoHome}
       />
       <NewsTicker headlines={tickerHeadlines} />
       <StockTicker />
       
       <main className="pt-36">
-        <Hero article={featuredArticle} />
+        <Hero article={featuredArticle} onReadMore={() => handleReadArticle(featuredArticle)} />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           
@@ -346,11 +454,11 @@ const App: React.FC = () => {
                 />
             </div>
             
-            <RightAside trendingArticles={trendingArticles} />
+            <RightAside trendingArticles={trendingArticles} onArticleClick={handleReadArticle}/>
             
           </div>
 
-          <NewsMap articles={allArticles} />
+          <NewsMap articles={allArticles} onArticleClick={handleReadArticle}/>
           <DataViz />
           <Mahama360 articles={mahama360Articles} />
           <PodcastHub 
@@ -421,16 +529,6 @@ const App: React.FC = () => {
         }}
       />
 
-      <ArticleModal 
-        article={readingArticle}
-        onClose={closeArticleModal}
-        onSummarize={handleSummarize}
-        onExplainSimply={handleExplainSimply}
-        onTextToSpeech={handleTextToSpeech}
-        audioState={{ playingArticleId: audioState.playingArticleId, isGenerating: audioState.isGenerating }}
-        isBookmarked={readingArticle ? bookmarkedArticleIds.includes(readingArticle.id) : false}
-        onToggleBookmark={readingArticle ? () => handleToggleBookmark(readingArticle.id) : () => {}}
-      />
     </div>
   );
 };

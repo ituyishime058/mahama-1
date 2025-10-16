@@ -3,6 +3,7 @@ import type { Article } from '../types';
 
 interface NewsMapProps {
   articles: Article[];
+  onArticleClick: (article: Article) => void;
 }
 
 type Region = 'North America' | 'South America' | 'Europe' | 'Africa' | 'Asia' | 'Oceania';
@@ -17,7 +18,7 @@ const regionPaths: Record<Region, string> = {
 };
 
 
-const NewsMap: React.FC<NewsMapProps> = ({ articles }) => {
+const NewsMap: React.FC<NewsMapProps> = ({ articles, onArticleClick }) => {
     const [hoveredRegion, setHoveredRegion] = useState<Region | null>(null);
 
     const regionArticles = useMemo(() => {
@@ -59,7 +60,7 @@ const NewsMap: React.FC<NewsMapProps> = ({ articles }) => {
                                     <div key={article.id} className="animate-fade-in">
                                         <p className="text-xs font-semibold uppercase text-deep-red dark:text-gold">{article.category}</p>
                                         <h4 className="font-semibold leading-tight hover:underline">
-                                            <a href="#">{article.title}</a>
+                                            <a href="#" onClick={(e) => { e.preventDefault(); onArticleClick(article); }}>{article.title}</a>
                                         </h4>
                                     </div>
                                 ))

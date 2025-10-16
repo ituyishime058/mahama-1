@@ -3,9 +3,10 @@ import type { Article } from '../types';
 
 interface HeroProps {
     article: Article;
+    onReadMore: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ article }) => {
+const Hero: React.FC<HeroProps> = ({ article, onReadMore }) => {
   return (
     <div className="relative h-[calc(100vh-80px)] min-h-[500px] max-h-[800px] flex items-center justify-center text-white overflow-hidden">
       <div className="absolute inset-0">
@@ -38,7 +39,9 @@ const Hero: React.FC<HeroProps> = ({ article }) => {
             <button className="bg-deep-red hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 duration-300">
                 Watch Live
             </button>
-            <button className="bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 duration-300">
+            <button 
+                onClick={onReadMore}
+                className="bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 duration-300">
                 Read More
             </button>
         </div>

@@ -7,12 +7,14 @@ interface HeaderProps {
   isDarkMode: boolean;
   onSearchClick: () => void;
   onMenuClick: () => void;
+  onLogoClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   isDarkMode, 
   onSearchClick, 
-  onMenuClick
+  onMenuClick,
+  onLogoClick
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -23,9 +25,14 @@ const Header: React.FC<HeaderProps> = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onLogoClick();
+  };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 dark:bg-navy/80 backdrop-blur-sm shadow-md' : 'bg-transparent'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 dark:bg-navy/80 backdrop-blur-sm shadow-md' : 'bg-transparent dark:bg-navy/50'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Left side: Menu on mobile, Logo+Title on desktop */}
@@ -33,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({
              <button onClick={onMenuClick} aria-label="Open menu" className="md:hidden text-slate-600 dark:text-slate-300 p-2 -ml-2">
                 <MenuIcon />
              </button>
-             <a href="#" className="hidden md:flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
+             <a href="#" onClick={handleLogoClick} className="hidden md:flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
                 <Logo className="h-8 w-8" />
                 <span>Mahama News Hub</span>
              </a>
@@ -41,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({
           
           {/* Centered Logo on mobile */}
           <div className="md:hidden flex-1 flex justify-center">
-            <a href="#" className="flex items-center text-slate-900 dark:text-white">
+            <a href="#" onClick={handleLogoClick} className="flex items-center text-slate-900 dark:text-white">
                <Logo className="h-9 w-9" />
             </a>
           </div>
