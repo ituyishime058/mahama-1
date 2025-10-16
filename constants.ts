@@ -8,6 +8,16 @@ export const tickerHeadlines: string[] = [
   "Sports exclusive: Underdog team pulls off historic championship win."
 ];
 
+export const stockData = [
+  { symbol: 'AAPL', price: 172.25, change: '+1.45', changePercent: '+0.85%' },
+  { symbol: 'GOOGL', price: 138.70, change: '-0.92', changePercent: '-0.66%' },
+  { symbol: 'MSFT', price: 334.57, change: '+2.11', changePercent: '+0.63%' },
+  { symbol: 'AMZN', price: 130.36, change: '-1.89', changePercent: '-1.43%' },
+  { symbol: 'TSLA', price: 250.22, change: '+5.67', changePercent: '+2.31%' },
+  { symbol: 'NVDA', price: 468.32, change: '-3.41', changePercent: '-0.72%' },
+  { symbol: 'META', price: 300.15, change: '+1.78', changePercent: '+0.60%' },
+];
+
 export const categories: string[] = [
   "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Culture", "Entertainment", "Mahama Investigates"
 ];
@@ -22,6 +32,7 @@ export const featuredArticle: Article = {
     author: "Elena Petrova",
     date: "October 26, 2023",
     live: true,
+    region: "Europe",
 };
 
 export const trendingArticles: Article[] = [
@@ -33,6 +44,7 @@ export const trendingArticles: Article[] = [
         imageUrl: "https://picsum.photos/400/300?random=1",
         author: "Johnathan Lee",
         date: "3 hours ago",
+        region: "North America",
     },
     {
         id: 202,
@@ -51,6 +63,7 @@ export const trendingArticles: Article[] = [
         imageUrl: "https://picsum.photos/400/300?random=3",
         author: "David Chen",
         date: "1 day ago",
+        region: "North America",
     },
      {
         id: 204,
@@ -74,6 +87,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=11",
     author: "Dr. Evelyn Reed",
     date: "October 25, 2023",
+    region: "North America",
   },
   {
     id: 2,
@@ -84,6 +98,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=12",
     author: "Kenji Tanaka",
     date: "October 24, 2023",
+    region: "Asia",
   },
   {
     id: 3,
@@ -94,6 +109,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=13",
     author: "Chloe Dubois",
     date: "October 23, 2023",
+    region: "Asia",
   },
   {
     id: 4,
@@ -104,6 +120,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=14",
     author: "Marcus Aurelius",
     date: "October 22, 2023",
+    region: "Europe",
   },
   {
     id: 5,
@@ -124,6 +141,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=16",
     author: "Javier Morales",
     date: "October 20, 2023",
+    region: "Europe",
   },
   {
     id: 7,
@@ -154,6 +172,37 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=19",
     author: "Dr. Alistair Finch",
     date: "October 17, 2023",
+    region: "Europe",
+  },
+  {
+    id: 10,
+    title: "Inside the Amazon: A Fight for Survival",
+    excerpt: "Indigenous communities in Brazil are using technology to monitor and protect their ancestral lands from illegal deforestation.",
+    category: "World",
+    imageUrl: "https://picsum.photos/600/400?random=20",
+    author: "Isabela Costa",
+    date: "October 16, 2023",
+    region: "South America",
+  },
+  {
+    id: 11,
+    title: "Australia's Great Barrier Reef Shows Signs of Recovery",
+    excerpt: "New coral growth has been observed in sections of the reef, offering a glimmer of hope for the world's largest living structure.",
+    category: "World",
+    imageUrl: "https://picsum.photos/600/400?random=24",
+    author: "Liam Hemsworth",
+    date: "October 15, 2023",
+    region: "Oceania",
+  },
+   {
+    id: 12,
+    title: "African Unicorn: Tech Startup Secures Record Funding",
+    excerpt: "A fintech startup in Nigeria has just closed a funding round that values it at over $2 billion, signaling a new era for African tech.",
+    category: "Technology",
+    imageUrl: "https://picsum.photos/600/400?random=25",
+    author: "Femi Adebayo",
+    date: "October 14, 2023",
+    region: "Africa",
   },
 ];
 

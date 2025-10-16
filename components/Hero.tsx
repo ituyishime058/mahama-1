@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Article } from '../types';
 
@@ -8,11 +7,13 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ article }) => {
   return (
-    <div className="relative h-[calc(100vh-80px)] min-h-[500px] max-h-[800px] flex items-center justify-center text-white mt-[48px]">
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${article.imageUrl})` }}
-      >
+    <div className="relative h-[calc(100vh-80px)] min-h-[500px] max-h-[800px] flex items-center justify-center text-white overflow-hidden">
+      <div className="absolute inset-0">
+        <img 
+          src={article.imageUrl}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover animate-ken-burns"
+        />
         <div className="absolute inset-0 bg-black/60"></div>
       </div>
       

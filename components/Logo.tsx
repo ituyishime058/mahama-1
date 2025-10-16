@@ -4,6 +4,7 @@ const Logo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg 
     viewBox="0 0 100 100" 
     xmlns="http://www.w3.org/2000/svg"
+    className="transition-transform duration-300 ease-in-out hover:rotate-[-5deg] hover:scale-105 active:scale-95"
     {...props}
   >
     <g className="text-slate-800 dark:text-white">

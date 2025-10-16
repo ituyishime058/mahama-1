@@ -8,6 +8,7 @@ export interface Article {
   author: string;
   date: string;
   live?: boolean;
+  region?: 'North America' | 'South America' | 'Europe' | 'Africa' | 'Asia' | 'Oceania';
 }
 
 export interface Podcast extends Omit<Article, 'live' | 'author' | 'content'> {

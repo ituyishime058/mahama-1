@@ -4,7 +4,7 @@ import Header from './components/Header';
 import NewsTicker from './components/NewsTicker';
 import Hero from './components/Hero';
 import GlobalHighlights from './components/GlobalHighlights';
-import LiveStream from './components/LiveStream';
+import NewsMap from './components/NewsMap';
 import Mahama360 from './components/Mahama360';
 import Footer from './components/Footer';
 import AIModal from './components/AIModal';
@@ -15,6 +15,8 @@ import SearchModal from './components/SearchModal';
 import RightAside from './components/RightAside';
 import BookmarksModal from './components/BookmarksModal';
 import CategoryMenu from './components/CategoryMenu';
+import StockTicker from './components/StockTicker';
+import ScrollProgressBar from './components/ScrollProgressBar';
 import { articles, tickerHeadlines, categories, featuredArticle, trendingArticles, mahama360Articles, podcasts } from './constants';
 import type { Article } from './types';
 import { decode, decodeAudioData } from './utils/audio';
@@ -55,6 +57,9 @@ const App: React.FC = () => {
     audioSource: null,
   });
   
+  // Podcast Player State
+  const [playingPodcastId, setPlayingPodcastId] = useState<number | null>(null);
+
   // UI State
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
@@ -128,6 +133,10 @@ const App: React.FC = () => {
     setActiveCategory(category);
     setIsCategoryMenuOpen(false);
   };
+  
+  const handlePodcastPlay = (podcastId: number) => {
+    setPlayingPodcastId(prevId => prevId === podcastId ? null : podcastId);
+  }
 
   const stopCurrentAudio = useCallback(() => {
     if (audioState.audioSource) {
@@ -291,18 +300,16 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-slate-100 dark:bg-navy text-slate-800 dark:text-slate-200 font-sans antialiased text-base">
+      <ScrollProgressBar />
       <Header 
         isDarkMode={isDarkMode} 
-        toggleDarkMode={toggleDarkMode} 
-        categories={categories}
-        onFontSizeChange={handleFontSizeChange} 
         onSearchClick={() => setIsSearchOpen(true)}
-        onBookmarksClick={() => setIsBookmarksOpen(true)}
-        onCategoryMenuClick={() => setIsCategoryMenuOpen(true)}
+        onMenuClick={() => setIsCategoryMenuOpen(true)}
       />
       <NewsTicker headlines={tickerHeadlines} />
+      <StockTicker />
       
-      <main className="pt-28">
+      <main className="pt-36">
         <Hero article={featuredArticle} />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -329,10 +336,14 @@ const App: React.FC = () => {
             
           </div>
 
-          <LiveStream />
+          <NewsMap articles={allArticles} />
           <DataViz />
           <Mahama360 articles={mahama360Articles} />
-          <PodcastHub podcasts={podcasts} />
+          <PodcastHub 
+            podcasts={podcasts}
+            playingPodcastId={playingPodcastId}
+            onPlay={handlePodcastPlay}
+          />
 
           <div className="mt-12">
             <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
@@ -386,6 +397,13 @@ const App: React.FC = () => {
         onClose={() => setIsCategoryMenuOpen(false)}
         categories={categories}
         onCategorySelect={handleCategorySelect}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+        onFontSizeChange={handleFontSizeChange}
+        onBookmarksClick={() => {
+          setIsCategoryMenuOpen(false);
+          setIsBookmarksOpen(true);
+        }}
       />
     </div>
   );
