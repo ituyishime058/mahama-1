@@ -17,6 +17,7 @@ import BookmarksModal from './components/BookmarksModal';
 import CategoryMenu from './components/CategoryMenu';
 import StockTicker from './components/StockTicker';
 import ScrollProgressBar from './components/ScrollProgressBar';
+import ArticleModal from './components/ArticleModal'; // New Import
 import { articles, tickerHeadlines, categories, featuredArticle, trendingArticles, mahama360Articles, podcasts } from './constants';
 import type { Article } from './types';
 import { decode, decodeAudioData } from './utils/audio';
@@ -43,6 +44,9 @@ const App: React.FC = () => {
   // Bookmarks State
   const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
+  
+  // Article Reading Modal State
+  const [readingArticle, setReadingArticle] = useState<Article | null>(null);
 
   // AI Text-to-Speech State
   const [audioState, setAudioState] = useState<{
@@ -138,6 +142,10 @@ const App: React.FC = () => {
     setPlayingPodcastId(prevId => prevId === podcastId ? null : podcastId);
   }
 
+  const handleReadArticle = (article: Article) => {
+    setReadingArticle(article);
+  };
+
   const stopCurrentAudio = useCallback(() => {
     if (audioState.audioSource) {
       audioState.audioSource.stop();
@@ -152,6 +160,11 @@ const App: React.FC = () => {
     setExplanation('');
     setExplanationError('');
     setRelatedArticles([]);
+  };
+
+  const closeArticleModal = () => {
+    setReadingArticle(null);
+    stopCurrentAudio();
   };
 
   // AI Related Articles Logic
@@ -241,7 +254,7 @@ const App: React.FC = () => {
     setAudioState(prev => ({...prev, isGenerating: true, playingArticleId: article.id}));
     
     try {
-      const textToSpeak = `${article.title}. ${article.excerpt}`;
+      const textToSpeak = `${article.title}. ${article.content || article.excerpt}`;
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: textToSpeak }] }],
@@ -326,6 +339,7 @@ const App: React.FC = () => {
                   onSummarize={handleSummarize}
                   onExplainSimply={handleExplainSimply}
                   onTextToSpeech={handleTextToSpeech}
+                  onReadMore={handleReadArticle}
                   audioState={{ playingArticleId: audioState.playingArticleId, isGenerating: audioState.isGenerating }}
                   bookmarkedArticleIds={bookmarkedArticleIds}
                   onToggleBookmark={handleToggleBookmark}
@@ -354,6 +368,7 @@ const App: React.FC = () => {
                 onSummarize={handleSummarize}
                 onExplainSimply={handleExplainSimply}
                 onTextToSpeech={handleTextToSpeech}
+                onReadMore={handleReadArticle}
                 audioState={{ playingArticleId: audioState.playingArticleId, isGenerating: audioState.isGenerating }}
                 bookmarkedArticleIds={bookmarkedArticleIds}
                 onToggleBookmark={handleToggleBookmark}
@@ -404,6 +419,17 @@ const App: React.FC = () => {
           setIsCategoryMenuOpen(false);
           setIsBookmarksOpen(true);
         }}
+      />
+
+      <ArticleModal 
+        article={readingArticle}
+        onClose={closeArticleModal}
+        onSummarize={handleSummarize}
+        onExplainSimply={handleExplainSimply}
+        onTextToSpeech={handleTextToSpeech}
+        audioState={{ playingArticleId: audioState.playingArticleId, isGenerating: audioState.isGenerating }}
+        isBookmarked={readingArticle ? bookmarkedArticleIds.includes(readingArticle.id) : false}
+        onToggleBookmark={readingArticle ? () => handleToggleBookmark(readingArticle.id) : () => {}}
       />
     </div>
   );
