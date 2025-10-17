@@ -7,6 +7,7 @@ import type { Article, Podcast, Settings } from './types';
 // Components
 import Header from './components/Header';
 import NewsTicker from './components/NewsTicker';
+import StockTicker from './components/StockTicker';
 import Hero from './components/Hero';
 import GlobalHighlights from './components/GlobalHighlights';
 import RightAside from './components/RightAside';
@@ -26,13 +27,16 @@ import SettingsModal from './components/SettingsModal';
 import PodcastPlayer from './components/PodcastPlayer';
 import ConfirmationModal from './components/ConfirmationModal';
 import LoginModal from './components/LoginModal';
+import LiveConversationModal from './components/LiveConversationModal';
+import FloatingActionButton from './components/FloatingActionButton';
+import SearchModal from './components/SearchModal';
 
 
 // Utils
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 
 const defaultSettings: Settings = {
-    theme: 'dark',
+    theme: 'light',
     accentColor: 'gold',
     fontFamily: 'sans',
     fontSize: 'md',
@@ -64,6 +68,8 @@ const App: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isLiveConvOpen, setIsLiveConvOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [confirmationProps, setConfirmationProps] = useState({ title: '', message: '', onConfirm: () => {} });
     
     // User State
@@ -155,6 +161,7 @@ const App: React.FC = () => {
     const handleOpenArticle = async (article: Article) => {
         setSelectedArticle(article);
         setView('article');
+        setIsSearchOpen(false); // Close search when an article is opened
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -251,6 +258,7 @@ const App: React.FC = () => {
             {view === 'home' && <ScrollProgressBar />}
             <Header
                 onMenuClick={() => setIsMenuOpen(true)}
+                onSearchClick={() => setIsSearchOpen(true)}
                 onSettingsClick={() => setIsSettingsOpen(true)}
                 onLogoClick={() => view === 'home' ? window.scrollTo({ top: 0, behavior: 'smooth' }) : handleCloseArticle()}
                 categories={categories}
@@ -259,9 +267,14 @@ const App: React.FC = () => {
                 onLoginClick={() => setIsLoginModalOpen(true)}
                 onLogout={handleLogout}
             />
-            {view === 'home' && <NewsTicker headlines={tickerHeadlines} />}
+            {view === 'home' && (
+                <>
+                    <NewsTicker headlines={tickerHeadlines} />
+                    <StockTicker />
+                </>
+            )}
             
-            <main className={view === 'home' ? "pt-[120px]" : ""}>
+            <main className={view === 'home' ? "pt-[152px]" : ""}>
               {view === 'home' && (
                 <>
                   <Hero article={featuredArticle} onReadMore={() => handleOpenArticle(featuredArticle)} />
@@ -309,6 +322,14 @@ const App: React.FC = () => {
             <Footer />
 
             {/* Global Components / Modals */}
+            <FloatingActionButton onClick={() => setIsLiveConvOpen(true)} />
+             <SearchModal
+                isOpen={isSearchOpen}
+                onClose={() => setIsSearchOpen(false)}
+                articles={allArticles}
+                onArticleSelect={handleOpenArticle}
+            />
+            <LiveConversationModal isOpen={isLiveConvOpen} onClose={() => setIsLiveConvOpen(false)} />
             <LoginModal
                 isOpen={isLoginModalOpen}
                 onClose={() => setIsLoginModalOpen(false)}

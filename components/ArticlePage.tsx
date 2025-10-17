@@ -1,5 +1,4 @@
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { Article } from '../types';
 import RightAside from './RightAside';
 import ArticleCard from './ArticleCard';
@@ -8,6 +7,10 @@ import SocialShare from './SocialShare';
 import AuthorInfo from './AuthorInfo';
 import CommentsSection from './CommentsSection';
 import ClockIcon from './icons/ClockIcon';
+import SentimentIndicator from './SentimentIndicator';
+import KeyTakeaways from './KeyTakeaways';
+import { generateTagsForArticle } from '../utils/ai';
+import AITags from './AITags';
 
 interface ArticlePageProps {
   article: Article;
@@ -28,6 +31,30 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 }) => {
   const articleContentRef = useRef<HTMLDivElement>(null);
   const [isZenMode, setIsZenMode] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(true);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (!article.content) {
+        setIsLoadingTags(false);
+        return;
+      }
+      try {
+        setIsLoadingTags(true);
+        const generatedTags = await generateTagsForArticle(article.title, article.content);
+        setTags(generatedTags);
+      } catch (error) {
+        console.error("Failed to generate AI tags:", error);
+        // Set empty or default tags on error
+        setTags([]);
+      } finally {
+        setIsLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, [article]);
 
   const relatedContent = allArticles
     .filter(a => a.category === article.category && a.id !== article.id)
@@ -62,16 +89,23 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                     onToggleZenMode={() => setIsZenMode(!isZenMode)}
                 />
                 <article ref={articleContentRef} className="prose prose-lg prose-slate dark:prose-invert max-w-none lg:pl-24">
-                    <div className="flex items-center justify-between gap-4 mb-8 text-sm border-b border-slate-200 dark:border-slate-700 pb-4">
-                        <div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 text-sm border-b border-slate-200 dark:border-slate-700 pb-4">
+                        <div className="flex-grow">
                             <p className="font-bold">By {article.author}</p>
                             <p className="text-slate-500 dark:text-slate-400">{article.date}</p>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                           <ClockIcon className="w-4 h-4"/>
-                           <span>{article.readingTime} minute read</span>
+                        <div className="flex items-center gap-4 flex-shrink-0">
+                           <SentimentIndicator sentiment={article.sentiment} />
+                           <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                               <ClockIcon className="w-4 h-4"/>
+                               <span>{article.readingTime} minute read</span>
+                           </div>
                         </div>
                     </div>
+                    
+                    <AITags tags={tags} isLoading={isLoadingTags} />
+
+                    {article.keyTakeaways && <KeyTakeaways takeaways={article.keyTakeaways} />}
 
                     <p className="lead">{article.excerpt}</p>
                     

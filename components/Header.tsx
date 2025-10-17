@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import MenuIcon from './icons/MenuIcon';
 import SettingsIcon from './icons/SettingsIcon';
 import UserIcon from './icons/UserIcon';
+import SearchIcon from './icons/SearchIcon';
 
 interface HeaderProps {
   onMenuClick: () => void;
+  onSearchClick: () => void;
   onSettingsClick: () => void;
   onLogoClick: () => void;
   categories: string[];
@@ -18,6 +19,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ 
   onMenuClick,
+  onSearchClick,
   onSettingsClick,
   onLogoClick,
   categories,
@@ -57,6 +59,9 @@ const Header: React.FC<HeaderProps> = ({
           </div>
           
           <div className="flex items-center justify-end gap-2">
+            <button onClick={onSearchClick} aria-label="Open search" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <SearchIcon />
+            </button>
             <button onClick={onSettingsClick} aria-label="Open settings" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SettingsIcon />
             </button>

@@ -12,6 +12,8 @@ export interface Article {
   live?: boolean;
   region?: 'North America' | 'South America' | 'Europe' | 'Africa' | 'Asia' | 'Oceania';
   readingTime: number; // in minutes
+  sentiment?: 'Positive' | 'Neutral' | 'Negative';
+  keyTakeaways?: string[];
 }
 
 export interface Podcast extends Omit<Article, 'live' | 'author' | 'content'> {

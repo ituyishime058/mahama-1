@@ -34,6 +34,13 @@ export const featuredArticle: Article = {
     live: true,
     region: "Europe",
     readingTime: 4,
+    sentiment: "Neutral",
+    keyTakeaways: [
+        "A historic climate agreement has been reached by world leaders.",
+        "The pact aims for a 50% reduction in global carbon emissions by 2040.",
+        "A multi-trillion dollar fund will support green infrastructure in developing nations.",
+        "Implementation and transparency are now the key challenges ahead."
+    ]
 };
 
 export const trendingArticles: Article[] = [
@@ -47,6 +54,7 @@ export const trendingArticles: Article[] = [
         date: "3 hours ago",
         region: "North America",
         readingTime: 3,
+        sentiment: "Positive"
     },
     {
         id: 202,
@@ -57,6 +65,7 @@ export const trendingArticles: Article[] = [
         author: "Sarah Jones",
         date: "5 hours ago",
         readingTime: 5,
+        sentiment: "Negative"
     },
     {
         id: 203,
@@ -94,6 +103,13 @@ export const articles: Article[] = [
     date: "October 25, 2023",
     region: "North America",
     readingTime: 5,
+    sentiment: 'Positive',
+    keyTakeaways: [
+        "Scientists achieved a net energy gain in a nuclear fusion reaction.",
+        "Fusion power is cleaner and safer than traditional nuclear fission.",
+        "The breakthrough is a crucial step towards limitless clean energy.",
+        "Commercial application is still likely decades away."
+    ]
   },
   {
     id: 2,
@@ -106,6 +122,7 @@ export const articles: Article[] = [
     date: "October 24, 2023",
     region: "Asia",
     readingTime: 6,
+    sentiment: 'Neutral'
   },
   {
     id: 3,
@@ -141,6 +158,13 @@ export const articles: Article[] = [
     author: "Aisha Khan",
     date: "October 21, 2023",
     readingTime: 7,
+    sentiment: 'Negative',
+    keyTakeaways: [
+        "Fast fashion has severe environmental consequences, including water pollution.",
+        "The industry is often linked to the exploitation of garment workers.",
+        "Massive amounts of textile waste are generated and sent to landfills.",
+        "A movement towards sustainable and ethical fashion is growing in response."
+    ]
   },
   {
     id: 6,
