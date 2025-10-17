@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { Settings } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -18,9 +17,10 @@ interface SettingsModalProps {
   settings: Settings;
   onUpdateSettings: (newSettings: Partial<Settings>) => void;
   onClearOffline: () => void;
+  onClearBookmarks: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onUpdateSettings, onClearOffline }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onUpdateSettings, onClearOffline, onClearBookmarks }) => {
   const [activeTab, setActiveTab] = useState('appearance');
 
   if (!isOpen) return null;
@@ -135,6 +135,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     
   const renderDataTab = () => (
     <div className="space-y-6">
+      <SettingGroup title="Bookmarks">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                Permanently delete all of your saved bookmarks. This action cannot be undone.
+            </p>
+            <button onClick={onClearBookmarks} className="w-full bg-red-600/10 text-red-600 font-bold py-2 px-4 rounded-lg transition-colors duration-300 hover:bg-red-600/20">
+                Clear All Bookmarks
+            </button>
+        </SettingGroup>
         <SettingGroup title="Offline Articles">
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                 Clear all articles saved for offline reading to free up space on your device.
@@ -145,6 +153,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
         </SettingGroup>
     </div>
   );
+
+  const TabContent = () => {
+    switch (activeTab) {
+        case 'appearance': return renderAppearanceTab();
+        case 'accessibility': return renderAccessibilityTab();
+        case 'notifications': return renderNotificationsTab();
+        case 'ai': return renderAITab();
+        case 'data': return renderDataTab();
+        default: return null;
+    }
+  };
 
   return (
     <div
@@ -170,13 +189,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
         </div>
         {/* Content */}
         <div className="flex-grow p-8 overflow-y-auto">
-            {activeTab === 'appearance' && renderAppearanceTab()}
-            {activeTab === 'accessibility' && renderAccessibilityTab()}
-            {activeTab === 'notifications' && renderNotificationsTab()}
-            {activeTab === 'ai' && renderAITab()}
-            {activeTab === 'data' && renderDataTab()}
+           <div key={activeTab} className="animate-fade-in-fast">
+                <TabContent />
+           </div>
         </div>
       </div>
+       <style>{`
+            @keyframes fade-in-fast {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .animate-fade-in-fast { animation: fade-in-fast 0.3s ease-out forwards; }
+        `}</style>
     </div>
   );
 };

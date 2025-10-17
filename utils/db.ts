@@ -25,9 +25,8 @@ function getDB(): Promise<IDBDatabase> {
 }
 
 async function imageToDataURL(url: string): Promise<string> {
-    // Add a cache-busting query parameter to avoid CORS issues with cached images
-    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
-    const response = await fetch(proxyUrl);
+    // Directly fetch the image. picsum.photos supports CORS.
+    const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
     }

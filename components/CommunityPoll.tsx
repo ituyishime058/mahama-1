@@ -17,6 +17,35 @@ const initialPollData: PollData = {
   ],
 };
 
+const useCountUp = (end: number, duration = 1000) => {
+    const [count, setCount] = useState(0);
+    const frameRate = 1000 / 60;
+    const totalFrames = Math.round(duration / frameRate);
+
+    useEffect(() => {
+        let frame = 0;
+        const counter = setInterval(() => {
+            frame++;
+            const progress = (frame / totalFrames);
+            const currentCount = Math.round(end * progress);
+            setCount(currentCount);
+
+            if (frame === totalFrames) {
+                clearInterval(counter);
+            }
+        }, frameRate);
+
+        return () => clearInterval(counter);
+    }, [end, duration, frameRate, totalFrames]);
+
+    return count;
+};
+
+const AnimatedPercentage: React.FC<{ value: number }> = ({ value }) => {
+    const count = useCountUp(value);
+    return <span>{count}%</span>;
+};
+
 const CommunityPoll: React.FC = () => {
   const [pollData, setPollData] = useState<PollData>(initialPollData);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -65,7 +94,7 @@ const CommunityPoll: React.FC = () => {
             <div key={option.id} className="text-sm">
               <div className="flex justify-between mb-1 font-semibold">
                 <span>{option.text}</span>
-                <span>{percentage.toFixed(0)}%</span>
+                <AnimatedPercentage value={Math.round(percentage)} />
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
                 <div 

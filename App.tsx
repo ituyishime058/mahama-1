@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // Constants and Types
@@ -204,6 +203,20 @@ const App: React.FC = () => {
         setIsConfirmationOpen(true);
     };
 
+    const handleClearBookmarks = () => {
+        setConfirmationProps({
+            title: 'Clear All Bookmarks',
+            message: 'Are you sure you want to delete all your bookmarks? This action cannot be undone.',
+            onConfirm: () => {
+                setBookmarkedArticleIds([]);
+                localStorage.removeItem('bookmarkedArticles');
+                setIsConfirmationOpen(false);
+                setIsSettingsOpen(false);
+            }
+        });
+        setIsConfirmationOpen(true);
+    };
+
     const handlePlayPodcast = (podcast: Podcast) => {
         if (activePodcast?.id === podcast.id) {
             setIsPodcastPlaying(prev => !prev);
@@ -330,6 +343,7 @@ const App: React.FC = () => {
                 settings={settings}
                 onUpdateSettings={handleUpdateSettings}
                 onClearOffline={handleClearOfflineData}
+                onClearBookmarks={handleClearBookmarks}
             />
             <ConfirmationModal
                 isOpen={isConfirmationOpen}
