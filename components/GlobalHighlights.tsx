@@ -4,14 +4,7 @@ import ArticleCard from './ArticleCard';
 
 interface GlobalHighlightsProps {
   articles: Article[];
-  onSummarize: (article: Article) => void;
-  onExplainSimply: (article: Article) => void;
-  onTextToSpeech: (article: Article) => void;
   onReadMore: (article: Article) => void;
-  audioState: {
-    playingArticleId: number | null;
-    isGenerating: boolean;
-  };
   bookmarkedArticleIds: number[];
   onToggleBookmark: (articleId: number) => void;
   offlineArticleIds: number[];
@@ -21,11 +14,7 @@ interface GlobalHighlightsProps {
 
 const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({ 
   articles, 
-  onSummarize, 
-  onExplainSimply, 
-  onTextToSpeech,
   onReadMore, 
-  audioState,
   bookmarkedArticleIds,
   onToggleBookmark,
   offlineArticleIds,
@@ -41,11 +30,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
         <ArticleCard 
           featured={true}
           article={featuredArticle} 
-          onSummarize={onSummarize}
-          onExplainSimply={onExplainSimply}
-          onTextToSpeech={onTextToSpeech}
           onReadMore={onReadMore}
-          audioState={audioState}
           isBookmarked={bookmarkedArticleIds.includes(featuredArticle.id)}
           onToggleBookmark={onToggleBookmark}
           offlineArticleIds={offlineArticleIds}
@@ -58,11 +43,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           <ArticleCard 
             key={article.id} 
             article={article} 
-            onSummarize={onSummarize}
-            onExplainSimply={onExplainSimply}
-            onTextToSpeech={onTextToSpeech}
             onReadMore={onReadMore}
-            audioState={audioState}
             isBookmarked={bookmarkedArticleIds.includes(article.id)}
             onToggleBookmark={onToggleBookmark}
             offlineArticleIds={offlineArticleIds}
