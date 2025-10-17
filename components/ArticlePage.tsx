@@ -1,224 +1,125 @@
-import React, { useState, useEffect, useRef } from 'react';
-import type { Article } from '../types';
 
-// Components
+import React, { useEffect, useState, useRef } from 'react';
+import type { Article } from '../types';
+import { mockComments } from '../constants';
+import { generateTags, factCheckArticle } from '../utils/ai';
+
+import AuthorInfo from './AuthorInfo';
 import SocialShare from './SocialShare';
 import KeyTakeaways from './KeyTakeaways';
-import CommentsSection from './CommentsSection';
-import TrendingNews from './TrendingNews';
-import AuthorInfo from './AuthorInfo';
-import ArticleProgressBar from './ArticleProgressBar';
 import AITags from './AITags';
 import FactCheck from './FactCheck';
-import SummarizerModal from './SummarizerModal';
-import ExplainSimplyModal from './ExplainSimplyModal';
-import TextToSpeechPlayer from './TextToSpeechPlayer';
-
-// Icons
-import SummarizeIcon from './icons/SummarizeIcon';
-import ChildIcon from './icons/ChildIcon';
-import ReadAloudIcon from './icons/ReadAloudIcon';
-import LoadingSpinner from './icons/LoadingSpinner';
-
-// AI Utils
-import { summarizeArticle, explainSimply, generateTextToSpeech, generateAITags, factCheckArticle } from '../utils/ai';
-import SentimentIndicator from './SentimentIndicator';
+import CommentsSection from './CommentsSection';
+import ArticleProgressBar from './ArticleProgressBar';
+import FloatingActionbar from './FloatingActionbar';
 
 interface ArticlePageProps {
   article: Article;
-  allArticles: Article[];
-  trendingArticles: Article[];
-  onArticleClick: (article: Article) => void;
-  bookmarkedArticleIds: number[];
-  onToggleBookmark: (articleId: number) => void;
+  onClose: () => void;
+  isBookmarked: boolean;
+  onToggleBookmark: (id: number) => void;
+  // ... other props for AI actions
+  onSummarize: (article: Article) => void;
+  onExplainSimply: (article: Article) => void;
+  onTextToSpeech: (article: Article) => void;
+  onTranslate: (article: Article) => void;
+  onQuiz: (article: Article) => void;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ 
-  article,
-  trendingArticles,
-  onArticleClick,
-  bookmarkedArticleIds,
-  onToggleBookmark,
+    article, 
+    onClose, 
+    isBookmarked, 
+    onToggleBookmark,
+    onSummarize,
+    onExplainSimply,
+    onTextToSpeech,
+    onTranslate,
+    onQuiz,
 }) => {
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const [factCheckResult, setFactCheckResult] = useState<{ status: string; summary: string } | null>(null);
+  const [factCheckLoading, setFactCheckLoading] = useState(true);
   const [isZenMode, setIsZenMode] = useState(false);
+  
   const articleRef = useRef<HTMLDivElement>(null);
 
-  // AI Feature State
-  const [isSummarizerOpen, setIsSummarizerOpen] = useState(false);
-  const [summary, setSummary] = useState('');
-  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState('');
-  
-  const [isExplainSimplyOpen, setIsExplainSimplyOpen] = useState(false);
-  const [explanation, setExplanation] = useState('');
-  const [isExplainSimplyLoading, setIsExplainSimplyLoading] = useState(false);
-  const [explainSimplyError, setExplainSimplyError] = useState('');
-
-  const [ttsAudio, setTtsAudio] = useState<string | null>(null);
-  const [isTtsGenerating, setIsTtsGenerating] = useState(false);
-  
-  const [aiTags, setAiTags] = useState<string[]>([]);
-  const [areAiTagsLoading, setAreAiTagsLoading] = useState(true);
-
-  const [factCheckResult, setFactCheckResult] = useState<{status: string, summary: string} | null>(null);
-  const [isFactCheckLoading, setIsFactCheckLoading] = useState(true);
-
-  // Reset state when article changes
   useEffect(() => {
-    setIsZenMode(false);
-    setAiTags([]);
-    setFactCheckResult(null);
-    setAreAiTagsLoading(true);
-    setIsFactCheckLoading(true);
+    // Fetch AI-generated content when component mounts
+    const fetchAIData = async () => {
+      setTagsLoading(true);
+      setFactCheckLoading(true);
 
-    generateAITags(article).then(tags => {
-        setAiTags(tags);
-        setAreAiTagsLoading(false);
-    });
-    
-    factCheckArticle(article).then(result => {
-        setFactCheckResult(result);
-        setIsFactCheckLoading(false);
-    });
+      const tagsPromise = generateTags(article);
+      const factCheckPromise = factCheckArticle(article);
+      
+      const [tagsResult, factCheckData] = await Promise.allSettled([tagsPromise, factCheckPromise]);
 
+      if (tagsResult.status === 'fulfilled') {
+        setTags(tagsResult.value);
+      }
+      if (factCheckData.status === 'fulfilled') {
+        setFactCheckResult(factCheckData.value);
+      }
+      
+      setTagsLoading(false);
+      setFactCheckLoading(false);
+    };
+
+    fetchAIData();
   }, [article]);
-
-  const handleSummarize = async () => {
-    setIsSummarizerOpen(true);
-    setIsSummaryLoading(true);
-    setSummaryError('');
-    try {
-      const result = await summarizeArticle(article);
-      setSummary(result);
-    } catch (e) {
-      setSummaryError('Failed to generate summary.');
-    } finally {
-      setIsSummaryLoading(false);
-    }
-  };
-
-  const handleExplainSimply = async () => {
-    setIsExplainSimplyOpen(true);
-    setIsExplainSimplyLoading(true);
-    setExplainSimplyError('');
-    try {
-      const result = await explainSimply(article);
-      setExplanation(result);
-    } catch (e) {
-      setExplainSimplyError('Failed to generate explanation.');
-    } finally {
-      setIsExplainSimplyLoading(false);
-    }
-  };
-
-  const handleTextToSpeech = async () => {
-    setIsTtsGenerating(true);
-    const textToRead = `${article.title}. ${article.content}`;
-    const audio = await generateTextToSpeech(textToRead.substring(0, 4096), 'Zephyr'); // Limiting text length for safety
-    setTtsAudio(audio);
-    setIsTtsGenerating(false);
-  };
-  
-  const isBookmarked = bookmarkedArticleIds.includes(article.id);
-  const handleToggleBookmark = () => onToggleBookmark(article.id);
   
   return (
-    <>
-      <ArticleProgressBar targetRef={articleRef} />
-      <div ref={articleRef} className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
-          
-          <SocialShare 
-            article={article} 
-            isBookmarked={isBookmarked}
-            onToggleBookmark={handleToggleBookmark}
-            isZenMode={isZenMode}
-            onToggleZenMode={() => setIsZenMode(!isZenMode)}
-          />
+    <div ref={articleRef} className={`transition-colors duration-300 ${isZenMode ? 'bg-slate-50 dark:bg-gray-900' : 'bg-white dark:bg-navy'}`}>
+        <ArticleProgressBar targetRef={articleRef} />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className={`max-w-4xl mx-auto transition-all duration-300 ${isZenMode ? 'max-w-3xl' : ''}`}>
+                <div className="relative">
+                    <SocialShare 
+                        article={article}
+                        isBookmarked={isBookmarked}
+                        onToggleBookmark={() => onToggleBookmark(article.id)}
+                        isZenMode={isZenMode}
+                        onToggleZenMode={() => setIsZenMode(!isZenMode)}
+                    />
+                    
+                    <main className="lg:pl-24">
+                        <p className="text-deep-red dark:text-gold font-semibold uppercase tracking-wider">{article.category}</p>
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white my-4 !leading-tight">{article.title}</h1>
+                        <p className="text-lg text-slate-600 dark:text-slate-400">{article.excerpt}</p>
+                        
+                        <AuthorInfo author={article.author} date={article.date} />
 
-          <article className={`lg:col-span-8 lg:col-start-3 transition-all duration-300 ${isZenMode ? 'lg:col-span-12 lg:col-start-1' : ''}`}>
-            {/* Header */}
-            <p className="text-gold font-semibold uppercase tracking-widest mb-2">{article.category}</p>
-            <h1 className="text-3xl md:text-5xl font-extrabold !leading-tight tracking-tighter mb-4 text-slate-900 dark:text-white">
-              {article.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-6">
-                <span>By {article.author}</span>
-                <span className="hidden md:inline">&bull;</span>
-                <span>{article.date}</span>
-                <span className="hidden md:inline">&bull;</span>
-                <span>{article.readingTime} min read</span>
-                {article.sentiment && <SentimentIndicator sentiment={article.sentiment} />}
-            </div>
+                        <figure className="my-8">
+                            <img src={article.imageUrl} alt={article.title} className="w-full h-auto rounded-lg shadow-lg"/>
+                            <figcaption className="text-center text-sm text-slate-500 mt-2">A representative image for the article.</figcaption>
+                        </figure>
+                        
+                        <KeyTakeaways takeaways={article.keyTakeaways} />
+                        <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
+                        
+                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300">
+                           <p>{article.content}</p>
+                           {/* Add more paragraphs if content is longer */}
+                        </div>
 
-            {/* AI Action Bar */}
-            <div className="flex flex-wrap gap-2 mb-8 p-3 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                <button onClick={handleSummarize} className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    <SummarizeIcon className="w-5 h-5"/> AI Summary
-                </button>
-                <button onClick={handleExplainSimply} className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    <ChildIcon className="w-5 h-5"/> Explain Simply
-                </button>
-                <button onClick={handleTextToSpeech} disabled={isTtsGenerating} className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50">
-                    {isTtsGenerating ? <LoadingSpinner/> : <ReadAloudIcon className="w-5 h-5"/>} Read Aloud
-                </button>
-            </div>
-            
-            <img src={article.imageUrl} alt={article.title} className="w-full rounded-lg shadow-lg mb-8" />
-            
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              <p className="lead">{article.excerpt}</p>
-              
-              <FactCheck result={article.factCheck || factCheckResult} isLoading={isFactCheckLoading} />
-              
-              {article.keyTakeaways && <KeyTakeaways takeaways={article.keyTakeaways} />}
+                        <AITags tags={tags} isLoading={tagsLoading} />
+                    </main>
 
-              <AITags tags={aiTags} isLoading={areAiTagsLoading} />
-              
-              {article.content?.split('\n').map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+                    <CommentsSection initialComments={mockComments} />
+                </div>
             </div>
-
-            <AuthorInfo author={article.author} date={article.date} />
-            
-            <CommentsSection initialComments={article.comments || []} />
-          </article>
-          
-          <div className={`lg:col-span-3 transition-all duration-300 ${isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            <div className="sticky top-28 space-y-8">
-              <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
-            </div>
-          </div>
         </div>
-      </div>
-
-      {isSummarizerOpen && (
-          <SummarizerModal 
+        <FloatingActionbar
             article={article}
-            summary={summary}
-            isLoading={isSummaryLoading}
-            error={summaryError}
-            onClose={() => setIsSummarizerOpen(false)}
-          />
-      )}
-       {isExplainSimplyOpen && (
-          <ExplainSimplyModal 
-            article={article}
-            explanation={explanation}
-            isLoading={isExplainSimplyLoading}
-            error={explainSimplyError}
-            onClose={() => setIsExplainSimplyOpen(false)}
-          />
-      )}
-       {(ttsAudio || isTtsGenerating) && (
-        <TextToSpeechPlayer 
-            audioBase64={ttsAudio}
-            isGenerating={isTtsGenerating}
-            onClose={() => setTtsAudio(null)}
+            onSummarize={onSummarize}
+            onExplainSimply={onExplainSimply}
+            onTextToSpeech={onTextToSpeech}
+            onTranslate={onTranslate}
+            onQuiz={onQuiz}
         />
-       )}
-    </>
+    </div>
   );
 };
 

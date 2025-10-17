@@ -1,18 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Article } from '../types';
+import { explainSimply } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import ChildIcon from './icons/ChildIcon';
 
 interface ExplainSimplyModalProps {
   article: Article | null;
-  explanation: string;
-  isLoading: boolean;
-  error: string;
   onClose: () => void;
 }
 
-const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ article, explanation, isLoading, error, onClose }) => {
+const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ article, onClose }) => {
+  const [explanation, setExplanation] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (article) {
+      const getExplanation = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+          const result = await explainSimply(article);
+          setExplanation(result);
+        } catch (err: any) {
+          setError(err.message || 'Failed to generate explanation.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      getExplanation();
+    }
+  }, [article]);
+  
   if (!article) return null;
 
   return (

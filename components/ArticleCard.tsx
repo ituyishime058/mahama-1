@@ -1,79 +1,112 @@
 import React from 'react';
 import type { Article } from '../types';
-import LoadingSpinner from './icons/LoadingSpinner';
+import SummarizeIcon from './icons/SummarizeIcon';
+import BrainIcon from './icons/BrainIcon';
+import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import BookmarkIcon from './icons/BookmarkIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import CheckIcon from './icons/CheckIcon';
-import ClockIcon from './icons/ClockIcon';
+import LoadingSpinner from './icons/LoadingSpinner';
+import SentimentIndicator from './SentimentIndicator';
+import TranslateIcon from './icons/TranslateIcon';
 
 interface ArticleCardProps {
   article: Article;
+  onSummarize: (article: Article) => void;
+  onExplainSimply: (article: Article) => void;
+  onTextToSpeech: (article: Article) => void;
+  onTranslate: (article: Article) => void;
   onReadMore: (article: Article) => void;
-  featured?: boolean;
+  audioState: {
+    playingArticleId: number | null;
+    isGenerating: boolean;
+  };
   isBookmarked: boolean;
   onToggleBookmark: (articleId: number) => void;
   offlineArticleIds: number[];
   downloadingArticleId: number | null;
   onDownloadArticle: (article: Article) => void;
+  featured?: boolean;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ 
-  article, 
+const ArticleCard: React.FC<ArticleCardProps> = ({
+  article,
+  onSummarize,
+  onExplainSimply,
+  onTextToSpeech,
+  onTranslate,
   onReadMore,
-  featured = false,
+  audioState,
   isBookmarked,
   onToggleBookmark,
   offlineArticleIds,
   downloadingArticleId,
-  onDownloadArticle
+  onDownloadArticle,
+  featured = false,
 }) => {
+  const isAudioPlaying = audioState.playingArticleId === article.id;
   const isOffline = offlineArticleIds.includes(article.id);
   const isDownloading = downloadingArticleId === article.id;
 
-  const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation();
-    action();
-  }
-
-  const renderDownloadButton = () => {
-    if (isDownloading) return <LoadingSpinner />;
-    if (isOffline) return <CheckIcon className="text-green-500" />;
-    return <DownloadIcon />;
+  const handleReadMore = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onReadMore(article);
   };
 
-  const cardContent = (
-    <>
-      <div className="relative overflow-hidden rounded-t-lg md:rounded-lg">
-        <img src={article.imageUrl} alt={article.title} className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${featured ? 'aspect-video' : 'h-48'}`} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-         <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-            <ClockIcon className="w-3 h-3" />
-            <span>{article.readingTime} min read</span>
-        </div>
-      </div>
-      <div className={`p-5 flex flex-col flex-grow ${featured ? 'md:col-span-2' : ''}`}>
-        <p className="text-xs font-semibold uppercase text-deep-red dark:text-gold">{article.category}</p>
-        <h3 className={`font-bold my-1 leading-tight flex-grow group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-200 ${featured ? 'text-2xl lg:text-3xl' : 'text-lg'}`}>
-          {article.title}
-        </h3>
-        {featured && <p className="text-slate-600 dark:text-slate-400 mb-4 mt-2 line-clamp-3">{article.excerpt}</p>}
-        <p className="text-xs text-slate-500 mt-auto">{article.author} &bull; {article.date}</p>
-        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end">
-            <div className="flex items-center space-x-1">
-                <button onClick={(e) => handleButtonClick(e, () => onDownloadArticle(article))} disabled={isOffline || isDownloading} title={isOffline ? 'Saved for offline' : 'Save for offline'} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">{renderDownloadButton()}</button>
-                <button onClick={(e) => handleButtonClick(e, () => onToggleBookmark(article.id))} title="Bookmark article" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><BookmarkIcon filled={isBookmarked} className={isBookmarked ? 'text-gold' : ''}/></button>
-            </div>
-        </div>
-      </div>
-    </>
+  const ActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; disabled?: boolean; }> = ({ onClick, icon, label, disabled }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-deep-red dark:hover:text-gold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   );
 
-  const commonClasses = "group bg-white dark:bg-slate-800/50 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden";
-  
   return (
-    <div onClick={() => onReadMore(article)} className={`cursor-pointer ${commonClasses} ${featured ? 'grid grid-cols-1 md:grid-cols-3 gap-x-8 items-center' : 'flex flex-col'}`}>
-      {cardContent}
-    </div>
+    <article className={`bg-white dark:bg-slate-800/50 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl ${featured ? 'flex flex-col lg:flex-row' : ''}`}>
+      <div className={`${featured ? 'lg:w-1/2' : ''} relative`}>
+        <img
+          src={article.imageUrl}
+          alt={article.title}
+          className={`w-full object-cover ${featured ? 'h-full' : 'h-64'}`}
+        />
+        <div className="absolute top-4 left-4 bg-deep-red text-white text-xs font-bold px-2 py-1 rounded">{article.category}</div>
+      </div>
+      <div className={`p-6 flex flex-col ${featured ? 'lg:w-1/2' : ''}`}>
+        <div className="flex-grow">
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-sm text-slate-500">{article.author} &bull; {article.date}</p>
+            <SentimentIndicator sentiment={article.sentiment} />
+          </div>
+          <h3 className={`font-extrabold leading-tight mb-3 ${featured ? 'text-3xl' : 'text-2xl'}`}>
+            <a href="#" onClick={handleReadMore} className="hover:underline">{article.title}</a>
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">{article.excerpt}</p>
+        </div>
+
+        <div className="border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
+            <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
+             <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}>
+              <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 transition-colors ${isBookmarked ? 'text-deep-red' : 'text-slate-400 hover:text-deep-red'}`} />
+            </button>
+            <button
+              onClick={() => onDownloadArticle(article)}
+              disabled={isOffline || isDownloading}
+              title={isOffline ? 'Article saved for offline' : 'Save for offline'}
+            >
+              {isDownloading ? <LoadingSpinner className="text-slate-400"/> : isOffline ? <CheckIcon className="text-green-500" /> : <DownloadIcon className="text-slate-400 hover:text-deep-red" />}
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 };
 

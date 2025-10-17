@@ -1,72 +1,59 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { Article } from '../types';
+import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice } from '../types';
 
-let ai: GoogleGenAI;
+// FIX: Initialize the GoogleGenAI client. Ensure API_KEY is set in the environment.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-const getAI = () => {
-    if (!ai) {
-        if (!process.env.API_KEY) {
-            // In a real app, you'd handle this more gracefully.
-            // For this project, we assume API_KEY is set.
-            console.error("API_KEY environment variable not set");
-            throw new Error("API_KEY environment variable not set");
-        }
-        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    }
-    return ai;
-}
-
-export const summarizeArticle = async (article: Article, length: 'short' | 'medium' | 'detailed' = 'medium'): Promise<string> => {
-    const ai = getAI();
-    const model = 'gemini-2.5-flash';
-
-    let prompt = `Summarize the following news article. The article title is "${article.title}". The content is: "${article.content}".`;
-    if (length === 'short') {
-        prompt += "\n\nProvide a very short, one-sentence summary (a TL;DR).";
-    } else if (length === 'medium') {
-        prompt += "\n\nProvide a concise summary highlighting the key points in a single paragraph.";
-    } else {
-        prompt += "\n\nProvide a detailed, multi-paragraph summary covering the main arguments and conclusions.";
-    }
-
+export const summarizeArticle = async (article: Article, length: AiSummaryLength = 'Medium'): Promise<string> => {
     try {
+        let prompt: string;
+        switch(length) {
+            case 'Short':
+                prompt = `Summarize the following news article in one single, concise sentence:\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+                break;
+            case 'Detailed':
+                prompt = `Provide a detailed, multi-paragraph summary of the following news article, covering all the key points and nuances:\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+                break;
+            case 'Medium':
+            default:
+                 prompt = `Summarize the following news article in 3-4 concise bullet points:\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+                break;
+        }
+
         const response = await ai.models.generateContent({
-            model,
+            model: 'gemini-2.5-flash',
             contents: prompt,
         });
         return response.text;
     } catch (error) {
         console.error("Error summarizing article:", error);
-        return "Sorry, I couldn't generate a summary at this time.";
+        throw new Error("Failed to generate summary. Please try again.");
     }
 };
 
 export const explainSimply = async (article: Article): Promise<string> => {
-    const ai = getAI();
-    const model = 'gemini-2.5-flash';
-    const prompt = `Explain the following news article as if you were talking to a 10-year-old. Use simple words and analogies. The article title is "${article.title}". The content is: "${article.content}".`;
-    
     try {
+        const prompt = `Explain the key points of this article as if you were talking to a 10-year-old. Use simple language and analogies.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContent({
-            model,
+            model: 'gemini-2.5-flash',
             contents: prompt,
+            config: {
+                systemInstruction: "You are a friendly and simple explainer for kids.",
+            }
         });
         return response.text;
     } catch (error) {
-        console.error("Error explaining article simply:", error);
-        return "Sorry, I couldn't generate a simplified explanation at this time.";
+        console.error("Error explaining article:", error);
+        throw new Error("Failed to generate simple explanation. Please try again.");
     }
 };
 
-
-export const generateTextToSpeech = async (text: string, voice: string): Promise<string | null> => {
-    const ai = getAI();
-    const model = 'gemini-2.5-flash-preview-tts';
-    
+export const textToSpeech = async (article: Article, voice: AiTtsVoice = 'Kore'): Promise<string> => {
     try {
+        const textToRead = `Article title: ${article.title}. By ${article.author}. ${article.excerpt}`;
         const response = await ai.models.generateContent({
-            model,
-            contents: [{ parts: [{ text: text }] }],
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: textToRead }] }],
             config: {
                 responseModalities: ['AUDIO'],
                 speechConfig: {
@@ -77,25 +64,24 @@ export const generateTextToSpeech = async (text: string, voice: string): Promise
             },
         });
         const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        return base64Audio || null;
+        if (!base64Audio) {
+            throw new Error("No audio data received from API.");
+        }
+        return base64Audio;
     } catch (error) {
         console.error("Error generating text-to-speech:", error);
-        return null;
+        throw new Error("Failed to generate audio. Please try again.");
     }
 };
 
-export const generateAITags = async (article: Article): Promise<string[]> => {
-    const ai = getAI();
-    const model = 'gemini-2.5-flash';
-    
-    const prompt = `Based on the following article, generate 4-5 relevant tags or keywords. The title is "${article.title}" and the content is "${article.content}". Return the tags as a JSON array of strings, like ["tag1", "tag2"].`;
-
+export const generateTags = async (article: Article): Promise<string[]> => {
     try {
+        const prompt = `Generate 4-5 relevant tags for this news article. The tags should be short, single or two-word concepts.\n\nTitle: ${article.title}\n\nExcerpt: ${article.excerpt}`;
         const response = await ai.models.generateContent({
-            model: model,
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
-                responseMimeType: "application/json",
+                responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -103,8 +89,7 @@ export const generateAITags = async (article: Article): Promise<string[]> => {
                             type: Type.ARRAY,
                             items: { type: Type.STRING }
                         }
-                    },
-                    required: ["tags"],
+                    }
                 }
             }
         });
@@ -113,55 +98,89 @@ export const generateAITags = async (article: Article): Promise<string[]> => {
         const result = JSON.parse(jsonStr);
         return result.tags || [];
     } catch (error) {
-        console.error("Error generating AI tags:", error);
-        return [];
+        console.error("Error generating tags:", error);
+        return []; // Return empty array on failure
     }
 };
 
 export const factCheckArticle = async (article: Article): Promise<{ status: string; summary: string } | null> => {
-    const ai = getAI();
-    const model = 'gemini-2.5-pro'; // Use a more powerful model for reasoning
-
-    const prompt = `Fact-check the key claims in the following news article. Analyze the content for accuracy and potential bias. 
-    Article Title: "${article.title}"
-    Article Content: "${article.content}"
-    
-    Return your analysis as a JSON object with two keys:
-    1. "status": A single word string. Choose one of: "Verified", "Mixed", "Unverified".
-       - "Verified": The main claims are well-supported by evidence.
-       - "Mixed": Some claims are accurate, but others are disputed or lack context.
-       - "Unverified": The claims could not be verified or are likely false.
-    2. "summary": A brief, neutral summary of your findings (2-3 sentences).
-    `;
-
     try {
+        const prompt = `Analyze the claims made in the following article and provide a fact-check summary. Categorize the overall accuracy as 'Verified', 'Mixed', or 'Unverified'.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContent({
-            model: model,
+            model: 'gemini-2.5-pro', // Using a more powerful model for reasoning
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        status: {
+                            type: Type.STRING,
+                            description: "The overall fact-check status: 'Verified', 'Mixed', or 'Unverified'."
+                        },
+                        summary: {
+                            type: Type.STRING,
+                            description: "A brief summary of the fact-check findings."
+                        }
+                    }
+                }
+            }
+        });
+        const jsonStr = response.text.trim();
+        return JSON.parse(jsonStr);
+    } catch (error) {
+        console.error("Error fact-checking article:", error);
+        return null;
+    }
+};
+
+export const translateArticle = async (text: string, language: string): Promise<string> => {
+    try {
+        const prompt = `Translate the following text into ${language}:\n\n${text}`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt
+        });
+        return response.text;
+    } catch (error) {
+        console.error(`Error translating to ${language}:`, error);
+        throw new Error(`Failed to translate. Please try again.`);
+    }
+};
+
+export const generateQuiz = async (article: Article): Promise<QuizQuestion[]> => {
+    try {
+        const prompt = `Create a 3-question multiple-choice quiz based on the following article. For each question, provide four options and indicate the correct answer.\n\nArticle: ${article.content}`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        status: { type: Type.STRING },
-                        summary: { type: Type.STRING }
-                    },
-                    required: ["status", "summary"]
+                        quiz: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    question: { type: Type.STRING },
+                                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    correctAnswer: { type: Type.STRING }
+                                },
+                                required: ["question", "options", "correctAnswer"]
+                            }
+                        }
+                    }
                 }
             }
         });
-        
         const jsonStr = response.text.trim();
         const result = JSON.parse(jsonStr);
-
-        // Basic validation
-        const validStatuses = ["Verified", "Mixed", "Unverified"];
-        if (result && typeof result.status === 'string' && typeof result.summary === 'string' && validStatuses.includes(result.status)) {
-            return result;
-        }
-        return null;
+        return result.quiz || [];
     } catch (error) {
-        console.error("Error fact-checking article:", error);
-        return null;
+        console.error("Error generating quiz:", error);
+        throw new Error("Failed to generate quiz. Please try again.");
     }
 };

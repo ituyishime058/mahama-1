@@ -1,21 +1,45 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { decode, decodeAudioData } from '../utils/audio';
+import { textToSpeech } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 import ReadAloudIcon from './icons/ReadAloudIcon';
 import WaveformIcon from './icons/WaveformIcon';
+import type { Article, AiTtsVoice } from '../types';
 
 interface TextToSpeechPlayerProps {
-  audioBase64: string | null;
-  isGenerating: boolean;
+  article: Article | null;
+  voice: AiTtsVoice;
   onClose: () => void;
 }
 
-const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ audioBase64, isGenerating, onClose }) => {
+const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice, onClose }) => {
+  const [audioBase64, setAudioBase64] = useState<string|null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState('');
+
   const audioContextRef = useRef<AudioContext>();
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   useEffect(() => {
-    // FIX: Add `(window as any)` to handle vendor-prefixed `webkitAudioContext` for browser compatibility.
+    if (article) {
+        const generateAndPlay = async () => {
+            setIsGenerating(true);
+            setError('');
+            try {
+                const b64 = await textToSpeech(article, voice);
+                setAudioBase64(b64);
+            } catch(e: any) {
+                setError('Failed to generate audio.');
+                console.error(e);
+            } finally {
+                setIsGenerating(false);
+            }
+        };
+        generateAndPlay();
+    }
+  }, [article, voice]);
+
+  useEffect(() => {
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     
     return () => {
@@ -56,6 +80,8 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ audioBase64, is
       playAudio();
     }
   }, [audioBase64, onClose]);
+  
+  if (!article) return null;
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
@@ -64,7 +90,7 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ audioBase64, is
                 {isGenerating ? <WaveformIcon isAnimating={true} /> : <ReadAloudIcon className="w-6 h-6"/>}
             </div>
             <p className="font-semibold text-slate-700 dark:text-slate-200">
-                {isGenerating ? 'Generating audio...' : 'Reading article aloud...'}
+                {error ? error : isGenerating ? 'Generating audio...' : 'Reading article aloud...'}
             </p>
             <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-800 dark:hover:text-white">
                 <CloseIcon className="w-5 h-5"/>

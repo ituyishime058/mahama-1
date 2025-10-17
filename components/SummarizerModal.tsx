@@ -1,17 +1,38 @@
-import React from 'react';
-import type { Article } from '../types';
+import React, { useEffect, useState } from 'react';
+import type { Article, AiSummaryLength } from '../types';
+import { summarizeArticle } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 
 interface SummarizerModalProps {
   article: Article | null;
-  summary: string;
-  isLoading: boolean;
-  error: string;
+  summaryLength: AiSummaryLength;
   onClose: () => void;
 }
 
-const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summary, isLoading, error, onClose }) => {
+const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summaryLength, onClose }) => {
+  const [summary, setSummary] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (article) {
+      const getSummary = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+          const result = await summarizeArticle(article, summaryLength);
+          setSummary(result);
+        } catch (err: any) {
+          setError(err.message || 'Failed to generate summary.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      getSummary();
+    }
+  }, [article, summaryLength]);
+
   if (!article) return null;
 
   return (
@@ -27,7 +48,7 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summary, isL
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{article.title}</h2>
           <p className="text-sm text-slate-500 mb-4">{article.author} &bull; {article.date}</p>
           <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-            <h3 className="font-bold text-lg mb-2 text-deep-red dark:text-gold">AI Summary</h3>
+            <h3 className="font-bold text-lg mb-2 text-deep-red dark:text-gold">AI Summary ({summaryLength})</h3>
             {isLoading && (
               <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-400">
                 <LoadingSpinner />
@@ -35,7 +56,7 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summary, isL
               </div>
             )}
             {error && <p className="text-red-500">{error}</p>}
-            {summary && !isLoading && <p className="text-slate-700 dark:text-slate-300">{summary}</p>}
+            {summary && !isLoading && <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line">{summary}</p>}
           </div>
         </div>
       </div>
