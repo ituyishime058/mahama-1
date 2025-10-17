@@ -1,142 +1,140 @@
 import React, { useState } from 'react';
 import type { Settings, Theme, FontFamily, AiSummaryLength, AiTtsVoice } from '../types';
-import { categories, LANGUAGES } from '../constants';
+import { LANGUAGES } from '../constants';
 import CloseIcon from './icons/CloseIcon';
 import PaletteIcon from './icons/PaletteIcon';
 import FontSizeIcon from './icons/FontSizeIcon';
+import SansFontIcon from './icons/SansFontIcon';
+import SerifFontIcon from './icons/SerifFontIcon';
 import NotificationIcon from './icons/NotificationIcon';
 import DataIcon from './icons/DataIcon';
-import SparklesIcon from './icons/SparklesIcon';
-import TranslateIcon from './icons/TranslateIcon';
+import GlobeIcon from './icons/GlobeIcon';
 import ContentFilterIcon from './icons/ContentFilterIcon';
+import SparklesIcon from './icons/SparklesIcon';
+import TextToSpeechIcon from './icons/TextToSpeechIcon';
+import TrashIcon from './icons/TrashIcon';
 
 interface SettingsPageProps {
   settings: Settings;
-  onSettingsChange: (newSettings: Partial<Settings>) => void;
+  onUpdateSettings: (newSettings: Partial<Settings>) => void;
   onClose: () => void;
-  onClearBookmarks: () => void;
-  onClearOfflineArticles: () => void;
+  onClearOfflineData: () => void;
 }
 
-type SettingsTab = 'Appearance' | 'Content' | 'Language' | 'AI Features' | 'Data';
+const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onUpdateSettings, onClose, onClearOfflineData }) => {
+  const [localSettings, setLocalSettings] = useState(settings);
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onClose, onClearBookmarks, onClearOfflineArticles }) => {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('Appearance');
-
-  const handleCategoryToggle = (category: string) => {
-    const newHidden = settings.hiddenCategories.includes(category)
-      ? settings.hiddenCategories.filter(c => c !== category)
-      : [...settings.hiddenCategories, category];
-    onSettingsChange({ hiddenCategories: newHidden });
+  const handleUpdate = <K extends keyof Settings>(key: K, value: Settings[K]) => {
+    const newSettings = { ...localSettings, [key]: value };
+    setLocalSettings(newSettings);
+    onUpdateSettings({ [key]: value });
   };
   
-  const NavItem: React.FC<{ tab: SettingsTab, icon: React.ReactNode, label: string }> = ({ tab, icon, label }) => (
-    <button 
-      onClick={() => setActiveTab(tab)}
-      className={`flex items-center gap-3 w-full p-3 rounded-lg text-left font-semibold transition-colors ${activeTab === tab ? 'bg-deep-red/10 text-deep-red dark:bg-gold/10 dark:text-gold' : 'hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
+  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <div className="mb-8">
+      <h2 className="text-xl font-bold mb-4 pb-2 border-b border-slate-200 dark:border-slate-700">{title}</h2>
+      <div className="space-y-4">
+        {children}
+      </div>
+    </div>
+  );
+
+  const SettingRow: React.FC<{ icon: React.ReactNode; label: string; children: React.ReactNode; }> = ({ icon, label, children }) => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        {icon}
+        <span className="font-semibold">{label}</span>
+      </div>
+      <div>
+        {children}
+      </div>
+    </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-navy">
-        <header className="sticky top-0 z-10 bg-white/80 dark:bg-navy/80 backdrop-blur-sm shadow-sm">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Settings</h1>
-                <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
-                    <CloseIcon />
-                </button>
-            </div>
+    <div className="fixed inset-0 z-[60] bg-slate-100 dark:bg-navy animate-fade-in">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col">
+        <header className="flex items-center justify-between h-20 flex-shrink-0">
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <button onClick={onClose} className="p-2"><CloseIcon /></button>
         </header>
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <aside className="md:col-span-1">
-                    <nav className="space-y-2 p-4 bg-white dark:bg-slate-800/50 rounded-lg">
-                        <NavItem tab="Appearance" icon={<PaletteIcon className="w-5 h-5"/>} label="Appearance" />
-                        <NavItem tab="Content" icon={<ContentFilterIcon className="w-5 h-5"/>} label="Content Preferences" />
-                        <NavItem tab="Language" icon={<TranslateIcon className="w-5 h-5"/>} label="Language" />
-                        <NavItem tab="AI Features" icon={<SparklesIcon className="w-5 h-5"/>} label="AI Features" />
-                        <NavItem tab="Data" icon={<DataIcon className="w-5 h-5"/>} label="Data Management" />
-                    </nav>
-                </aside>
-
-                <div className="md:col-span-3">
-                    <div className="bg-white dark:bg-slate-800/50 rounded-lg shadow-sm p-6">
-                        {activeTab === 'Appearance' && (
-                            <div className="space-y-6">
-                               <h2 className="text-xl font-bold">Appearance</h2>
-                               {/* Theme setting, Font Size etc. */}
-                            </div>
-                        )}
-                        {activeTab === 'Content' && (
-                            <div className="space-y-4">
-                               <h2 className="text-xl font-bold">Content Preferences</h2>
-                               <p className="text-sm text-slate-500">Hide categories you're not interested in from the "All" feed.</p>
-                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
-                                   {categories.map(cat => (
-                                       <label key={cat} className="flex items-center gap-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg cursor-pointer">
-                                           <input type="checkbox" checked={!settings.hiddenCategories.includes(cat)} onChange={() => handleCategoryToggle(cat)} className="form-checkbox h-5 w-5 rounded text-deep-red focus:ring-deep-red/50" />
-                                           <span className="font-semibold">{cat}</span>
-                                       </label>
-                                   ))}
-                               </div>
-                            </div>
-                        )}
-                         {activeTab === 'Language' && (
-                            <div className="space-y-4">
-                               <h2 className="text-xl font-bold">Language Settings</h2>
-                               <p className="text-sm text-slate-500">Choose the default language for AI article translations.</p>
-                               <select value={settings.language} onChange={e => onSettingsChange({ language: e.target.value })} className="w-full max-w-sm p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600">
-                                   {LANGUAGES.map(lang => <option key={lang} value={lang}>{lang}</option>)}
-                               </select>
-                            </div>
-                        )}
-                        {activeTab === 'AI Features' && (
-                             <div className="space-y-6">
-                               <h2 className="text-xl font-bold">AI Features</h2>
-                               <div>
-                                   <label className="font-semibold">Summary Length</label>
-                                   <p className="text-sm text-slate-500">Set the default length for AI-generated article summaries.</p>
-                                   <div className="flex gap-2 mt-2">
-                                       {(['Short', 'Medium', 'Detailed'] as AiSummaryLength[]).map(len => (
-                                           <button key={len} onClick={() => onSettingsChange({ aiSummaryLength: len })} className={`px-4 py-2 text-sm font-semibold rounded-full ${settings.aiSummaryLength === len ? 'bg-deep-red text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>{len}</button>
-                                       ))}
-                                   </div>
-                               </div>
-                               <div>
-                                   <label className="font-semibold">Text-to-Speech Voice</label>
-                                    <p className="text-sm text-slate-500">Select your preferred voice for the "Read Aloud" feature.</p>
-                                   <select value={settings.aiTtsVoice} onChange={e => onSettingsChange({ aiTtsVoice: e.target.value as AiTtsVoice })} className="w-full max-w-sm p-2 mt-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600">
-                                       {(['Kore', 'Puck', 'Charon', 'Fenrir', 'Zephyr'] as AiTtsVoice[]).map(voice => <option key={voice} value={voice}>{voice}</option>)}
-                                   </select>
-                               </div>
-                            </div>
-                        )}
-                        {activeTab === 'Data' && (
-                            <div className="space-y-6">
-                                <h2 className="text-xl font-bold">Data Management</h2>
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
-                                    <div>
-                                        <h3 className="font-semibold">Clear Bookmarks</h3>
-                                        <p className="text-sm text-slate-500">Permanently remove all your saved bookmarks.</p>
-                                    </div>
-                                    <button onClick={onClearBookmarks} className="mt-2 sm:mt-0 px-4 py-2 bg-red-100 text-deep-red font-semibold rounded-md text-sm hover:bg-red-200">Clear</button>
-                                </div>
-                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
-                                    <div>
-                                        <h3 className="font-semibold">Clear Offline Articles</h3>
-                                        <p className="text-sm text-slate-500">Permanently remove all articles saved for offline reading.</p>
-                                    </div>
-                                    <button onClick={onClearOfflineArticles} className="mt-2 sm:mt-0 px-4 py-2 bg-red-100 text-deep-red font-semibold rounded-md text-sm hover:bg-red-200">Clear</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+        <main className="flex-grow overflow-y-auto pb-8">
+          <div className="max-w-2xl mx-auto">
+            <Section title="Appearance">
+              <SettingRow icon={<PaletteIcon />} label="Theme">
+                <div className="flex items-center gap-2 bg-slate-200 dark:bg-slate-800 p-1 rounded-full">
+                  {(['light', 'dark', 'system'] as Theme[]).map(theme => (
+                    <button
+                      key={theme}
+                      onClick={() => handleUpdate('theme', theme)}
+                      className={`px-3 py-1 text-sm font-semibold rounded-full capitalize transition-colors ${localSettings.theme === theme ? 'bg-white dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}
+                    >{theme}</button>
+                  ))}
                 </div>
-            </div>
+              </SettingRow>
+              <SettingRow icon={<FontSizeIcon />} label="Font Size">
+                 <div className="flex items-center gap-3">
+                    <span className="text-sm">A</span>
+                    <input
+                        type="range"
+                        min="14"
+                        max="20"
+                        step="1"
+                        value={localSettings.fontSize}
+                        onChange={(e) => handleUpdate('fontSize', parseInt(e.target.value, 10))}
+                        className="w-32"
+                    />
+                    <span className="text-xl">A</span>
+                </div>
+              </SettingRow>
+              <SettingRow icon={<div className="flex items-center"><SansFontIcon className="w-4 h-4"/><SerifFontIcon className="w-4 h-4"/></div>} label="Font Family">
+                 <div className="flex items-center gap-2 bg-slate-200 dark:bg-slate-800 p-1 rounded-full">
+                  {(['sans', 'serif'] as FontFamily[]).map(family => (
+                    <button
+                      key={family}
+                      onClick={() => handleUpdate('fontFamily', family)}
+                      className={`px-3 py-1 text-sm font-semibold rounded-full capitalize transition-colors ${localSettings.fontFamily === family ? 'bg-white dark:bg-slate-600' : 'text-slate-600 dark:text-slate-300'}`}
+                    >{family}</button>
+                  ))}
+                </div>
+              </SettingRow>
+            </Section>
+
+            <Section title="General">
+                <SettingRow icon={<NotificationIcon />} label="Enable Notifications">
+                    <input type="checkbox" className="toggle-checkbox" checked={localSettings.enableNotifications} onChange={e => handleUpdate('enableNotifications', e.target.checked)} />
+                </SettingRow>
+                 <SettingRow icon={<DataIcon />} label="Data Saver Mode">
+                    <input type="checkbox" className="toggle-checkbox" checked={localSettings.dataSaverMode} onChange={e => handleUpdate('dataSaverMode', e.target.checked)} />
+                </SettingRow>
+                <SettingRow icon={<GlobeIcon />} label="Language">
+                    <select value={localSettings.language} onChange={e => handleUpdate('language', e.target.value)} className="bg-slate-200 dark:bg-slate-700 p-2 rounded-md border-transparent focus:ring-2 focus:ring-deep-red">
+                        {LANGUAGES.slice(0, 5).map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                    </select>
+                </SettingRow>
+            </Section>
+
+            <Section title="AI Features">
+                 <SettingRow icon={<SparklesIcon />} label="Default Summary Length">
+                    <select value={localSettings.aiSummaryLength} onChange={e => handleUpdate('aiSummaryLength', e.target.value as AiSummaryLength)} className="bg-slate-200 dark:bg-slate-700 p-2 rounded-md border-transparent focus:ring-2 focus:ring-deep-red">
+                        {(['Short', 'Medium', 'Detailed'] as AiSummaryLength[]).map(len => <option key={len} value={len}>{len}</option>)}
+                    </select>
+                </SettingRow>
+                <SettingRow icon={<TextToSpeechIcon />} label="Text-to-Speech Voice">
+                    <select value={localSettings.aiTtsVoice} onChange={e => handleUpdate('aiTtsVoice', e.target.value as AiTtsVoice)} className="bg-slate-200 dark:bg-slate-700 p-2 rounded-md border-transparent focus:ring-2 focus:ring-deep-red">
+                        {(['Kore', 'Puck', 'Charon', 'Fenrir', 'Zephyr'] as AiTtsVoice[]).map(voice => <option key={voice} value={voice}>{voice}</option>)}
+                    </select>
+                </SettingRow>
+            </Section>
+
+            <Section title="Data Management">
+                 <SettingRow icon={<TrashIcon />} label="Clear Offline Articles">
+                    <button onClick={onClearOfflineData} className="px-3 py-2 bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 text-sm font-semibold rounded-md">Clear Data</button>
+                </SettingRow>
+            </Section>
+          </div>
         </main>
+      </div>
     </div>
   );
 };

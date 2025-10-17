@@ -1,74 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="font-sans">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mahama News Hub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            'navy': '#0a192f',
-            'deep-red': '#b91c1c',
-            'gold': '#d97706',
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            serif: ['Lora', 'serif'],
-          },
-          animation: {
-            'ticker-scroll': 'ticker-scroll 40s linear infinite',
-            'progress-bar': 'progress-bar 1s ease-out forwards',
-            'ken-burns': 'ken-burns 20s ease-out forwards infinite',
-            'equalizer': 'equalizer 1.2s infinite ease-in-out',
-            'slide-up': 'slide-up 0.3s ease-out forwards',
-          },
-          keyframes: {
-            'ticker-scroll': {
-              '0%': { transform: 'translateX(100%)' },
-              '100%': { transform: 'translateX(-100%)' },
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahama News Hub</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'navy': '#0a192f',
+              'deep-red': '#b91c1c',
+              'gold': '#d97706',
             },
-            'progress-bar': {
-              '0%': { width: '0%' },
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+              serif: ['"Playfair Display"', 'ui-serif', 'Georgia'],
             },
-            'ken-burns': {
-              '0%': { transform: 'scale(1) translate(0, 0)' },
-              '50%': { transform: 'scale(1.1) translate(-2%, 2%)' },
-              '100%': { transform: 'scale(1) translate(0, 0)' },
+            animation: {
+                'ken-burns': 'ken-burns 20s ease-out infinite',
+                'ticker-scroll': 'ticker-scroll 60s linear infinite',
+                'progress-bar': 'progress-bar 1s ease-out forwards',
+                'fade-in': 'fade-in 0.3s ease-out forwards',
+                'slide-up': 'slide-up 0.3s ease-out forwards',
+                'equalizer': 'equalizer 1.2s infinite ease-in-out',
+                'fade-in-down': 'fade-in-down 0.2s ease-out forwards',
             },
-            'equalizer': {
-                '0%, 100%': { height: '0.5rem' },
-                '50%': { height: '1.5rem' },
-            },
-            'slide-up': {
-              '0%': { transform: 'translateY(100%)', opacity: 0 },
-              '100%': { transform: 'translateY(0)', opacity: 1 },
+            keyframes: {
+                'ken-burns': {
+                    '0%, 100%': { transform: 'scale(1) translate(0, 0)' },
+                    '50%': { transform: 'scale(1.1) translate(-2%, 2%)' },
+                },
+                'ticker-scroll': {
+                    'from': { transform: 'translateX(0%)' },
+                    'to': { transform: 'translateX(-50%)' },
+                },
+                'progress-bar': {
+                    'from': { width: '0%' },
+                },
+                'fade-in': {
+                    'from': { opacity: '0' },
+                    'to': { opacity: '1' },
+                },
+                'slide-up': {
+                    'from': { transform: 'translateY(20px)', opacity: '0' },
+                    'to': { transform: 'translateY(0)', opacity: '1' },
+                },
+                'equalizer': {
+                    '0%': { height: '25%' },
+                    '25%': { height: '100%' },
+                    '50%': { height: '50%' },
+                    '75%': { height: '75%' },
+                    '100%': { height: '25%' },
+                },
+                'fade-in-down': {
+                    'from': { opacity: '0', transform: 'translateY(-10px)' },
+                    'to': { opacity: '1', transform: 'translateY(0)' },
+                }
             }
-          },
-        },
-      },
+          }
+        }
+      }
+    </script>
+    
+    <!-- Google Fonts for Inter and Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react-dom/client": "https://aistudiocdn.com/react-dom@19.2.0/client",
+        "react-dom/": "https://aistudiocdn.com/react-dom@19.2.0/",
+        "react/": "https://aistudiocdn.com/react@19.2.0/",
+        "react": "https://aistudiocdn.com/react@19.2.0",
+        "@google/genai": "https://aistudiocdn.com/@google/genai@1.25.0"
+      }
     }
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.25.0"
-  }
-}
-</script>
+    </script>
+
+    <script>
+      // Pre-emptive theme and font script to prevent FOUC (Flash of Unstyled Content)
+      try {
+        const settingsRaw = localStorage.getItem('mahama-settings');
+        if (settingsRaw) {
+          const settings = JSON.parse(settingsRaw);
+          const theme = settings.theme;
+          const fontFamily = settings.fontFamily;
+          
+          if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          }
+
+          if (fontFamily === 'serif') {
+            document.documentElement.classList.add('font-serif');
+          } else {
+            document.documentElement.classList.add('font-sans');
+          }
+        } else {
+            // Default to system preference if no settings saved
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+      } catch (e) {
+        console.error("Error applying pre-load settings:", e);
+      }
+    </script>
 </head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+<body class="bg-slate-100 dark:bg-navy">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
