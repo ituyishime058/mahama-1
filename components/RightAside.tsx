@@ -4,6 +4,7 @@ import TrendingNews from './TrendingNews';
 import AdPlaceholder from './AdPlaceholder';
 import CommunityPoll from './CommunityPoll';
 import WeatherWidget from './WeatherWidget';
+import SubscriptionCard from './SubscriptionCard';
 
 interface RightAsideProps {
   trendingArticles: Article[];
@@ -14,6 +15,7 @@ const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClic
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-28 space-y-8">
+        <SubscriptionCard />
         <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
         <WeatherWidget />
         <CommunityPoll />

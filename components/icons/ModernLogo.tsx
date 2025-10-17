@@ -31,13 +31,13 @@ const ModernLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
             50% { transform: scale(1.05); opacity: 1; }
           }
            .mnh-logo-group:hover .mnh-pulse {
-            animation-duration: 1s;
+            animation-duration: 0.8s;
           }
           .mnh-logo-group:hover .mnh-stream {
-            animation-duration: 1.5s;
+            animation-duration: 1.2s;
           }
           .mnh-logo-group:hover .mnh-letter {
-            transform: scale(1.05);
+            transform: scale(1.1);
           }
           .mnh-letter {
             font-family: Inter, sans-serif;

@@ -14,6 +14,8 @@ import TrashIcon from './icons/TrashIcon';
 import DataIcon from './icons/DataIcon';
 import ContentFilterIcon from './icons/ContentFilterIcon';
 import TranslateIcon from './icons/TranslateIcon';
+import BellIcon from './icons/BellIcon';
+import MicIcon from './icons/MicIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -29,9 +31,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
   const handleSettingChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
   };
+
+  const handleNotificationChange = (key: keyof Settings['notificationPreferences']) => {
+    handleSettingChange('notificationPreferences', {
+      ...localSettings.notificationPreferences,
+      [key]: !localSettings.notificationPreferences[key],
+    });
+  };
   
   const handleTogglePreference = (category: string) => {
-    if (category === 'All') return;
+    if (category === 'All' || category === 'For You') return;
     const currentPrefs = localSettings.contentPreferences || [];
     const newPrefs = currentPrefs.includes(category)
         ? currentPrefs.filter(p => p !== category)
@@ -49,7 +58,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl h-screen flex flex-col">
         <header className="flex items-center justify-between h-20 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
           <h1 className="text-3xl font-bold">Settings</h1>
-          <button onClick={handleSave} className="px-4 py-2 bg-deep-red text-white rounded-lg font-semibold">Save & Close</button>
+          <button onClick={handleSave} className="px-4 py-2 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save & Close</button>
         </header>
 
         <main className="py-8 flex-grow overflow-y-auto">
@@ -87,9 +96,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
             <section>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ContentFilterIcon /> Content Preferences</h2>
               <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
-                <p className="mb-4 text-slate-600 dark:text-slate-400">Select topics you're interested in to personalize your homepage news feed.</p>
+                <p className="mb-4 text-slate-600 dark:text-slate-400">Select topics you're interested in to personalize your "For You" feed.</p>
                 <div className="flex flex-wrap gap-2">
-                    {categories.filter(c => c !== 'All').map(category => {
+                    {categories.filter(c => c !== 'All' && c !== 'For You').map(category => {
                         const isSelected = localSettings.contentPreferences.includes(category);
                         return (
                             <button
@@ -112,31 +121,58 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
             {/* Advanced Features Section */}
             <section>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> Advanced Features</h2>
-              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4">
-                <div className="flex justify-between items-center">
+              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
+                <div className="flex justify-between items-center pt-4 first:pt-0">
+                    <label className="font-semibold flex items-center gap-2"><MicIcon className="w-5 h-5"/> AI Voice Personality</label>
+                    <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
+                        <button onClick={() => handleSettingChange('aiVoicePersonality', 'Friendly')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiVoicePersonality === 'Friendly' ? 'bg-white dark:bg-navy shadow' : ''}`}>Friendly</button>
+                        <button onClick={() => handleSettingChange('aiVoicePersonality', 'Professional')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiVoicePersonality === 'Professional' ? 'bg-white dark:bg-navy shadow' : ''}`}>Professional</button>
+                        <button onClick={() => handleSettingChange('aiVoicePersonality', 'Witty')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiVoicePersonality === 'Witty' ? 'bg-white dark:bg-navy shadow' : ''}`}>Witty</button>
+                    </div>
+                </div>
+                <div className="flex justify-between items-center pt-4">
                     <label className="font-semibold">Homepage Layout</label>
                     <div className="flex items-center gap-2 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                         <button onClick={() => handleSettingChange('homepageLayout', 'Standard')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.homepageLayout === 'Standard' ? 'bg-white dark:bg-navy shadow' : ''}`}>Standard</button>
                         <button onClick={() => handleSettingChange('homepageLayout', 'Dashboard')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.homepageLayout === 'Dashboard' ? 'bg-white dark:bg-navy shadow' : ''}`}>Dashboard</button>
                     </div>
                 </div>
-                <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div className="flex justify-between items-center pt-4">
                     <label htmlFor="auto-translate" className="font-semibold flex items-center gap-2"><TranslateIcon/> Auto-translate articles</label>
                     <input type="checkbox" id="auto-translate" checked={localSettings.autoTranslate} onChange={e => handleSettingChange('autoTranslate', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
-                <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div className="flex justify-between items-center pt-4">
                     <label htmlFor="show-streaming" className="font-semibold">"Now Streaming" Carousel</label>
                     <input type="checkbox" id="show-streaming" checked={localSettings.showNowStreaming} onChange={e => handleSettingChange('showNowStreaming', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
-                <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div className="flex justify-between items-center pt-4">
                     <label htmlFor="show-timeline" className="font-semibold">"Innovation Timeline" in Tech</label>
                     <input type="checkbox" id="show-timeline" checked={localSettings.showInnovationTimelines} onChange={e => handleSettingChange('showInnovationTimelines', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
-                 <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
+                 <div className="flex justify-between items-center pt-4">
                     <label htmlFor="show-counterpoint" className="font-semibold">AI Counterpoint Feature</label>
                     <input type="checkbox" id="show-counterpoint" checked={localSettings.showCounterpoint} onChange={e => handleSettingChange('showCounterpoint', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
               </div>
+            </section>
+            
+            {/* Notifications Section */}
+            <section>
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><BellIcon /> Notifications</h2>
+                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
+                    <div className="flex justify-between items-center pt-4 first:pt-0">
+                        <label htmlFor="notif-breaking" className="font-semibold">Breaking News Alerts</label>
+                        <input type="checkbox" id="notif-breaking" checked={localSettings.notificationPreferences.breakingNews} onChange={() => handleNotificationChange('breakingNews')} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
+                    </div>
+                    <div className="flex justify-between items-center pt-4">
+                        <label htmlFor="notif-digest" className="font-semibold">Daily Digest Email</label>
+                        <input type="checkbox" id="notif-digest" checked={localSettings.notificationPreferences.dailyDigest} onChange={() => handleNotificationChange('dailyDigest')} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
+                    </div>
+                    <div className="flex justify-between items-center pt-4">
+                        <label htmlFor="notif-ai" className="font-semibold">AI Recommendation Alerts</label>
+                        <input type="checkbox" id="notif-ai" checked={localSettings.notificationPreferences.aiRecommendations} onChange={() => handleNotificationChange('aiRecommendations')} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
+                    </div>
+                </div>
             </section>
 
              {/* Data Management Section */}

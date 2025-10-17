@@ -401,7 +401,7 @@ export const LANGUAGES: string[] = [
     "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", "Kinyarwanda", "Kiswahili", "Lingala"
 ];
 
-export const categories = ["All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Science", "Environment", "Art", "Music", "Mahama Investigates"];
+export const categories = ["For You", "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Science", "Environment", "Art", "Music", "Mahama Investigates"];
 
 export const innovations: Innovation[] = [
     { year: 1989, title: "World Wide Web Invented", description: "Tim Berners-Lee invents the Web, changing how information is shared globally.", icon: 'GlobeIcon' },

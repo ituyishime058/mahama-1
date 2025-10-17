@@ -17,6 +17,7 @@ import ScienceIcon from './icons/ScienceIcon';
 import EnvironmentIcon from './icons/EnvironmentIcon';
 import ArtIcon from './icons/ArtIcon';
 import MusicIcon from './icons/MusicIcon';
+import ForYouIcon from './icons/ForYouIcon';
 
 interface FilterBarProps {
   categories: string[];
@@ -25,6 +26,7 @@ interface FilterBarProps {
 }
 
 const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
+  "For You": ForYouIcon,
   "All": AllIcon,
   "World": GlobeIcon,
   "Politics": PoliticsIcon,

@@ -346,3 +346,42 @@ export async function* generateExpertAnalysis(article: Article, persona: ExpertP
         throw new Error("Failed to generate expert analysis. Please try again.");
     }
 };
+
+export const generatePersonalizedFeed = async (bookmarkedArticles: Article[], contentPreferences: string[], allArticles: Article[]): Promise<number[]> => {
+    try {
+        const bookmarkedTitles = bookmarkedArticles.map(a => a.title).join(', ');
+        const interestSummary = `The user has bookmarked articles like: "${bookmarkedTitles}". Their preferred categories are: ${contentPreferences.join(', ')}.`;
+        
+        const articleList = allArticles.map(a => `ID: ${a.id}, Title: ${a.title}, Category: ${a.category}`).join('\n');
+        
+        const prompt = `Based on the user's interests summarized below, recommend 5 articles from the provided article list that they are most likely to enjoy. The user has already seen their bookmarked articles.
+        
+User Interests: ${interestSummary}
+
+Article List:
+${articleList}
+
+Return only a JSON array of the recommended article IDs, like [1, 5, 8, 12, 15].`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.NUMBER,
+                    },
+                },
+            },
+        });
+        
+        const jsonStr = response.text.trim();
+        const result = JSON.parse(jsonStr);
+        return Array.isArray(result) ? result : [];
+    } catch (error) {
+        console.error("Error generating personalized feed:", error);
+        return [];
+    }
+};

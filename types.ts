@@ -52,6 +52,8 @@ export type AiSummaryLength = 'Short' | 'Medium' | 'Detailed';
 
 export type AiTtsVoice = 'Kore' | 'Puck' | 'Charon' | 'Fenrir' | 'Zephyr';
 
+export type AiVoicePersonality = 'Professional' | 'Friendly' | 'Witty';
+
 export interface QuizQuestion {
   question: string;
   options: string[];
@@ -85,6 +87,12 @@ export interface Settings {
     preferredLanguage: string;
     showCounterpoint: boolean;
     autoTranslate: boolean;
+    aiVoicePersonality: AiVoicePersonality;
+    notificationPreferences: {
+        breakingNews: boolean;
+        dailyDigest: boolean;
+        aiRecommendations: boolean;
+    };
 }
 
 export interface StreamingContent {

@@ -33,11 +33,13 @@ import FilterBar from './components/FilterBar';
 import CounterpointModal from './components/CounterpointModal';
 import BehindTheNewsModal from './components/BehindTheNewsModal';
 import ExpertAnalysisModal from './components/ExpertAnalysisModal';
+import LoadingSpinner from './components/icons/LoadingSpinner';
 
 
 import type { Article, Podcast, Settings } from './types';
 import { mockArticles, mockPodcasts, categories } from './constants';
 import { saveArticleForOffline, getOfflineArticleIds, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
+import { generatePersonalizedFeed } from './utils/ai';
 
 const defaultSettings: Settings = {
     theme: 'system',
@@ -52,6 +54,12 @@ const defaultSettings: Settings = {
     preferredLanguage: 'English',
     showCounterpoint: true,
     autoTranslate: false,
+    aiVoicePersonality: 'Friendly',
+    notificationPreferences: {
+        breakingNews: true,
+        dailyDigest: false,
+        aiRecommendations: true,
+    },
 };
 
 const App: React.FC = () => {
@@ -96,6 +104,7 @@ const App: React.FC = () => {
     // AI action states
     const [articleForAI, setArticleForAI] = useState<Article | null>(null);
     const [ttsArticle, setTtsArticle] = useState<Article | null>(null);
+    const [isGeneratingFeed, setIsGeneratingFeed] = useState(false);
     
     // Audio/Podcast states
     const [activePodcast, setActivePodcast] = useState<Podcast | null>(null);
@@ -131,22 +140,39 @@ const App: React.FC = () => {
         };
         fetchOfflineData();
     }, []);
+    
+    const bookmarkedArticles = mockArticles.filter(article => bookmarkedArticleIds.has(article.id));
 
     // Effect for filtering articles
     useEffect(() => {
-        let articlesToFilter = [...mockArticles];
+        const filterArticles = async () => {
+            let articlesToFilter = [...mockArticles];
+            
+            if (currentCategory === 'For You') {
+                setIsGeneratingFeed(true);
+                try {
+                    const recommendedIds = await generatePersonalizedFeed(bookmarkedArticles, settings.contentPreferences, mockArticles);
+                    articlesToFilter = recommendedIds.map(id => mockArticles.find(a => a.id === id)).filter(Boolean) as Article[];
+                } catch (e) {
+                    console.error("Failed to generate personalized feed", e);
+                    articlesToFilter = []; // Show nothing on error
+                } finally {
+                    setIsGeneratingFeed(false);
+                }
+            } else if (currentCategory !== 'All') {
+                articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
+            } else if (settings.contentPreferences && settings.contentPreferences.length > 0) {
+                const preferred = articlesToFilter.filter(a => settings.contentPreferences.includes(a.category));
+                const others = articlesToFilter.filter(a => !settings.contentPreferences.includes(a.category));
+                articlesToFilter = [...preferred, ...others];
+            }
+            
+            setFilteredArticles(articlesToFilter);
+            window.scrollTo(0, 0);
+        };
         
-        if (currentCategory !== 'All') {
-            articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
-        } else if (settings.contentPreferences && settings.contentPreferences.length > 0) {
-            const preferred = articlesToFilter.filter(a => settings.contentPreferences.includes(a.category));
-            const others = articlesToFilter.filter(a => !settings.contentPreferences.includes(a.category));
-            articlesToFilter = [...preferred, ...others];
-        }
-        
-        setFilteredArticles(articlesToFilter);
-        window.scrollTo(0, 0);
-    }, [currentCategory, settings.contentPreferences]);
+        filterArticles();
+    }, [currentCategory, settings.contentPreferences, bookmarkedArticleIds]);
     
     // Handlers
     const handleSelectCategory = (category: string) => {
@@ -162,6 +188,7 @@ const App: React.FC = () => {
     };
 
     const handleGoHome = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentView('home');
         setActiveArticle(null);
     };
@@ -264,8 +291,6 @@ const App: React.FC = () => {
         setIsOfflineOpen(true);
     };
 
-    const bookmarkedArticles = mockArticles.filter(article => bookmarkedArticleIds.has(article.id));
-
     const handleSelectArticleFromSearch = (article: Article) => {
       setIsSearchOpen(false);
       setTimeout(() => handleReadMore(article), 300);
@@ -293,7 +318,13 @@ const App: React.FC = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
                         <div className="lg:col-span-2 space-y-8">
-                           <GlobalHighlights articles={filteredArticles} onReadMore={handleReadMore} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} audioState={{ playingArticleId: null, isGenerating: false }} bookmarkedArticleIds={Array.from(bookmarkedArticleIds)} onToggleBookmark={handleToggleBookmark} offlineArticleIds={Array.from(offlineArticleIds)} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                           {isGeneratingFeed ? (
+                                <div className="flex justify-center items-center h-96">
+                                    <LoadingSpinner className="w-12 h-12 text-deep-red" />
+                                </div>
+                           ) : (
+                                <GlobalHighlights articles={filteredArticles} onReadMore={handleReadMore} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} audioState={{ playingArticleId: null, isGenerating: false }} bookmarkedArticleIds={Array.from(bookmarkedArticleIds)} onToggleBookmark={handleToggleBookmark} offlineArticleIds={Array.from(offlineArticleIds)} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                           )}
                             {settings.homepageLayout === 'Dashboard' && currentCategory === 'All' && <DataDrivenInsights />}
                         </div>
                        <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} />
