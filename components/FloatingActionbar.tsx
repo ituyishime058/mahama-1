@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Article } from '../types';
+import type { Article, ReadingLens } from '../types';
 import SummarizeIcon from './icons/SummarizeIcon';
 import BrainIcon from './icons/BrainIcon';
 import ReadAloudIcon from './icons/ReadAloudIcon';
@@ -8,6 +8,7 @@ import QuizIcon from './icons/QuizIcon';
 import BalanceIcon from './icons/BalanceIcon';
 import InfoIcon from './icons/InfoIcon';
 import AnalysisIcon from './icons/AnalysisIcon';
+import MagicWandIcon from './icons/MagicWandIcon';
 
 interface FloatingActionbarProps {
   article: Article;
@@ -20,6 +21,9 @@ interface FloatingActionbarProps {
   onBehindTheNews: (article: Article) => void;
   onExpertAnalysis: (article: Article) => void;
   showCounterpoint: boolean;
+  isZenMode: boolean;
+  activeLens: ReadingLens;
+  onSetLens: (lens: ReadingLens) => void;
 }
 
 const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
@@ -33,34 +37,38 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onBehindTheNews,
   onExpertAnalysis,
   showCounterpoint,
+  isZenMode,
+  activeLens,
+  onSetLens,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show the bar after scrolling down 200px
-      if (window.scrollY > 200) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      if (window.scrollY > 200) setIsVisible(true);
+      else setIsVisible(false);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const ActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; }> = ({ onClick, icon, label }) => (
+  const ActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; isActive?: boolean; }> = ({ onClick, icon, label, isActive }) => (
     <button
       onClick={onClick}
-      className="group flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg w-20 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors duration-200"
+      className={`group flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg w-20 text-xs font-semibold transition-colors duration-200 ${
+        isActive ? 'text-deep-red dark:text-gold' : 'text-slate-700 dark:text-slate-300'
+      } hover:bg-slate-100 dark:hover:bg-slate-700/50`}
     >
-      <div className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 transition-colors group-hover:bg-red-100 dark:group-hover:bg-gold/20 text-slate-600 dark:text-slate-300 group-hover:text-deep-red dark:group-hover:text-gold">
+      <div className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+        isActive ? 'bg-red-100 dark:bg-gold/20' : 'bg-slate-200 dark:bg-slate-800'
+      } group-hover:bg-red-100 dark:group-hover:bg-gold/20 text-slate-600 dark:text-slate-300 group-hover:text-deep-red dark:group-hover:text-gold`}>
         {icon}
       </div>
       <span className="truncate">{label}</span>
     </button>
   );
+
+  const lenses: ReadingLens[] = ['None', 'Simplify', 'DefineTerms'];
 
   return (
     <div
@@ -69,14 +77,30 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
       }`}
     >
       <div className="bg-white/80 dark:bg-navy/80 backdrop-blur-md rounded-full shadow-2xl p-2 flex items-center gap-1 border border-slate-200 dark:border-slate-700">
-        <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
-        <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-        <ActionButton onClick={() => onBehindTheNews(article)} icon={<InfoIcon className="w-5 h-5" />} label="Context" />
-        <ActionButton onClick={() => onExpertAnalysis(article)} icon={<AnalysisIcon className="w-5 h-5" />} label="Analyze" />
-        <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
-        <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
-        <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
-        {showCounterpoint && <ActionButton onClick={() => onCounterpoint(article)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" />}
+        {isZenMode ? (
+            <div className="flex items-center gap-1 px-2">
+                <div className="flex items-center gap-2 mr-2">
+                    <MagicWandIcon className="w-5 h-5 text-deep-red dark:text-gold" />
+                    <span className="font-semibold text-sm">Lens:</span>
+                </div>
+                {lenses.map(lens => (
+                     <button key={lens} onClick={() => onSetLens(lens)} className={`px-3 py-1.5 rounded-full text-sm font-semibold ${activeLens === lens ? 'bg-deep-red text-white' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                        {lens === 'DefineTerms' ? 'Define' : lens}
+                     </button>
+                ))}
+            </div>
+        ) : (
+          <>
+            <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
+            <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
+            <ActionButton onClick={() => onBehindTheNews(article)} icon={<InfoIcon className="w-5 h-5" />} label="Context" />
+            <ActionButton onClick={() => onExpertAnalysis(article)} icon={<AnalysisIcon className="w-5 h-5" />} label="Analyze" />
+            <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
+            <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
+            <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
+            {showCounterpoint && <ActionButton onClick={() => onCounterpoint(article)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" />}
+          </>
+        )}
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ import ContentFilterIcon from './icons/ContentFilterIcon';
 import TranslateIcon from './icons/TranslateIcon';
 import BellIcon from './icons/BellIcon';
 import MicIcon from './icons/MicIcon';
+import MagicWandIcon from './icons/MagicWandIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -120,9 +121,21 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
 
             {/* Advanced Features Section */}
             <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> Advanced Features</h2>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> AI & Reading Experience</h2>
               <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
                 <div className="flex justify-between items-center pt-4 first:pt-0">
+                    <label className="font-semibold flex items-center gap-2"><MagicWandIcon className="w-5 h-5"/> Default Reading Lens</label>
+                    <select
+                        value={localSettings.aiReadingLens}
+                        onChange={(e) => handleSettingChange('aiReadingLens', e.target.value as Settings['aiReadingLens'])}
+                        className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold"
+                    >
+                        <option value="None">None</option>
+                        <option value="Simplify">Simplify Language</option>
+                        <option value="DefineTerms">Define Key Terms</option>
+                    </select>
+                </div>
+                <div className="flex justify-between items-center pt-4">
                     <label className="font-semibold flex items-center gap-2"><MicIcon className="w-5 h-5"/> AI Voice Personality</label>
                     <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                         <button onClick={() => handleSettingChange('aiVoicePersonality', 'Friendly')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiVoicePersonality === 'Friendly' ? 'bg-white dark:bg-navy shadow' : ''}`}>Friendly</button>

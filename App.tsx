@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -60,6 +61,7 @@ const defaultSettings: Settings = {
         dailyDigest: false,
         aiRecommendations: true,
     },
+    aiReadingLens: 'None',
 };
 
 const App: React.FC = () => {
@@ -296,13 +298,54 @@ const App: React.FC = () => {
       setTimeout(() => handleReadMore(article), 300);
     };
 
+    // FIX: Moved AllModals component definition before its first usage.
+    const AllModals: React.FC = () => (
+         <>
+            <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
+            <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
+            <SummarizerModal isOpen={isSummarizerOpen} article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
+            <ExplainSimplyModal isOpen={isExplainSimplyOpen} article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
+            <TranslationModal isOpen={isTranslationOpen} article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
+            <QuizModal isOpen={isQuizOpen} article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
+            <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
+            <BehindTheNewsModal isOpen={isBehindTheNewsOpen} article={articleForAI} onClose={() => {setIsBehindTheNewsOpen(false); setArticleForAI(null);}} />
+            <ExpertAnalysisModal isOpen={isExpertAnalysisOpen} article={articleForAI} onClose={() => {setIsExpertAnalysisOpen(false); setArticleForAI(null);}} />
+            <TrailerModal isOpen={isTrailerOpen} onClose={() => { setIsTrailerOpen(false); setTrailerUrl(null); }} trailerUrl={trailerUrl} />
+            <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
+            <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
+            <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />
+            <OfflineModal isOpen={isOfflineOpen} onClose={() => setIsOfflineOpen(false)} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
+            <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />
+            <LiveConversationModal isOpen={isLiveConvoOpen} onClose={() => setIsLiveConvoOpen(false)} />
+            {confirmAction && <ConfirmationModal isOpen={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title={confirmAction.title} message={confirmAction.message} onConfirm={confirmAction.onConfirm} />}
+        </>
+    )
+
     if (currentView === 'article' && activeArticle) {
-        return <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} onBehindTheNews={handleBehindTheNews} onExpertAnalysis={handleExpertAnalysis} settings={settings} />;
+        return (
+            <div className="font-sans antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-navy">
+                <Header onMenuClick={() => setIsMenuOpen(true)} onSearchClick={() => setIsSearchOpen(true)} onSettingsClick={() => setCurrentView('settings')} onLogoClick={handleGoHome} categories={categories} onSelectCategory={handleSelectCategory} isAuthenticated={isAuthenticated} onLoginClick={() => setIsLoginOpen(true)} onLogout={handleConfirmLogout} />
+                <main className="pt-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                            <div className="lg:col-span-2">
+                                <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} onBehindTheNews={handleBehindTheNews} onExpertAnalysis={handleExpertAnalysis} settings={settings} />
+                            </div>
+                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} />
+                        </div>
+                    </div>
+                </main>
+                 <Footer />
+                 {/* Modals are kept here to be accessible from the article view */}
+                 <AllModals />
+            </div>
+        );
     }
     
     if (currentView === 'settings') {
         return <SettingsPage onClose={() => setCurrentView('home')} settings={settings} onSettingsChange={setSettings} onClearBookmarks={handleClearBookmarks} onClearOffline={handleClearOffline} />;
     }
+    
 
     return (
         <div className="font-sans antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-navy">
@@ -327,7 +370,7 @@ const App: React.FC = () => {
                            )}
                             {settings.homepageLayout === 'Dashboard' && currentCategory === 'All' && <DataDrivenInsights />}
                         </div>
-                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} />
+                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} />
                     </div>
                      {currentCategory === 'All' && <>
                         <LiveStream />
@@ -338,24 +381,7 @@ const App: React.FC = () => {
                 </div>
             </main>
             <Footer />
-
-            <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
-            <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
-            <SummarizerModal isOpen={isSummarizerOpen} article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
-            <ExplainSimplyModal isOpen={isExplainSimplyOpen} article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
-            <TranslationModal isOpen={isTranslationOpen} article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
-            <QuizModal isOpen={isQuizOpen} article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
-            <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
-            <BehindTheNewsModal isOpen={isBehindTheNewsOpen} article={articleForAI} onClose={() => {setIsBehindTheNewsOpen(false); setArticleForAI(null);}} />
-            <ExpertAnalysisModal isOpen={isExpertAnalysisOpen} article={articleForAI} onClose={() => {setIsExpertAnalysisOpen(false); setArticleForAI(null);}} />
-            <TrailerModal isOpen={isTrailerOpen} onClose={() => { setIsTrailerOpen(false); setTrailerUrl(null); }} trailerUrl={trailerUrl} />
-            <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
-            <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
-            <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />
-            <OfflineModal isOpen={isOfflineOpen} onClose={() => setIsOfflineOpen(false)} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
-            <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />
-            <LiveConversationModal isOpen={isLiveConvoOpen} onClose={() => setIsLiveConvoOpen(false)} />
-            {confirmAction && <ConfirmationModal isOpen={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title={confirmAction.title} message={confirmAction.message} onConfirm={confirmAction.onConfirm} />}
+            <AllModals />
             <FloatingActionButton onClick={() => setIsLiveConvoOpen(true)} />
         </div>
     );

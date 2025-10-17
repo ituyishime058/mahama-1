@@ -1,3 +1,5 @@
+
+// FIX: Removed circular import that was causing a conflict.
 export type Sentiment = 'Positive' | 'Neutral' | 'Negative';
 
 export interface TimelineEvent {
@@ -54,6 +56,8 @@ export type AiTtsVoice = 'Kore' | 'Puck' | 'Charon' | 'Fenrir' | 'Zephyr';
 
 export type AiVoicePersonality = 'Professional' | 'Friendly' | 'Witty';
 
+export type ReadingLens = 'None' | 'Simplify' | 'DefineTerms';
+
 export interface QuizQuestion {
   question: string;
   options: string[];
@@ -93,6 +97,7 @@ export interface Settings {
         dailyDigest: boolean;
         aiRecommendations: boolean;
     };
+    aiReadingLens: ReadingLens;
 }
 
 export interface StreamingContent {
@@ -103,3 +108,14 @@ export interface StreamingContent {
 }
 
 export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';
+
+export interface KeyConcept {
+  term: string;
+  type: 'Person' | 'Organization' | 'Location' | 'Concept';
+  description: string;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
+}

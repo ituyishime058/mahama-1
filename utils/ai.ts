@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice, TimelineEvent, ExpertPersona } from '../types';
+import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice, TimelineEvent, ExpertPersona, KeyConcept, ChatMessage, ReadingLens } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -383,5 +383,93 @@ Return only a JSON array of the recommended article IDs, like [1, 5, 8, 12, 15].
     } catch (error) {
         console.error("Error generating personalized feed:", error);
         return [];
+    }
+};
+
+export async function* askAboutArticle(article: Article, question: string, history: ChatMessage[]): AsyncGenerator<string, void, unknown> {
+    try {
+        const formattedHistory = history.map(m => `${m.role}: ${m.content}`).join('\n');
+        const prompt = `Based on the following article, answer the user's question. Keep your answer concise and directly related to the article's content.\n\n---\n\nARTICLE CONTENT:\n${article.content}\n\n---\n\nCONVERSATION HISTORY:\n${formattedHistory}\n\nUSER QUESTION:\n${question}`;
+
+        const response = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction: "You are a helpful 'Article Companion' AI. Your task is to answer questions based *only* on the provided article content. If the answer is not in the article, say 'That information is not available in this article.' Do not use external knowledge.",
+            }
+        });
+
+        for await (const chunk of response) {
+            yield chunk.text;
+        }
+
+    } catch (error) {
+        console.error("Error asking about article:", error);
+        throw new Error("Failed to get an answer. Please try again.");
+    }
+}
+
+export const extractKeyConcepts = async (article: Article): Promise<KeyConcept[]> => {
+    try {
+        const prompt = `Analyze the following article and extract the key people, organizations, locations, and concepts. For each, provide a very brief, one-sentence description based on its role in the article.
+
+Article: ${article.content}`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        concepts: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    term: { type: Type.STRING },
+                                    type: { type: Type.STRING, enum: ['Person', 'Organization', 'Location', 'Concept'] },
+                                    description: { type: Type.STRING },
+                                },
+                                required: ["term", "type", "description"]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const jsonStr = response.text.trim();
+        const result = JSON.parse(jsonStr);
+        return result.concepts || [];
+    } catch (error) {
+        console.error("Error extracting key concepts:", error);
+        return [];
+    }
+};
+
+export const applyReadingLens = async (articleContent: string, lens: ReadingLens): Promise<string> => {
+    let prompt = '';
+    switch (lens) {
+        case 'Simplify':
+            prompt = `Rewrite the following article content using simpler language, shorter sentences, and clearer explanations. The goal is to make it accessible to a reader with a 9th-grade reading level without losing the core information.\n\nORIGINAL CONTENT:\n${articleContent}\n\nSIMPLIFIED CONTENT:`;
+            break;
+        case 'DefineTerms':
+            prompt = `Rewrite the following article content. When you encounter a potentially complex or technical term, define it concisely in parentheses immediately after the term. For example, "The process uses CRISPR (a gene-editing technology)..."\n\nORIGINAL CONTENT:\n${articleContent}\n\nCONTENT WITH DEFINITIONS:`;
+            break;
+        default:
+            return articleContent;
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error applying reading lens:", error);
+        throw new Error("Failed to modify article content.");
     }
 };
