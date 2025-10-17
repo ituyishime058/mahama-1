@@ -54,13 +54,27 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right side: Search on mobile, Full Nav + Search on desktop */}
-          <div className="flex-1 md:flex-none flex items-center justify-end">
+          <div className="flex-1 md:flex-none flex items-center justify-end gap-4">
              <div className="hidden md:flex items-center space-x-2">
                <a href="#" onClick={(e) => { e.preventDefault(); onMenuClick(); }} className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-deep-red dark:hover:text-gold transition-colors duration-200 p-2">
                   Categories
                </a>
             </div>
-            <button onClick={onSearchClick} aria-label="Open search" className="text-slate-600 dark:text-slate-300 hover:text-deep-red dark:hover:text-gold transition-colors duration-200 p-2 rounded-full">
+            
+            {/* Search Bar for desktop */}
+            <div className="hidden md:block">
+                <button 
+                    onClick={onSearchClick} 
+                    aria-label="Open search" 
+                    className="group flex items-center w-48 bg-slate-100 dark:bg-slate-800/50 rounded-full px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
+                >
+                    <SearchIcon className="w-5 h-5 mr-2 text-slate-400 dark:text-slate-500"/>
+                    Search...
+                </button>
+            </div>
+
+            {/* Search Icon for mobile */}
+            <button onClick={onSearchClick} aria-label="Open search" className="md:hidden text-slate-600 dark:text-slate-300 hover:text-deep-red dark:hover:text-gold transition-colors duration-200 p-2 rounded-full">
               <SearchIcon />
             </button>
           </div>

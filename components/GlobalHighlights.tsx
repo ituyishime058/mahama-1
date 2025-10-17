@@ -14,6 +14,9 @@ interface GlobalHighlightsProps {
   };
   bookmarkedArticleIds: number[];
   onToggleBookmark: (articleId: number) => void;
+  offlineArticleIds: number[];
+  downloadingArticleId: number | null;
+  onDownloadArticle: (article: Article) => void;
 }
 
 const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({ 
@@ -24,7 +27,10 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   onReadMore, 
   audioState,
   bookmarkedArticleIds,
-  onToggleBookmark
+  onToggleBookmark,
+  offlineArticleIds,
+  downloadingArticleId,
+  onDownloadArticle
 }) => {
   const featuredArticle = articles[0];
   const otherArticles = articles.slice(1);
@@ -39,10 +45,12 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           onExplainSimply={onExplainSimply}
           onTextToSpeech={onTextToSpeech}
           onReadMore={onReadMore}
-          isAudioPlaying={audioState.playingArticleId === featuredArticle.id}
-          isAudioLoading={audioState.isGenerating && audioState.playingArticleId === featuredArticle.id}
+          audioState={audioState}
           isBookmarked={bookmarkedArticleIds.includes(featuredArticle.id)}
           onToggleBookmark={onToggleBookmark}
+          offlineArticleIds={offlineArticleIds}
+          downloadingArticleId={downloadingArticleId}
+          onDownloadArticle={onDownloadArticle}
         />
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -54,10 +62,12 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
             onReadMore={onReadMore}
-            isAudioPlaying={audioState.playingArticleId === article.id}
-            isAudioLoading={audioState.isGenerating && audioState.playingArticleId === article.id}
+            audioState={audioState}
             isBookmarked={bookmarkedArticleIds.includes(article.id)}
             onToggleBookmark={onToggleBookmark}
+            offlineArticleIds={offlineArticleIds}
+            downloadingArticleId={downloadingArticleId}
+            onDownloadArticle={onDownloadArticle}
           />
         ))}
       </div>

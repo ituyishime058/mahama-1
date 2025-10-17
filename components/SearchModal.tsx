@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CloseIcon from './icons/CloseIcon';
 import SearchIcon from './icons/SearchIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
@@ -15,18 +14,37 @@ interface SearchModalProps {
 
 const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSearch, results, isLoading, error }) => {
   const [query, setQuery] = useState('');
+  const [isRendered, setIsRendered] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setIsRendered(true);
+    }
+  }, [isOpen]);
 
+  const handleAnimationEnd = () => {
+    if (!isOpen) {
+      setIsRendered(false);
+    }
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(query);
   };
 
+  if (!isRendered) {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[15vh] bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div 
+        className={`fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[15vh] bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        onClick={onClose}
+        onTransitionEnd={handleAnimationEnd}
+    >
       <div 
-        className="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden transform transition-all duration-300"
+        className={`relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden transform transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
         onClick={e => e.stopPropagation()}
       >
         <button onClick={onClose} aria-label="Close search" className="absolute top-4 right-4 text-slate-400 hover:text-slate-800 dark:hover:text-white z-10">
@@ -81,7 +99,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSearch, re
             )}
              {!isLoading && !results && !error && (
                 <div className="flex flex-col items-center justify-center pt-10 text-center text-slate-500">
-                    <h3 className="text-lg font-semibold">AI-Powered Search</h3>
+                    <h3 className="text-lg font-semibold">Live Search</h3>
                     <p className="max-w-md">Get up-to-the-minute answers grounded in Google Search. Try "Who won the latest tech award?" or "What are the current economic trends?"</p>
                 </div>
             )}

@@ -5,6 +5,7 @@ export interface Article {
   content?: string;
   category: string;
   imageUrl: string;
+  imageUrlBase64?: string;
   author: string;
   date: string;
   live?: boolean;

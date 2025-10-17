@@ -1,11 +1,13 @@
 import React from 'react';
 import type { Article } from '../types';
 import SummarizeIcon from './icons/SummarizeIcon';
-import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import BrainIcon from './icons/BrainIcon';
+import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import PauseIcon from './icons/PauseIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import BookmarkIcon from './icons/BookmarkIcon';
+import DownloadIcon from './icons/DownloadIcon';
+import CheckIcon from './icons/CheckIcon';
 
 interface ArticleCardProps {
   article: Article;
@@ -13,115 +15,87 @@ interface ArticleCardProps {
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
   onReadMore: (article: Article) => void;
-  isAudioPlaying: boolean;
-  isAudioLoading: boolean;
+  audioState: {
+    playingArticleId: number | null;
+    isGenerating: boolean;
+  };
+  featured?: boolean;
   isBookmarked: boolean;
   onToggleBookmark: (articleId: number) => void;
-  featured?: boolean;
+  offlineArticleIds: number[];
+  downloadingArticleId: number | null;
+  onDownloadArticle: (article: Article) => void;
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ 
   article, 
   onSummarize, 
-  onExplainSimply, 
+  onExplainSimply,
   onTextToSpeech,
-  onReadMore, 
-  isAudioPlaying, 
-  isAudioLoading,
+  onReadMore,
+  audioState,
+  featured = false,
   isBookmarked,
   onToggleBookmark,
-  featured = false
+  offlineArticleIds,
+  downloadingArticleId,
+  onDownloadArticle
 }) => {
-  
-  const handleCardAction = (e: React.MouseEvent, action: (article: Article) => void) => {
-    e.preventDefault();
-    e.stopPropagation();
-    action(article);
-  };
+  const isAudioPlaying = audioState.playingArticleId === article.id;
+  const isAudioLoading = audioState.isGenerating && audioState.playingArticleId === article.id;
+  const isOffline = offlineArticleIds.includes(article.id);
+  const isDownloading = downloadingArticleId === article.id;
 
-  const handleBookmarkClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
-    onToggleBookmark(article.id);
-  };
-
-  const handleReadMoreClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    onReadMore(article);
-  };
+    action();
+  }
 
   const renderTTSButton = () => {
     if (isAudioLoading) return <LoadingSpinner />;
     if (isAudioPlaying) return <PauseIcon />;
     return <TextToSpeechIcon />;
   };
-  
-  if (featured) {
-    return (
-      <div 
-        onClick={handleReadMoreClick}
-        className="group relative bg-white dark:bg-slate-800/50 rounded-lg shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 flex flex-col md:flex-row ring-2 ring-transparent hover:ring-deep-red dark:hover:ring-gold cursor-pointer"
-      >
-        <div className="relative overflow-hidden md:w-1/2">
-            <img src={article.imageUrl} alt={article.title} className="w-full h-64 md:h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out" />
-            <div className="absolute top-0 right-0 bg-deep-red text-white text-xs font-bold px-3 py-1 m-2 rounded-full z-10">{article.category}</div>
-        </div>
-        <div className="p-5 flex flex-col flex-grow md:w-1/2">
-          <h3 className="text-2xl font-bold mb-2 leading-tight group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-200">
-            {article.title}
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-4 flex-grow">
-            {article.excerpt}
-          </p>
-          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-500 mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50">
-            <p>{article.author} &bull; {article.date}</p>
-            <div className="flex items-center space-x-1">
-               <button onClick={handleBookmarkClick} title={isBookmarked ? "Remove bookmark" : "Bookmark article"} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10 relative">
-                <BookmarkIcon filled={isBookmarked} />
-              </button>
-              <button onClick={(e) => handleCardAction(e, onSummarize)} title="Summarize with AI" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10 relative">
-                  <SummarizeIcon />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
-  return (
-    <div onClick={handleReadMoreClick} className="group relative bg-white dark:bg-slate-800/50 rounded-lg shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 flex flex-col ring-2 ring-transparent hover:ring-deep-red dark:hover:ring-gold cursor-pointer">
-      <div className="relative overflow-hidden">
-        <img src={article.imageUrl} alt={article.title} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 ease-in-out" />
-        <div className="absolute top-0 right-0 bg-deep-red text-white text-xs font-bold px-3 py-1 m-2 rounded-full z-10">{article.category}</div>
+  const renderDownloadButton = () => {
+    if (isDownloading) return <LoadingSpinner />;
+    if (isOffline) return <CheckIcon className="text-green-500" />;
+    return <DownloadIcon />;
+  };
+
+  const cardContent = (
+    <>
+      <div className="relative overflow-hidden rounded-t-lg md:rounded-lg">
+        <img src={article.imageUrl} alt={article.title} className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${featured ? 'aspect-video' : 'h-48'}`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
       </div>
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold mb-2 leading-tight group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-200">
+      <div className={`p-5 flex flex-col flex-grow ${featured ? 'md:col-span-2' : ''}`}>
+        <p className="text-xs font-semibold uppercase text-deep-red">{article.category}</p>
+        <h3 className={`font-bold my-1 leading-tight flex-grow group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-200 ${featured ? 'text-2xl lg:text-3xl' : 'text-lg'}`}>
           {article.title}
         </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-3 flex-grow">
-          {article.excerpt}
-        </p>
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-500 mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50">
-          <p>{article.author} &bull; {article.date}</p>
-          <div className="flex items-center space-x-1">
-             <button onClick={handleBookmarkClick} title={isBookmarked ? "Remove bookmark" : "Bookmark article"} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10 relative">
-              <BookmarkIcon filled={isBookmarked} />
-            </button>
-            <div className="flex items-center space-x-1 opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-100">
-               <button onClick={(e) => handleCardAction(e, onSummarize)} title="Summarize with AI" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10 relative">
-                  <SummarizeIcon />
-              </button>
-              <button onClick={(e) => handleCardAction(e, onExplainSimply)} title="Explain Simply with AI" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10 relative">
-                  <BrainIcon />
-              </button>
-              <button onClick={(e) => handleCardAction(e, onTextToSpeech)} title="Listen to article" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10 relative">
-                  {renderTTSButton()}
-              </button>
+        {featured && <p className="text-slate-600 dark:text-slate-400 mb-4 mt-2 line-clamp-3">{article.excerpt}</p>}
+        <p className="text-xs text-slate-500 mt-auto">{article.author} &bull; {article.date}</p>
+        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+                <button onClick={(e) => handleButtonClick(e, () => onSummarize(article))} title="Summarize" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><SummarizeIcon /></button>
+                <button onClick={(e) => handleButtonClick(e, () => onExplainSimply(article))} title="Explain Simply" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><BrainIcon /></button>
+                <button onClick={(e) => handleButtonClick(e, () => onTextToSpeech(article))} title="Listen to article" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{renderTTSButton()}</button>
             </div>
-          </div>
+            <div className="flex items-center space-x-1">
+                <button onClick={(e) => handleButtonClick(e, () => onDownloadArticle(article))} disabled={isOffline || isDownloading} title={isOffline ? 'Saved for offline' : 'Save for offline'} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">{renderDownloadButton()}</button>
+                <button onClick={(e) => handleButtonClick(e, () => onToggleBookmark(article.id))} title="Bookmark article" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><BookmarkIcon filled={isBookmarked} className={isBookmarked ? 'text-gold' : ''}/></button>
+            </div>
         </div>
       </div>
+    </>
+  );
+
+  const commonClasses = "group bg-white dark:bg-slate-800/50 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden";
+  
+  return (
+    <div onClick={() => onReadMore(article)} className={`cursor-pointer ${commonClasses} ${featured ? 'grid grid-cols-1 md:grid-cols-3 gap-x-8 items-center' : 'flex flex-col'}`}>
+      {cardContent}
     </div>
   );
 };
