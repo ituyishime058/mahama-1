@@ -1,0 +1,11 @@
+[build]
+  # The publish directory is the root of the project since there is no build step.
+  publish = "."
+
+# This rule is essential for Single Page Applications (SPAs).
+# It ensures that any direct navigation (e.g., /article/123)
+# is correctly routed to index.html, allowing React to handle it.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -77,6 +77,7 @@ export interface Settings {
     ttsVoice: AiTtsVoice;
     contentPreferences: string[];
     preferredLanguage: string;
+    showCounterpoint: boolean;
 }
 
 export interface StreamingContent {

@@ -167,6 +167,42 @@ const newArticles: Article[] = [
             'A recent project successfully reconstructed a Hittite ceremonial hymn.',
             'The technology is a new tool for preserving cultural heritage.'
         ]
+    },
+    {
+        id: 16,
+        title: 'Global Language Revival: Indigenous Tongues Go Digital',
+        excerpt: 'A new initiative is using AI and community-driven platforms to document and teach endangered indigenous languages, creating a digital lifeline for cultural heritage.',
+        content: 'The "Native Tongues" project is a global collaboration that pairs linguists with indigenous communities to preserve languages at risk of disappearing. Using mobile apps, community members can record spoken words, stories, and songs, which an AI then analyzes to build a comprehensive linguistic model. This model powers interactive lessons, dictionaries, and translation tools. The project has already seen success in revitalizing languages like Ainu in Japan and Quechua in Peru. "This isn\'t just about saving words; it\'s about saving worlds," explained the project director. By creating a living digital archive, they hope to ensure these vital parts of human culture are accessible for generations to come.',
+        imageUrl: 'https://picsum.photos/seed/culture2023a/1200/800',
+        author: 'Isabella Rossi',
+        date: 'November 5, 2023',
+        category: 'Culture',
+        region: 'Oceania',
+        sentiment: 'Positive',
+        keyTakeaways: [
+          'A new project uses AI to document and teach endangered languages.',
+          'Community members use apps to record their native tongues.',
+          'The AI builds interactive lessons and dictionaries from the data.',
+          'The initiative aims to create a digital archive for cultural preservation.'
+        ]
+    },
+    {
+        id: 17,
+        title: 'The Culinary Comeback: How Ancient Grains Are Reshaping Modern Cuisine',
+        excerpt: 'Chefs and food scientists are looking to the past to innovate, bringing ancient grains like fonio, amaranth, and teff back to the forefront of gastronomy.',
+        content: 'A culinary renaissance is underway, centered on grains that have been cultivated for millennia but were largely forgotten by industrial agriculture. These "ancient grains" are prized not only for their unique, nutty flavors but also for their nutritional benefits and resilience to climate change. Top restaurants are featuring them in everything from artisanal breads to gourmet porridges, and they are rapidly gaining popularity among home cooks. Food scientists are also studying their genetic makeup, hoping to learn lessons that can be applied to modern crops. This trend represents a delicious intersection of history, culture, and sustainability, proving that sometimes the most innovative ideas are the ones that have been with us all along.',
+        imageUrl: 'https://picsum.photos/seed/culture2023b/1200/800',
+        author: 'Kenjiro Sato',
+        date: 'November 6, 2023',
+        category: 'Culture',
+        region: 'Africa',
+        sentiment: 'Positive',
+        keyTakeaways: [
+          'Ancient grains like fonio and amaranth are becoming popular in modern cuisine.',
+          'These grains are valued for their flavor, nutritional benefits, and climate resilience.',
+          'Top chefs are incorporating them into their menus.',
+          'The trend combines history, culture, and sustainability.'
+        ]
     }
 ];
 

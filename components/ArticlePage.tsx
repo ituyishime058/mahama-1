@@ -1,6 +1,7 @@
 
+
 import React, { useEffect, useState, useRef } from 'react';
-import type { Article } from '../types';
+import type { Article, Settings } from '../types';
 import { mockComments, mockArticles } from '../constants';
 import { generateTags, factCheckArticle } from '../utils/ai';
 
@@ -25,6 +26,8 @@ interface ArticlePageProps {
   onTextToSpeech: (article: Article) => void;
   onTranslate: (article: Article) => void;
   onQuiz: (article: Article) => void;
+  onCounterpoint: (article: Article) => void;
+  settings: Settings;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ 
@@ -38,6 +41,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onTextToSpeech,
     onTranslate,
     onQuiz,
+    onCounterpoint,
+    settings,
 }) => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
@@ -125,6 +130,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onTextToSpeech={onTextToSpeech}
             onTranslate={onTranslate}
             onQuiz={onQuiz}
+            onCounterpoint={onCounterpoint}
+            showCounterpoint={settings.showCounterpoint}
         />
     </div>
   );

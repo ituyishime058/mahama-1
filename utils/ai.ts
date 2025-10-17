@@ -221,3 +221,20 @@ export const findRelatedArticles = async (currentArticle: Article, allArticles: 
         return []; // Return empty array on failure
     }
 };
+
+export const generateCounterpoint = async (article: Article): Promise<string> => {
+    try {
+        const prompt = `Analyze the following news article and provide a brief, thoughtful counterpoint or alternative perspective. Consider the other side of the argument, potential unintended consequences, or a different interpretation of the facts. Keep it concise and objective.\n\nTitle: ${article.title}\n\nExcerpt: ${article.excerpt}`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                systemInstruction: "You are a balanced and objective analyst who provides nuanced alternative perspectives.",
+            }
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error generating counterpoint:", error);
+        throw new Error("Failed to generate counterpoint. Please try again.");
+    }
+};

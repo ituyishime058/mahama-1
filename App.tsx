@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -31,6 +32,7 @@ import InnovationTimeline from './components/InnovationTimeline';
 import DataDrivenInsights from './components/DataDrivenInsights';
 import TrailerModal from './components/TrailerModal';
 import FilterBar from './components/FilterBar';
+import CounterpointModal from './components/CounterpointModal';
 
 
 import type { Article, Podcast, Settings } from './types';
@@ -47,7 +49,8 @@ const defaultSettings: Settings = {
     summaryLength: 'Medium',
     ttsVoice: 'Zephyr',
     contentPreferences: [],
-    preferredLanguage: 'English'
+    preferredLanguage: 'English',
+    showCounterpoint: true,
 };
 
 const App: React.FC = () => {
@@ -83,6 +86,7 @@ const App: React.FC = () => {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+    const [isCounterpointOpen, setIsCounterpointOpen] = useState(false);
 
 
     // AI action states
@@ -160,6 +164,7 @@ const App: React.FC = () => {
     const handleTranslate = (article: Article) => { setArticleForAI(article); setIsTranslationOpen(true); };
     const handleQuiz = (article: Article) => { setArticleForAI(article); setIsQuizOpen(true); };
     const handleTextToSpeech = (article: Article) => { setTtsArticle(prev => prev?.id === article.id ? null : article); };
+    const handleCounterpoint = (article: Article) => { setArticleForAI(article); setIsCounterpointOpen(true); };
     
     // Podcast Player Handlers
     const handlePlayPodcast = (podcast: Podcast) => {
@@ -252,8 +257,7 @@ const App: React.FC = () => {
     };
 
     if (currentView === 'article' && activeArticle) {
-        // FIX: Add missing `onReadMore` prop to ArticlePage component.
-        return <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} />;
+        return <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} settings={settings} />;
     }
     
     if (currentView === 'settings') {
@@ -291,11 +295,11 @@ const App: React.FC = () => {
 
             <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
             <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
-            {/* FIX: Remove invalid `isOpen` prop from SummarizerModal. Visibility is handled by the `article` prop. */}
             <SummarizerModal article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
             <ExplainSimplyModal article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
             <TranslationModal article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
             <QuizModal article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
+            <CounterpointModal article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
             <TrailerModal isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
             <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />

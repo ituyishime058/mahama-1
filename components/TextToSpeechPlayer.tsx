@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef, useState } from 'react';
 import { decode, decodeAudioData } from '../utils/audio';
 import { textToSpeech } from '../utils/ai';
@@ -41,15 +42,17 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
   }, [article, voice]);
 
   useEffect(() => {
-    // FIX: The webkitAudioContext constructor does not accept arguments.
+    // FIX: The webkitAudioContext constructor (a fallback for older browsers) does not accept arguments.
     // The error "Expected 1 arguments, but got 0" is likely a symptom of this incompatibility.
-    // By not closing the context, we avoid potential buggy behavior in its cleanup.
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    // By removing the arguments, we ensure compatibility, and modern browsers will still use their default (often higher quality) sample rate.
+    // The decoded audio buffer's sample rate will be resampled by the browser automatically during playback.
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     
     return () => {
       if (sourceRef.current) {
         sourceRef.current.stop();
       }
+      // FIX: By not closing the context, we avoid potential buggy behavior in its cleanup in some environments.
       if(audioContextRef.current && audioContextRef.current.state !== 'closed') {
         // audioContextRef.current.close();
       }

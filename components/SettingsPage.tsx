@@ -90,6 +90,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                     <label htmlFor="show-timeline" className="font-semibold">"Innovation Timeline" in Tech</label>
                     <input type="checkbox" id="show-timeline" checked={localSettings.showInnovationTimelines} onChange={e => handleSettingChange('showInnovationTimelines', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
+                 <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
+                    <label htmlFor="show-counterpoint" className="font-semibold">AI Counterpoint Feature</label>
+                    <input type="checkbox" id="show-counterpoint" checked={localSettings.showCounterpoint} onChange={e => handleSettingChange('showCounterpoint', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
+                </div>
               </div>
             </section>
 

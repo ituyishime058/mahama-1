@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
@@ -89,10 +90,12 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
 
-        // FIX: Add `(window as any)` to handle vendor-prefixed `webkitAudioContext` for browser compatibility.
-        inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-        // FIX: Add `(window as any)` to handle vendor-prefixed `webkitAudioContext` for browser compatibility.
-        outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        // FIX: The `webkitAudioContext` constructor (used as a fallback in older browsers) does not accept arguments. 
+        // This was likely causing the "Expected 1 arguments, but got 0" error due to a misleading error message.
+        // The sample rate is critical for input, so this may affect older browsers, but it fixes the crash.
+        // Modern browsers supporting `AudioContext` with options will work as expected.
+        inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
         

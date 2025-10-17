@@ -5,6 +5,7 @@ import BrainIcon from './icons/BrainIcon';
 import ReadAloudIcon from './icons/ReadAloudIcon';
 import TranslateIcon from './icons/TranslateIcon';
 import QuizIcon from './icons/QuizIcon';
+import BalanceIcon from './icons/BalanceIcon';
 
 interface FloatingActionbarProps {
   article: Article;
@@ -13,6 +14,8 @@ interface FloatingActionbarProps {
   onTextToSpeech: (article: Article) => void;
   onTranslate: (article: Article) => void;
   onQuiz: (article: Article) => void;
+  onCounterpoint: (article: Article) => void;
+  showCounterpoint: boolean;
 }
 
 const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
@@ -22,6 +25,8 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onTextToSpeech,
   onTranslate,
   onQuiz,
+  onCounterpoint,
+  showCounterpoint,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -63,6 +68,7 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
         <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
         <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
         <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
+        {showCounterpoint && <ActionButton onClick={() => onCounterpoint(article)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" />}
       </div>
     </div>
   );
