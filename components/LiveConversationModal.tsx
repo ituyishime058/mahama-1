@@ -103,8 +103,8 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                 systemInstruction: 'You are a helpful and friendly news assistant for Mahama News Hub. Keep your answers concise and informative.',
             },
             callbacks: {
-                onopen: (s: LiveSession) => {
-                    setSession(s);
+                onopen: () => { // The `s: LiveSession` parameter is implicitly available from the promise resolution
+                    sessionPromiseRef.current?.then(s => setSession(s));
                     setIsConnecting(false);
                     setIsListening(true);
                     
@@ -183,6 +183,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                 },
             },
         });
+        sessionPromiseRef.current.then(s => setSession(s));
 
     } catch (err) {
         console.error('Failed to start session:', err);

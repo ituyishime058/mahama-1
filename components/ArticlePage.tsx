@@ -1,17 +1,28 @@
-import React, { useRef, useState, useEffect } from 'react';
-import type { Article, Comment } from '../types';
-import RightAside from './RightAside';
-import ArticleCard from './ArticleCard';
-import ArticleProgressBar from './ArticleProgressBar';
+import React, { useState, useEffect, useRef } from 'react';
+import type { Article } from '../types';
+
+// Components
 import SocialShare from './SocialShare';
-import AuthorInfo from './AuthorInfo';
-import CommentsSection from './CommentsSection';
-import ClockIcon from './icons/ClockIcon';
-import SentimentIndicator from './SentimentIndicator';
 import KeyTakeaways from './KeyTakeaways';
-import { generateTagsForArticle, factCheckArticle } from '../utils/ai';
+import CommentsSection from './CommentsSection';
+import TrendingNews from './TrendingNews';
+import AuthorInfo from './AuthorInfo';
+import ArticleProgressBar from './ArticleProgressBar';
 import AITags from './AITags';
 import FactCheck from './FactCheck';
+import SummarizerModal from './SummarizerModal';
+import ExplainSimplyModal from './ExplainSimplyModal';
+import TextToSpeechPlayer from './TextToSpeechPlayer';
+
+// Icons
+import SummarizeIcon from './icons/SummarizeIcon';
+import ChildIcon from './icons/ChildIcon';
+import ReadAloudIcon from './icons/ReadAloudIcon';
+import LoadingSpinner from './icons/LoadingSpinner';
+
+// AI Utils
+import { summarizeArticle, explainSimply, generateTextToSpeech, generateAITags, factCheckArticle } from '../utils/ai';
+import SentimentIndicator from './SentimentIndicator';
 
 interface ArticlePageProps {
   article: Article;
@@ -22,184 +33,192 @@ interface ArticlePageProps {
   onToggleBookmark: (articleId: number) => void;
 }
 
-const ArticlePage: React.FC<ArticlePageProps> = ({
+const ArticlePage: React.FC<ArticlePageProps> = ({ 
   article,
-  allArticles,
   trendingArticles,
   onArticleClick,
   bookmarkedArticleIds,
   onToggleBookmark,
 }) => {
-  const articleContentRef = useRef<HTMLDivElement>(null);
   const [isZenMode, setIsZenMode] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [isLoadingTags, setIsLoadingTags] = useState(true);
-  const [factCheckResult, setFactCheckResult] = useState<{ status: string; summary: string } | null>(null);
-  const [isLoadingFactCheck, setIsLoadingFactCheck] = useState(true);
+  const articleRef = useRef<HTMLDivElement>(null);
 
+  // AI Feature State
+  const [isSummarizerOpen, setIsSummarizerOpen] = useState(false);
+  const [summary, setSummary] = useState('');
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState('');
+  
+  const [isExplainSimplyOpen, setIsExplainSimplyOpen] = useState(false);
+  const [explanation, setExplanation] = useState('');
+  const [isExplainSimplyLoading, setIsExplainSimplyLoading] = useState(false);
+  const [explainSimplyError, setExplainSimplyError] = useState('');
+
+  const [ttsAudio, setTtsAudio] = useState<string | null>(null);
+  const [isTtsGenerating, setIsTtsGenerating] = useState(false);
+  
+  const [aiTags, setAiTags] = useState<string[]>([]);
+  const [areAiTagsLoading, setAreAiTagsLoading] = useState(true);
+
+  const [factCheckResult, setFactCheckResult] = useState<{status: string, summary: string} | null>(null);
+  const [isFactCheckLoading, setIsFactCheckLoading] = useState(true);
+
+  // Reset state when article changes
   useEffect(() => {
-    const fetchAIData = async () => {
-      if (!article.content) {
-        setIsLoadingTags(false);
-        setIsLoadingFactCheck(false);
-        return;
-      }
-      
-      // Fetch Tags
-      try {
-        setIsLoadingTags(true);
-        const generatedTags = await generateTagsForArticle(article.title, article.content);
-        setTags(generatedTags);
-      } catch (error) {
-        console.error("Failed to generate AI tags:", error);
-        setTags([]);
-      } finally {
-        setIsLoadingTags(false);
-      }
+    setIsZenMode(false);
+    setAiTags([]);
+    setFactCheckResult(null);
+    setAreAiTagsLoading(true);
+    setIsFactCheckLoading(true);
 
-      // Fetch Fact-Check
-      try {
-        setIsLoadingFactCheck(true);
-        const checkResult = await factCheckArticle(article.title, article.content);
-        setFactCheckResult(checkResult);
-      } catch (error) {
-        console.error("Failed to generate AI fact-check:", error);
-        setFactCheckResult(null);
-      } finally {
-        setIsLoadingFactCheck(false);
-      }
-    };
+    generateAITags(article).then(tags => {
+        setAiTags(tags);
+        setAreAiTagsLoading(false);
+    });
+    
+    factCheckArticle(article).then(result => {
+        setFactCheckResult(result);
+        setIsFactCheckLoading(false);
+    });
 
-    fetchAIData();
   }, [article]);
 
-  const relatedContent = allArticles
-    .filter(a => a.category === article.category && a.id !== article.id)
-    .slice(0, 3);
+  const handleSummarize = async () => {
+    setIsSummarizerOpen(true);
+    setIsSummaryLoading(true);
+    setSummaryError('');
+    try {
+      const result = await summarizeArticle(article);
+      setSummary(result);
+    } catch (e) {
+      setSummaryError('Failed to generate summary.');
+    } finally {
+      setIsSummaryLoading(false);
+    }
+  };
+
+  const handleExplainSimply = async () => {
+    setIsExplainSimplyOpen(true);
+    setIsExplainSimplyLoading(true);
+    setExplainSimplyError('');
+    try {
+      const result = await explainSimply(article);
+      setExplanation(result);
+    } catch (e) {
+      setExplainSimplyError('Failed to generate explanation.');
+    } finally {
+      setIsExplainSimplyLoading(false);
+    }
+  };
+
+  const handleTextToSpeech = async () => {
+    setIsTtsGenerating(true);
+    const textToRead = `${article.title}. ${article.content}`;
+    const audio = await generateTextToSpeech(textToRead.substring(0, 4096), 'Zephyr'); // Limiting text length for safety
+    setTtsAudio(audio);
+    setIsTtsGenerating(false);
+  };
   
   const isBookmarked = bookmarkedArticleIds.includes(article.id);
-
+  const handleToggleBookmark = () => onToggleBookmark(article.id);
+  
   return (
-    <div className={`bg-white dark:bg-navy animate-fade-in ${isZenMode ? 'zen-mode' : ''}`}>
-      <ArticleProgressBar targetRef={articleContentRef} />
-      
-      <header className={`relative h-80 md:h-[500px] w-full transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
-        <img src={article.imageUrl} alt={article.title} className="absolute inset-0 w-full h-full object-cover"/>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-end pb-12 text-white">
-            <p className="font-semibold uppercase tracking-widest text-gold text-sm">{article.category}</p>
-            <h1 className="text-3xl md:text-5xl font-extrabold !leading-tight tracking-tight mt-1 max-w-4xl">
+    <>
+      <ArticleProgressBar targetRef={articleRef} />
+      <div ref={articleRef} className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+          
+          <SocialShare 
+            article={article} 
+            isBookmarked={isBookmarked}
+            onToggleBookmark={handleToggleBookmark}
+            isZenMode={isZenMode}
+            onToggleZenMode={() => setIsZenMode(!isZenMode)}
+          />
+
+          <article className={`lg:col-span-8 lg:col-start-3 transition-all duration-300 ${isZenMode ? 'lg:col-span-12 lg:col-start-1' : ''}`}>
+            {/* Header */}
+            <p className="text-gold font-semibold uppercase tracking-widest mb-2">{article.category}</p>
+            <h1 className="text-3xl md:text-5xl font-extrabold !leading-tight tracking-tighter mb-4 text-slate-900 dark:text-white">
               {article.title}
             </h1>
-        </div>
-      </header>
-      
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          <div className="lg:col-span-8">
-             <div className="relative">
-                <SocialShare 
-                    article={article} 
-                    isBookmarked={isBookmarked} 
-                    onToggleBookmark={() => onToggleBookmark(article.id)} 
-                    isZenMode={isZenMode}
-                    onToggleZenMode={() => setIsZenMode(!isZenMode)}
-                />
-                <article ref={articleContentRef} className="prose prose-lg prose-slate dark:prose-invert max-w-none lg:pl-24">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 text-sm border-b border-slate-200 dark:border-slate-700 pb-4">
-                        <div className="flex-grow">
-                            <p className="font-bold">By {article.author}</p>
-                            <p className="text-slate-500 dark:text-slate-400">{article.date}</p>
-                        </div>
-                        <div className="flex items-center gap-4 flex-shrink-0">
-                           <SentimentIndicator sentiment={article.sentiment} />
-                           <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                               <ClockIcon className="w-4 h-4"/>
-                               <span>{article.readingTime} minute read</span>
-                           </div>
-                        </div>
-                    </div>
-                    
-                    <AITags tags={tags} isLoading={isLoadingTags} />
-                    
-                    <FactCheck result={factCheckResult} isLoading={isLoadingFactCheck} />
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-6">
+                <span>By {article.author}</span>
+                <span className="hidden md:inline">&bull;</span>
+                <span>{article.date}</span>
+                <span className="hidden md:inline">&bull;</span>
+                <span>{article.readingTime} min read</span>
+                {article.sentiment && <SentimentIndicator sentiment={article.sentiment} />}
+            </div>
 
-                    {article.keyTakeaways && <KeyTakeaways takeaways={article.keyTakeaways} />}
+            {/* AI Action Bar */}
+            <div className="flex flex-wrap gap-2 mb-8 p-3 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
+                <button onClick={handleSummarize} className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <SummarizeIcon className="w-5 h-5"/> AI Summary
+                </button>
+                <button onClick={handleExplainSimply} className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <ChildIcon className="w-5 h-5"/> Explain Simply
+                </button>
+                <button onClick={handleTextToSpeech} disabled={isTtsGenerating} className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50">
+                    {isTtsGenerating ? <LoadingSpinner/> : <ReadAloudIcon className="w-5 h-5"/>} Read Aloud
+                </button>
+            </div>
+            
+            <img src={article.imageUrl} alt={article.title} className="w-full rounded-lg shadow-lg mb-8" />
+            
+            <div className="prose prose-lg dark:prose-invert max-w-none">
+              <p className="lead">{article.excerpt}</p>
+              
+              <FactCheck result={article.factCheck || factCheckResult} isLoading={isFactCheckLoading} />
+              
+              {article.keyTakeaways && <KeyTakeaways takeaways={article.keyTakeaways} />}
 
-                    <p className="lead">{article.excerpt}</p>
-                    
-                    <p>{article.content || "Full content is not available for this article."}</p>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.</p>
+              <AITags tags={aiTags} isLoading={areAiTagsLoading} />
+              
+              {article.content?.split('\n').map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
 
-                    <blockquote>
-                        "This is a pivotal moment that will define the next decade. The implications are staggering, and we are only beginning to scratch the surface."
-                    </blockquote>
-
-                    <p>Duis semper. Duis arcu massa, scisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>
-
-                     <figure>
-                        <img src="https://picsum.photos/800/500?random=55" alt="In-article visual" className="rounded-lg shadow-lg" />
-                        <figcaption>A supporting image can add powerful context to a story, breaking up the text and engaging the reader visually.</figcaption>
-                    </figure>
-
-                    <p>Morbi interdum mollis sapien. Sed ac risus. Phasellus lacinia, magna a ullamcorper laoreet, lectus arcu pulvinar risus, vitae facilisis libero dolor a purus. Sed vel lacus. Mauris nibh felis, adipiscing varius, adipiscing in, lacinia vel, tellus. Suspendisse ac urna. Etiam pellentesque mauris ut lectus. Nunc tellus ante, mattis eget, gravida vitae, ultricies ac, leo. Integer leo pede, ornare a, lacinia eu, vulputate vel, nisl.</p>
-                </article>
-             </div>
-             <AuthorInfo article={article} />
-             <CommentsSection initialComments={article.comments} />
-          </div>
-          <div className={`lg:col-span-4 transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
-            <RightAside trendingArticles={trendingArticles} onArticleClick={onArticleClick} />
+            <AuthorInfo author={article.author} date={article.date} />
+            
+            <CommentsSection initialComments={article.comments || []} />
+          </article>
+          
+          <div className={`lg:col-span-3 transition-all duration-300 ${isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <div className="sticky top-28 space-y-8">
+              <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
+            </div>
           </div>
         </div>
       </div>
-      
-      {relatedContent.length > 0 && (
-        <div className={`container mx-auto px-4 sm:px-6 lg:px-8 my-16 transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
-           <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
-                Related Stories
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {relatedContent.map(related => (
-                    <ArticleCard 
-                        key={related.id}
-                        article={related}
-                        onReadMore={onArticleClick}
-                        isBookmarked={bookmarkedArticleIds.includes(related.id)}
-                        onToggleBookmark={onToggleBookmark}
-                        offlineArticleIds={[]}
-                        downloadingArticleId={null}
-                        onDownloadArticle={() => {}}
-                    />
-                ))}
-            </div>
-        </div>
-      )}
 
-      <style>{`
-          @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
-          .prose { --tw-prose-body: #334155; --tw-prose-invert-body: #cbd5e1; --tw-prose-lead: #1e293b; --tw-prose-invert-lead: #e2e8f0; --tw-prose-bullets: var(--accent-color); --tw-prose-invert-bullets: var(--accent-color); --tw-prose-quotes: #1e293b; --tw-prose-invert-quotes: #e2e8f0; }
-          .prose .lead { font-size: 1.25em; line-height: 1.6; font-weight: 400; }
-          .prose blockquote { border-left-color: var(--accent-color); font-style: italic; font-weight: 600; font-size: 1.2em; }
-          .prose figcaption { text-align: center; font-size: 0.9em; color: #64748b; margin-top: 0.75rem; }
-          .dark .prose figcaption { color: #94a3b8; }
-          
-          .zen-mode .lg\\:grid-cols-12 .lg\\:col-span-8 {
-             grid-column: span 12 / span 12;
-          }
-           .zen-mode .prose {
-             max-width: 80ch;
-             margin: 0 auto;
-          }
-           .zen-mode .lg\\:pl-24 {
-             padding-left: 0;
-          }
-        `}</style>
-    </div>
+      {isSummarizerOpen && (
+          <SummarizerModal 
+            article={article}
+            summary={summary}
+            isLoading={isSummaryLoading}
+            error={summaryError}
+            onClose={() => setIsSummarizerOpen(false)}
+          />
+      )}
+       {isExplainSimplyOpen && (
+          <ExplainSimplyModal 
+            article={article}
+            explanation={explanation}
+            isLoading={isExplainSimplyLoading}
+            error={explainSimplyError}
+            onClose={() => setIsExplainSimplyOpen(false)}
+          />
+      )}
+       {(ttsAudio || isTtsGenerating) && (
+        <TextToSpeechPlayer 
+            audioBase64={ttsAudio}
+            isGenerating={isTtsGenerating}
+            onClose={() => setTtsAudio(null)}
+        />
+       )}
+    </>
   );
 };
 
