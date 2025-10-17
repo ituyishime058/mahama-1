@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept } from '../types';
+import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts } from '../utils/ai';
+import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts, summarizeComments } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import SocialShare from './SocialShare';
@@ -16,6 +16,7 @@ import ArticleTimeline from './ArticleTimeline';
 import TranslateIcon from './icons/TranslateIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import GlossaryPopup from './GlossaryPopup';
+import CommunityHighlights from './CommunityHighlights';
 
 interface ArticlePageProps {
   article: Article;
@@ -77,6 +78,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   // State for Interactive Glossary
   const [keyConcepts, setKeyConcepts] = useState<KeyConcept[]>([]);
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
+
+  // State for Community Highlights
+  const [communityHighlights, setCommunityHighlights] = useState<CommunityHighlight[]>([]);
+  const [highlightsLoading, setHighlightsLoading] = useState(true);
   
   const articleRef = useRef<HTMLDivElement>(null);
 
@@ -95,11 +100,13 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setActiveLens('None');
     setModifiedContent(null);
     setIsModifyingContent(false);
+    setCommunityHighlights([]);
 
     setTagsLoading(true);
     setFactCheckLoading(true);
     setTakeawaysLoading(true);
     setTimelineLoading(true);
+    setHighlightsLoading(true);
 
     // Auto-translate if setting is enabled
     if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
@@ -124,17 +131,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       const factCheckPromise = factCheckArticle(article, settings);
       const takeawaysPromise = generateKeyTakeaways(article, settings);
       const conceptsPromise = extractKeyConcepts(article, settings);
+      const commentsPromise = summarizeComments(mockComments, settings);
       
-      const [tagsResult, factCheckData, takeawaysResult, conceptsResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise, conceptsPromise]);
+      const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise, conceptsPromise, commentsPromise]);
 
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value);
       if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value);
       if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value);
       if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value);
+      if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value);
       
       setTagsLoading(false);
       setFactCheckLoading(false);
       setTakeawaysLoading(false);
+      setHighlightsLoading(false);
 
       if (article.hasTimeline) {
           const timelinePromise = generateArticleTimeline(article, settings);
@@ -231,6 +241,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             color: #d97706; /* gold */
             border-bottom-color: #b91c1c; /* deep-red */
           }
+          .density-compact .prose {
+            font-size: 0.9rem;
+            line-height: 1.5;
+          }
         `}</style>
         <ArticleProgressBar targetRef={articleRef} />
         <button onClick={onClose} className="mb-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
@@ -292,7 +306,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
                     <AITags tags={tags} isLoading={tagsLoading} />
                 </main>
-
+                
+                <CommunityHighlights highlights={communityHighlights} isLoading={highlightsLoading} />
                 <CommentsSection initialComments={mockComments} />
                 
                 <RelatedArticles currentArticle={article} allArticles={mockArticles} onArticleClick={onReadMore} settings={settings} />

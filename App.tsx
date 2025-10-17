@@ -67,6 +67,8 @@ const defaultSettings: Settings = {
     aiModelPreference: 'Speed',
     interactiveGlossary: true,
     subscriptionTier: 'Free',
+    readerProfile: 'Casual',
+    visualDensity: 'Comfortable',
 };
 
 const App: React.FC = () => {
@@ -137,6 +139,14 @@ const App: React.FC = () => {
         root.classList.toggle('font-sans', settings.fontFamily === 'sans');
         root.classList.toggle('font-serif', settings.fontFamily === 'serif');
         root.style.fontSize = `${settings.fontSize}px`;
+
+        root.classList.remove('density-comfortable', 'density-compact');
+        if (settings.visualDensity === 'Compact') {
+            root.classList.add('density-compact');
+        } else {
+            root.classList.add('density-comfortable');
+        }
+
         localStorage.setItem('mahama-settings', JSON.stringify(settings));
     }, [settings]);
 

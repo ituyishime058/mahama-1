@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { Article, QuizQuestion, Settings, TimelineEvent, ExpertPersona, KeyConcept, ChatMessage, ReadingLens } from '../types';
+import type { Article, QuizQuestion, Settings, TimelineEvent, ExpertPersona, KeyConcept, ChatMessage, ReadingLens, Comment, CommunityHighlight } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -48,13 +48,19 @@ export async function* summarizeArticle(article: Article, settings: Settings): A
 
 export async function* explainSimply(article: Article, settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
-        const prompt = `Explain the key points of this article as if you were talking to a 10-year-old. Use simple language and analogies.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+        const personaPrompt = {
+            'Casual': 'as if you were talking to an intelligent adult who is new to the topic.',
+            'Student': 'as if you were talking to a high school student. Define key terms.',
+            'Expert': 'assuming a knowledgeable audience, focusing on the core nuances and implications without oversimplifying.'
+        };
+
+        const prompt = `Explain the key points of this article ${personaPrompt[settings.readerProfile || 'Casual']}. Use clear language.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContentStream({
             model: 'gemini-2.5-flash', // Always use the fast model for explanations
             contents: prompt,
             config: {
                 thinkingConfig: { thinkingBudget: 0 },
-                systemInstruction: "You are a friendly and simple explainer for kids.",
+                systemInstruction: "You are a friendly and helpful explainer.",
             }
         });
         for await (const chunk of response) {
@@ -548,5 +554,49 @@ Generate the full script now.`;
     } catch (error) {
         console.error("Error generating news briefing script:", error);
         throw new Error("Could not generate the news briefing. Please try again.");
+    }
+};
+
+export const summarizeComments = async (comments: Comment[], settings: Settings): Promise<CommunityHighlight[]> => {
+    try {
+        const commentText = comments.map((c, i) => `Comment ${i+1}: ${c.text}`).join('\n\n');
+        if (commentText.length < 50) return []; // Not enough content to summarize
+
+        const prompt = `Analyze the following comments on a news article. Identify 2-3 distinct viewpoints or recurring themes. For each viewpoint, provide a one-sentence summary of the argument.
+
+Comments:
+${commentText}
+
+Provide the output as a JSON object with a key "highlights" which is an array of objects, each with a "viewpoint" (a short title for the theme, e.g., "Economic Concerns") and a "summary" (the one-sentence summary).`;
+
+        const response = await ai.models.generateContent({
+            model: getModel(settings),
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        highlights: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    viewpoint: { type: Type.STRING },
+                                    summary: { type: Type.STRING }
+                                },
+                                required: ["viewpoint", "summary"]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        const jsonStr = response.text.trim();
+        const result = JSON.parse(jsonStr);
+        return result.highlights || [];
+    } catch (error) {
+        console.error("Error summarizing comments:", error);
+        return [];
     }
 };

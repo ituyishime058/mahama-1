@@ -20,6 +20,8 @@ import MagicWandIcon from './icons/MagicWandIcon';
 import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import GlossaryIcon from './icons/GlossaryIcon';
 import CrownIcon from './icons/CrownIcon';
+import ProfileIcon from './icons/ProfileIcon';
+import DensityIcon from './icons/DensityIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -112,6 +114,28 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                 </div>
               </div>
             </section>
+
+             {/* Personalization Section */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ProfileIcon /> Personalization</h2>
+              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
+                <div className="flex justify-between items-center pt-4 first:pt-0">
+                  <label className="font-semibold">Reader Profile</label>
+                  <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
+                    <button onClick={() => handleSettingChange('readerProfile', 'Casual')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.readerProfile === 'Casual' ? 'bg-white dark:bg-navy shadow' : ''}`}>Casual</button>
+                    <button onClick={() => handleSettingChange('readerProfile', 'Student')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.readerProfile === 'Student' ? 'bg-white dark:bg-navy shadow' : ''}`}>Student</button>
+                    <button onClick={() => handleSettingChange('readerProfile', 'Expert')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.readerProfile === 'Expert' ? 'bg-white dark:bg-navy shadow' : ''}`}>Expert</button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-4">
+                  <label className="font-semibold flex items-center gap-2"><DensityIcon /> Visual Density</label>
+                  <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
+                    <button onClick={() => handleSettingChange('visualDensity', 'Comfortable')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.visualDensity === 'Comfortable' ? 'bg-white dark:bg-navy shadow' : ''}`}>Comfortable</button>
+                    <button onClick={() => handleSettingChange('visualDensity', 'Compact')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.visualDensity === 'Compact' ? 'bg-white dark:bg-navy shadow' : ''}`}>Compact</button>
+                  </div>
+                </div>
+              </div>
+            </section>
             
             {/* Content Preferences Section */}
             <section>
@@ -146,7 +170,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                 <div className="flex justify-between items-center pt-4 first:pt-0">
                     <label className="font-semibold flex items-center gap-2"><SparklesIcon/> AI Model Preference</label>
                     <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
-                        {/* FIX: Changed 'Fast' to 'Speed' to match the AIModelPreference type and fixed button text. */}
                         <button onClick={() => handleSettingChange('aiModelPreference', 'Speed')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Speed' ? 'bg-white dark:bg-navy shadow' : ''}`}>Speed</button>
                         <button onClick={() => handleSettingChange('aiModelPreference', 'Quality')} disabled={!isPremium} className={`relative px-3 py-1 rounded-full text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${localSettings.aiModelPreference === 'Quality' ? 'bg-white dark:bg-navy shadow' : ''}`}>
                             Quality

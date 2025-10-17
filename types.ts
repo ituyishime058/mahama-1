@@ -119,6 +119,9 @@ export interface Innovation {
   icon: string;
 }
 
+export type ReaderProfile = 'Casual' | 'Student' | 'Expert';
+export type VisualDensity = 'Comfortable' | 'Compact';
+
 export interface Settings {
     theme: 'light' | 'dark' | 'system';
     fontFamily: 'sans' | 'serif';
@@ -142,6 +145,8 @@ export interface Settings {
     aiModelPreference: AIModelPreference;
     interactiveGlossary: boolean;
     subscriptionTier: SubscriptionTier;
+    readerProfile: ReaderProfile;
+    visualDensity: VisualDensity;
 }
 
 export interface StreamingContent {
@@ -164,4 +169,9 @@ export interface KeyConcept {
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
+}
+
+export interface CommunityHighlight {
+    viewpoint: string;
+    summary: string;
 }

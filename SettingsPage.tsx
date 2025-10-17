@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import type { Settings } from '../types';
 import { categories } from '../constants';
@@ -129,7 +130,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                 <div className="flex justify-between items-center pt-4 first:pt-0">
                     <label className="font-semibold flex items-center gap-2"><SparklesIcon/> AI Model Preference</label>
                     <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
-                        <button onClick={() => handleSettingChange('aiModelPreference', 'Fast')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Fast' ? 'bg-white dark:bg-navy shadow' : ''}`}>Fast</button>
+                        {/* FIX: Changed 'Fast' to 'Speed' to match the AIModelPreference type. */}
+                        <button onClick={() => handleSettingChange('aiModelPreference', 'Speed')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Speed' ? 'bg-white dark:bg-navy shadow' : ''}`}>Speed</button>
                         <button onClick={() => handleSettingChange('aiModelPreference', 'Quality')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Quality' ? 'bg-white dark:bg-navy shadow' : ''}`}>Quality</button>
                     </div>
                 </div>

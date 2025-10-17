@@ -74,7 +74,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         />
         <div className="absolute top-4 left-4 bg-deep-red text-white text-xs font-bold px-2 py-1 rounded">{article.category}</div>
       </div>
-      <div className={`p-6 flex flex-col ${featured ? 'lg:w-1/2' : ''}`}>
+      <div className={`flex flex-col ${featured ? 'lg:w-1/2' : ''} p-6 density-compact:p-4`}>
         <div className="flex-grow">
           <div className="flex justify-between items-center mb-2">
             <p className="text-sm text-slate-500">{article.author} &bull; {article.date}</p>
@@ -83,7 +83,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <h3 className={`font-extrabold leading-tight mb-3 ${featured ? 'text-3xl' : 'text-2xl'}`}>
             <a href="#" onClick={handleReadMore} className="hover:underline">{article.title}</a>
           </h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">{article.excerpt}</p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 density-compact:text-sm">{article.excerpt}</p>
         </div>
 
         <div className="border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-wrap items-center justify-between gap-4">
