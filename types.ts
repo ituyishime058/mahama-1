@@ -1,3 +1,5 @@
+export type Sentiment = 'Positive' | 'Neutral' | 'Negative';
+
 export interface Article {
   id: number;
   title: string;
@@ -10,22 +12,23 @@ export interface Article {
   category: string;
   live?: boolean;
   region?: 'North America' | 'South America' | 'Europe' | 'Africa' | 'Asia' | 'Oceania';
-  sentiment?: 'Positive' | 'Neutral' | 'Negative';
   keyTakeaways: string[];
+  sentiment?: Sentiment;
 }
 
 export interface Podcast {
   id: number;
   title: string;
-  author: string;
   excerpt: string;
   imageUrl: string;
-  episode: number;
+  author: string;
   duration: string;
+  episode: number;
   audioUrl: string;
 }
 
 export interface User {
+  id: string;
   name: string;
   avatar: string;
 }
@@ -39,6 +42,16 @@ export interface Comment {
   replies: Comment[];
 }
 
+export type AiSummaryLength = 'Short' | 'Medium' | 'Detailed';
+
+export type AiTtsVoice = 'Kore' | 'Puck' | 'Charon' | 'Fenrir' | 'Zephyr';
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
 export interface Stock {
   symbol: string;
   price: number;
@@ -46,26 +59,9 @@ export interface Stock {
   changePercent: string;
 }
 
-export type Theme = 'light' | 'dark' | 'system';
-export type FontFamily = 'sans' | 'serif';
-export type AiSummaryLength = 'Short' | 'Medium' | 'Detailed';
-export type AiTtsVoice = 'Kore' | 'Puck' | 'Charon' | 'Fenrir' | 'Zephyr';
-
-
-export interface Settings {
-    theme: Theme;
-    fontSize: number;
-    fontFamily: FontFamily;
-    enableNotifications: boolean;
-    dataSaverMode: boolean;
-    language: string;
-    hiddenCategories: string[];
-    aiSummaryLength: AiSummaryLength;
-    aiTtsVoice: AiTtsVoice;
+export interface Innovation {
+  year: number;
+  title: string;
+  description: string;
+  icon: string;
 }
-
-export type QuizQuestion = {
-    question: string;
-    options: string[];
-    correctAnswer: string;
-};

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import SearchIcon from './icons/SearchIcon';
-import Logo from './Logo';
-import MenuIcon from './icons/MenuIcon';
-import CategoryDropdown from './CategoryDropdown';
+// FIX: Correct import paths for components and icons from root level.
+import SearchIcon from './components/icons/SearchIcon';
+import Logo from './components/Logo';
+import MenuIcon from './components/icons/MenuIcon';
+import CategoryDropdown from './components/CategoryDropdown';
 
 interface HeaderProps {
   isDarkMode: boolean;

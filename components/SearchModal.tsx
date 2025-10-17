@@ -96,7 +96,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, articles, on
                         <ul>
                             {filteredArticles.map(article => (
                                 <li key={article.id}>
-                                    <button onClick={() => onArticleSelect(article)} className="w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 transition-colors">
+                                    <button onClick={() => {onArticleSelect(article)}} className="w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 transition-colors">
                                         <p className="font-semibold">{article.title}</p>
                                         <p className="text-sm text-deep-red dark:text-gold">{article.category}</p>
                                     </button>

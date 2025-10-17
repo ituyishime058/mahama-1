@@ -1,5 +1,6 @@
 import React from 'react';
-import type { Article } from '../types';
+// FIX: Correct import path for types from root level.
+import type { Article } from './types';
 
 interface HeroProps {
     article: Article;

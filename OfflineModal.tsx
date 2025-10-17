@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import type { Article } from '../types';
-import CloseIcon from './icons/CloseIcon';
-import OfflineIcon from './icons/OfflineIcon';
-import TrashIcon from './icons/TrashIcon';
+// FIX: Correct import path for types from root level.
+import type { Article } from './types';
+// FIX: Correct import paths for icons from root level.
+import CloseIcon from './components/icons/CloseIcon';
+import OfflineIcon from './components/icons/OfflineIcon';
+import TrashIcon from './components/icons/TrashIcon';
 
 interface OfflineModalProps {
   isOpen: boolean;

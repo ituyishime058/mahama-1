@@ -18,24 +18,24 @@ const TranslationModal: React.FC<TranslationModalProps> = ({ article, defaultLan
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleTranslate = async () => {
-    if (!article) return;
-    setIsLoading(true);
-    setError('');
-    setTranslatedText('');
-    try {
-      const textToTranslate = `Title: ${article.title}\n\n${article.content}`;
-      const result = await translateArticle(textToTranslate, targetLanguage);
-      setTranslatedText(result);
-    } catch (err: any) {
-      setError(err.message || 'Failed to translate.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   // Trigger translation when the modal opens or the language changes
   useEffect(() => {
+    const handleTranslate = async () => {
+      if (!article) return;
+      setIsLoading(true);
+      setError('');
+      setTranslatedText('');
+      try {
+        const textToTranslate = `Title: ${article.title}\n\n${article.content}`;
+        const result = await translateArticle(textToTranslate, targetLanguage);
+        setTranslatedText(result);
+      } catch (err: any) {
+        setError(err.message || 'Failed to translate.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     handleTranslate();
   }, [article, targetLanguage]);
   

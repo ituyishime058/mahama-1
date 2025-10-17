@@ -1,6 +1,8 @@
 import React from 'react';
-import type { Article } from '../types';
-import ArticleCard from './ArticleCard';
+// FIX: Correct import path for types from root level.
+import type { Article } from './types';
+// FIX: Correct import path for ArticleCard component from root level.
+import ArticleCard from './components/ArticleCard';
 
 interface GlobalHighlightsProps {
   articles: Article[];

@@ -1,4 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
+// FIX: Import `Modality` for use in textToSpeech config.
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice } from '../types';
 
 // FIX: Initialize the GoogleGenAI client. Ensure API_KEY is set in the environment.
@@ -55,7 +56,8 @@ export const textToSpeech = async (article: Article, voice: AiTtsVoice = 'Kore')
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text: textToRead }] }],
             config: {
-                responseModalities: ['AUDIO'],
+                // FIX: Use Modality enum instead of a string literal for responseModalities.
+                responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: {
                         prebuiltVoiceConfig: { voiceName: voice },
@@ -105,30 +107,33 @@ export const generateTags = async (article: Article): Promise<string[]> => {
 
 export const factCheckArticle = async (article: Article): Promise<{ status: string; summary: string } | null> => {
     try {
-        const prompt = `Analyze the claims made in the following article and provide a fact-check summary. Categorize the overall accuracy as 'Verified', 'Mixed', or 'Unverified'.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+        // FIX: Update prompt to request a specific text format, as JSON output is not guaranteed with googleSearch tool.
+        const prompt = `Analyze the claims made in the following article and provide a fact-check summary. 
+First, on a single line, categorize the overall accuracy as 'Verified', 'Mixed', or 'Unverified'.
+Then, on a new line, provide a brief summary of your findings.
+Your entire response should be in the format:
+STATUS: [Your status]
+SUMMARY: [Your summary]
+
+Title: ${article.title}
+Content: ${article.content}`;
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro', // Using a more powerful model for reasoning
             contents: prompt,
+            // FIX: Remove responseMimeType and responseSchema as they are not allowed when using the googleSearch tool.
             config: {
                 tools: [{ googleSearch: {} }],
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        status: {
-                            type: Type.STRING,
-                            description: "The overall fact-check status: 'Verified', 'Mixed', or 'Unverified'."
-                        },
-                        summary: {
-                            type: Type.STRING,
-                            description: "A brief summary of the fact-check findings."
-                        }
-                    }
-                }
             }
         });
-        const jsonStr = response.text.trim();
-        return JSON.parse(jsonStr);
+        const text = response.text;
+        // FIX: Parse the structured text response instead of attempting to parse JSON.
+        const statusMatch = text.match(/STATUS:\s*(.*)/);
+        const summaryMatch = text.match(/SUMMARY:\s*(.*)/s);
+
+        const status = statusMatch ? statusMatch[1].trim() : 'Unverified';
+        const summary = summaryMatch ? summaryMatch[1].trim() : 'Could not determine fact-check summary from the response.';
+        
+        return { status, summary };
     } catch (error) {
         console.error("Error fact-checking article:", error);
         return null;

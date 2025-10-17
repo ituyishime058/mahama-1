@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import type { Article } from '../types';
+// FIX: Correct import path for types from root level.
+import type { Article } from './types';
 
 interface NewsMapProps {
   articles: Article[];
