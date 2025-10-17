@@ -62,6 +62,7 @@ const defaultSettings: Settings = {
         aiRecommendations: true,
     },
     aiReadingLens: 'None',
+    interactiveGlossary: true,
 };
 
 const App: React.FC = () => {

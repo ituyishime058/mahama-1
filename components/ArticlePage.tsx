@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import type { Article, Settings, TimelineEvent, ReadingLens } from '../types';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens } from '../utils/ai';
+import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import SocialShare from './SocialShare';
@@ -15,6 +15,7 @@ import RelatedArticles from './RelatedArticles';
 import ArticleTimeline from './ArticleTimeline';
 import TranslateIcon from './icons/TranslateIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
+import GlossaryPopup from './GlossaryPopup';
 
 interface ArticlePageProps {
   article: Article;
@@ -68,6 +69,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [activeLens, setActiveLens] = useState<ReadingLens>('None');
   const [modifiedContent, setModifiedContent] = useState<string | null>(null);
   const [isModifyingContent, setIsModifyingContent] = useState(false);
+
+  // State for Interactive Glossary
+  const [keyConcepts, setKeyConcepts] = useState<KeyConcept[]>([]);
+  const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
   
   const articleRef = useRef<HTMLDivElement>(null);
 
@@ -78,6 +83,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setFactCheckResult(null);
     setAiTakeaways([]);
     setTimelineEvents([]);
+    setKeyConcepts([]);
+    setGlossaryTerm(null);
     setTranslatedContent(null);
     setShowOriginal(true);
     setIsTranslating(false);
@@ -112,12 +119,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       const tagsPromise = generateTags(article);
       const factCheckPromise = factCheckArticle(article);
       const takeawaysPromise = generateKeyTakeaways(article);
+      const conceptsPromise = extractKeyConcepts(article);
       
-      const [tagsResult, factCheckData, takeawaysResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise]);
+      const [tagsResult, factCheckData, takeawaysResult, conceptsResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise, conceptsPromise]);
 
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value);
       if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value);
       if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value);
+      if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value);
       
       setTagsLoading(false);
       setFactCheckLoading(false);
@@ -165,9 +174,60 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   }, [activeLens, article.content]);
   
   const contentToDisplay = modifiedContent ?? (showOriginal || !translatedContent ? article.content : translatedContent);
+
+  const processedContent = useMemo(() => {
+    if (!settings.interactiveGlossary || keyConcepts.length === 0) {
+      return contentToDisplay;
+    }
+    const terms = keyConcepts.map(c => c.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
+    const regex = new RegExp(`\\b(${terms.join('|')})\\b`, 'gi');
+    
+    return contentToDisplay.replace(regex, (match) => {
+      const originalTerm = keyConcepts.find(c => c.term.toLowerCase() === match.toLowerCase())?.term || match;
+      return `<button class="interactive-term" data-term="${originalTerm}">${match}</button>`;
+    });
+  }, [contentToDisplay, keyConcepts, settings.interactiveGlossary]);
+
+  const handleArticleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('interactive-term')) {
+      e.preventDefault();
+      const term = target.dataset.term;
+      if (term) {
+        const concept = keyConcepts.find(c => c.term === term);
+        if (concept) {
+          const rect = target.getBoundingClientRect();
+          setGlossaryTerm({
+            term: concept.term,
+            definition: concept.description,
+            position: {
+              top: rect.bottom + window.scrollY + 8,
+              left: rect.left + window.scrollX,
+            }
+          });
+        }
+      }
+    }
+  }, [keyConcepts]);
   
   return (
     <div ref={articleRef} className={`transition-colors duration-300 ${isZenMode ? 'bg-slate-50 dark:bg-gray-900' : 'bg-transparent'}`}>
+        <style>{`
+          .interactive-term {
+            color: #b91c1c; /* deep-red */
+            font-weight: 600;
+            border-bottom: 2px dotted #d97706; /* gold */
+            cursor: pointer;
+            background: transparent;
+            padding: 0;
+            display: inline;
+            border-radius: 0;
+          }
+          .dark .interactive-term {
+            color: #d97706; /* gold */
+            border-bottom-color: #b91c1c; /* deep-red */
+          }
+        `}</style>
         <ArticleProgressBar targetRef={articleRef} />
         <button onClick={onClose} className="mb-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
             &larr; Back to Home
@@ -220,7 +280,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                             <span>Applying AI Reading Lens...</span>
                         </div>
                     )}
-                    <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: contentToDisplay.replace(/\n/g, '<br />') }} />
+                    <div onClick={handleArticleClick}>
+                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: processedContent.replace(/\n/g, '<br />') }} />
+                    </div>
                     
                     {article.hasTimeline && <ArticleTimeline events={timelineEvents} isLoading={timelineLoading} />}
 
@@ -232,6 +294,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 <RelatedArticles currentArticle={article} allArticles={mockArticles} onArticleClick={onReadMore} />
             </div>
         </div>
+        {glossaryTerm && (
+          <GlossaryPopup 
+            term={glossaryTerm.term}
+            definition={glossaryTerm.definition}
+            position={glossaryTerm.position}
+            onClose={() => setGlossaryTerm(null)}
+          />
+        )}
         <FloatingActionbar
             article={article}
             onSummarize={onSummarize}

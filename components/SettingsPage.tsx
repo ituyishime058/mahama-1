@@ -17,6 +17,8 @@ import TranslateIcon from './icons/TranslateIcon';
 import BellIcon from './icons/BellIcon';
 import MicIcon from './icons/MicIcon';
 import MagicWandIcon from './icons/MagicWandIcon';
+import TextToSpeechIcon from './icons/TextToSpeechIcon';
+import GlossaryIcon from './icons/GlossaryIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -124,6 +126,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> AI & Reading Experience</h2>
               <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
                 <div className="flex justify-between items-center pt-4 first:pt-0">
+                  <label htmlFor="interactive-glossary" className="font-semibold flex items-center gap-2"><GlossaryIcon/> Interactive Glossary</label>
+                  <input type="checkbox" id="interactive-glossary" checked={localSettings.interactiveGlossary} onChange={e => handleSettingChange('interactiveGlossary', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
+                </div>
+                <div className="flex justify-between items-center pt-4">
                     <label className="font-semibold flex items-center gap-2"><MagicWandIcon className="w-5 h-5"/> Default Reading Lens</label>
                     <select
                         value={localSettings.aiReadingLens}
@@ -134,6 +140,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                         <option value="Simplify">Simplify Language</option>
                         <option value="DefineTerms">Define Key Terms</option>
                     </select>
+                </div>
+                <div className="flex justify-between items-center pt-4">
+                  <label className="font-semibold flex items-center gap-2"><TextToSpeechIcon className="w-5 h-5"/> Text-to-Speech Voice</label>
+                  <select
+                      value={localSettings.ttsVoice}
+                      onChange={(e) => handleSettingChange('ttsVoice', e.target.value as Settings['ttsVoice'])}
+                      className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold"
+                  >
+                      <option value="Zephyr">Zephyr (Male)</option>
+                      <option value="Puck">Puck (Male)</option>
+                      <option value="Charon">Charon (Male)</option>
+                      <option value="Kore">Kore (Female)</option>
+                      <option value="Fenrir">Fenrir (Female)</option>
+                  </select>
                 </div>
                 <div className="flex justify-between items-center pt-4">
                     <label className="font-semibold flex items-center gap-2"><MicIcon className="w-5 h-5"/> AI Voice Personality</label>

@@ -98,6 +98,7 @@ export interface Settings {
         aiRecommendations: boolean;
     };
     aiReadingLens: ReadingLens;
+    interactiveGlossary: boolean;
 }
 
 export interface StreamingContent {

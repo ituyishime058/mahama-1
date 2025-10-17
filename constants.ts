@@ -203,6 +203,42 @@ const newArticles: Article[] = [
           'Top chefs are incorporating them into their menus.',
           'The trend combines history, culture, and sustainability.'
         ]
+    },
+    {
+        id: 18,
+        title: 'Inside the Matrix: How "Bullet Time" Changed Cinema Forever',
+        excerpt: 'A deep dive into the revolutionary visual effects of "The Matrix," exploring the complex techniques and lasting impact of its iconic "bullet time" sequences.',
+        content: 'When "The Matrix" hit theaters in 1999, it didn\'t just tell a story; it redefined how stories could be told on screen. At the heart of its visual innovation was "bullet time," a stunning effect that appeared to stop time, allowing the camera to move around a character frozen in mid-air. This was not simple slow-motion. The technique, developed by visual effects supervisor John Gaeta and his team at Manex Visual Effects, involved a complex array of still cameras arranged around the subject. By firing these cameras sequentially in rapid succession, they created a series of still images that, when stitched together, simulated a fluid camera movement through a frozen moment. This "virtual camera" technique has since influenced countless action films, music videos, and video games, cementing its place as one of the most significant cinematic innovations of its time.',
+        imageUrl: 'https://picsum.photos/seed/matrix1999/1200/800',
+        author: 'Lexi Stratford',
+        date: 'November 7, 2023',
+        category: 'Movies & TV',
+        region: 'North America',
+        sentiment: 'Positive',
+        keyTakeaways: [
+            '"Bullet time" was a revolutionary visual effect pioneered in "The Matrix".',
+            'It used an array of still cameras to create a virtual camera movement through a frozen moment.',
+            'The technique was developed by John Gaeta and Manex Visual Effects.',
+            'It has had a lasting impact on action filmmaking and other media.'
+        ]
+    },
+    {
+        id: 19,
+        title: 'The Unseen Hand: A Critical Look at the Power of the Film Editor',
+        excerpt: 'Often overlooked, the film editor plays a crucial role in shaping a movie\'s narrative, pacing, and emotional impact. We explore the art and craft of this vital cinematic role.',
+        content: 'While directors and actors often receive the spotlight, the film editor works in the quiet darkness of the editing bay, assembling the raw footage into a cohesive and compelling story. The editor\'s choices—when to cut, how long to hold a shot, how to sequence scenes—are fundamental to the final film. A great editor can save a troubled production or elevate a good one to greatness. Through rhythmic cutting, they create tension in an action sequence or intimacy in a quiet conversation. Walter Murch, Thelma Schoonmaker, and Dody Dorn are just a few of the legendary editors whose invisible art has shaped some of cinema\'s most iconic moments. Their work is a testament to the idea that a film is not just shot, but made—and much of that making happens in the edit.',
+        imageUrl: 'https://picsum.photos/seed/filmedit/1200/800',
+        author: 'David Chen',
+        date: 'November 8, 2023',
+        category: 'Movies & TV',
+        region: 'Europe',
+        sentiment: 'Neutral',
+        keyTakeaways: [
+            'Film editors are crucial in shaping a movie\'s narrative and emotional impact.',
+            'Their choices in cutting and sequencing define the film\'s rhythm and pacing.',
+            'Legendary editors have had a profound impact on cinematic history.',
+            'The editing process is a fundamental part of the filmmaking art form.'
+        ]
     }
 ];
 
@@ -417,4 +453,7 @@ export const mockStreamingContent: StreamingContent[] = [
   { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
   { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
   { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 6, title: 'Chronos Enigma', posterUrl: 'https://picsum.photos/seed/movie6/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 7, title: 'The Gilded Cage', posterUrl: 'https://picsum.photos/seed/movie7/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 8, title: 'Neon Wasteland', posterUrl: 'https://picsum.photos/seed/movie8/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
 ];

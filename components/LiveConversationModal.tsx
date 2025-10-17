@@ -23,6 +23,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transcription, setTranscription] = useState<TranscriptionEntry[]>([]);
+  const [interimUserTranscript, setInterimUserTranscript] = useState('');
 
   const inputAudioContextRef = useRef<AudioContext>();
   const outputAudioContextRef = useRef<AudioContext>();
@@ -38,7 +39,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [transcription]);
+  }, [transcription, interimUserTranscript]);
 
   const stopSession = useCallback(() => {
     if (session) {
@@ -83,6 +84,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
     setIsConnecting(true);
     setError(null);
     setTranscription([]);
+    setInterimUserTranscript('');
     currentInputTranscription.current = '';
     currentOutputTranscription.current = '';
 
@@ -141,7 +143,9 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                 onmessage: async (message: LiveServerMessage) => {
                     // Handle Transcription
                     if (message.serverContent?.inputTranscription) {
-                        currentInputTranscription.current += message.serverContent.inputTranscription.text;
+                        const newText = currentInputTranscription.current + message.serverContent.inputTranscription.text;
+                        currentInputTranscription.current = newText;
+                        setInterimUserTranscript(newText);
                     }
                     if (message.serverContent?.outputTranscription) {
                         currentOutputTranscription.current += message.serverContent.outputTranscription.text;
@@ -149,6 +153,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                     if (message.serverContent?.turnComplete) {
                         const userInput = currentInputTranscription.current.trim();
                         const modelOutput = currentOutputTranscription.current.trim();
+                        setInterimUserTranscript('');
                         if (userInput) setTranscription(prev => [...prev, { speaker: 'user', text: userInput }]);
                         if (modelOutput) setTranscription(prev => [...prev, { speaker: 'model', text: modelOutput }]);
                         currentInputTranscription.current = '';
@@ -216,6 +221,14 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                         </div>
                     </div>
                 ))}
+                {interimUserTranscript && (
+                    <div className="flex justify-end">
+                        <div className="max-w-[80%] p-3 rounded-lg bg-blue-500 text-white opacity-70">
+                            {interimUserTranscript}
+                            <span className="inline-block w-2 h-4 bg-white animate-blink ml-1"></span>
+                        </div>
+                    </div>
+                )}
                 <div ref={transcriptEndRef} />
             </div>
 
