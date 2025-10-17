@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { mockStreamingContent } from '../constants';
 import PlayCircleIcon from './icons/PlayCircleIcon';
@@ -9,13 +8,16 @@ interface NowStreamingProps {
 }
 
 const NowStreaming: React.FC<NowStreamingProps> = ({ onWatchMovie }) => {
+  // Only show content that isn't flagged as a "new trailer"
+  const streamingContent = mockStreamingContent.filter(item => !item.isNew);
+  
   return (
     <section className="my-12">
       <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
         Now Streaming
       </h2>
       <div className="flex space-x-6 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-        {mockStreamingContent.map(item => (
+        {streamingContent.map(item => (
           <div key={item.id} className="group relative flex-shrink-0 w-48 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-105">
             <img src={item.posterUrl} alt={item.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">

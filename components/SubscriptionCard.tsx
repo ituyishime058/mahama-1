@@ -1,7 +1,11 @@
 import React from 'react';
 import SparklesIcon from './icons/SparklesIcon';
 
-const SubscriptionCard: React.FC = () => {
+interface SubscriptionCardProps {
+    onClick: () => void;
+}
+
+const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ onClick }) => {
   return (
     <aside className="p-6 rounded-lg shadow-lg text-white relative overflow-hidden bg-gradient-to-r from-gold via-deep-red to-navy" style={{ backgroundSize: '200% 200%' }}>
       <div className="animate-gradient-shift absolute inset-0 bg-gradient-to-r from-gold via-deep-red to-navy" style={{ backgroundSize: '200% 200%' }}></div>
@@ -15,7 +19,9 @@ const SubscriptionCard: React.FC = () => {
             <li>Unlimited AI features</li>
             <li>Exclusive content</li>
         </ul>
-        <button className="w-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
+        <button 
+            onClick={onClick}
+            className="w-full bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
           Subscribe Now
         </button>
       </div>

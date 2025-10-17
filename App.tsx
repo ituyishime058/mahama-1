@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -14,7 +13,7 @@ import SummarizerModal from './components/SummarizerModal';
 import ExplainSimplyModal from './components/ExplainSimplyModal';
 import TranslationModal from './components/TranslationModal';
 import QuizModal from './components/QuizModal';
-import TextToSpeechPlayer from './components/TextToSpeechPlayer';
+import AudioPlayer from './components/AudioPlayer';
 import PodcastPlayer from './components/PodcastPlayer';
 import ArticlePage from './components/ArticlePage';
 import BookmarksModal from './components/BookmarksModal';
@@ -35,9 +34,12 @@ import CounterpointModal from './components/CounterpointModal';
 import BehindTheNewsModal from './components/BehindTheNewsModal';
 import ExpertAnalysisModal from './components/ExpertAnalysisModal';
 import LoadingSpinner from './components/icons/LoadingSpinner';
+import MoviesTVPage from './components/MoviesTVPage';
+import SubscriptionModal from './components/SubscriptionModal';
+import AskAuthorModal from './components/AskAuthorModal';
+import NewsBriefingModal from './components/NewsBriefingModal';
 
-
-import type { Article, Podcast, Settings, StreamingContent } from './types';
+import type { Article, Podcast, Settings, StreamingContent, SubscriptionTier, AudioPlayerState } from './types';
 import { mockArticles, mockPodcasts, categories } from './constants';
 import { saveArticleForOffline, getOfflineArticleIds, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { generatePersonalizedFeed } from './utils/ai';
@@ -62,8 +64,9 @@ const defaultSettings: Settings = {
         aiRecommendations: true,
     },
     aiReadingLens: 'None',
-    aiModelPreference: 'Fast',
+    aiModelPreference: 'Speed',
     interactiveGlossary: true,
+    subscriptionTier: 'Free',
 };
 
 const App: React.FC = () => {
@@ -102,11 +105,13 @@ const App: React.FC = () => {
     const [isCounterpointOpen, setIsCounterpointOpen] = useState(false);
     const [isBehindTheNewsOpen, setIsBehindTheNewsOpen] = useState(false);
     const [isExpertAnalysisOpen, setIsExpertAnalysisOpen] = useState(false);
-
+    const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
+    const [isAskAuthorOpen, setIsAskAuthorOpen] = useState(false);
+    const [isBriefingOpen, setIsBriefingOpen] = useState(false);
 
     // AI action states
     const [articleForAI, setArticleForAI] = useState<Article | null>(null);
-    const [ttsArticle, setTtsArticle] = useState<Article | null>(null);
+    const [audioPlayerState, setAudioPlayerState] = useState<AudioPlayerState | null>(null);
     const [isGeneratingFeed, setIsGeneratingFeed] = useState(false);
     
     // Audio/Podcast states
@@ -204,10 +209,30 @@ const App: React.FC = () => {
     const handleExplainSimply = (article: Article) => { setArticleForAI(article); setIsExplainSimplyOpen(true); };
     const handleTranslate = (article: Article) => { setArticleForAI(article); setIsTranslationOpen(true); };
     const handleQuiz = (article: Article) => { setArticleForAI(article); setIsQuizOpen(true); };
-    const handleTextToSpeech = (article: Article) => { setTtsArticle(prev => prev?.id === article.id ? null : article); };
+    const handleTextToSpeech = (article: Article) => {
+        const playlist = currentView === 'home' || currentView === 'movie' ? filteredArticles : (activeArticle ? [activeArticle] : []);
+        setAudioPlayerState(prev => prev?.article.id === article.id ? null : { article, playlist });
+    };
     const handleCounterpoint = (article: Article) => { setArticleForAI(article); setIsCounterpointOpen(true); };
     const handleBehindTheNews = (article: Article) => { setArticleForAI(article); setIsBehindTheNewsOpen(true); };
     const handleExpertAnalysis = (article: Article) => { setArticleForAI(article); setIsExpertAnalysisOpen(true); };
+    const handleAskAuthor = (article: Article) => { setArticleForAI(article); setIsAskAuthorOpen(true); };
+    const handleGenerateBriefing = () => {
+        if (settings.subscriptionTier === 'Premium') {
+            setIsBriefingOpen(true);
+        } else {
+            setIsSubscriptionOpen(true);
+        }
+    };
+    const handlePlayBriefing = (briefingArticle: Article) => {
+        setAudioPlayerState({ article: briefingArticle, playlist: [briefingArticle] });
+    };
+
+    // Subscription
+    const handleSetSubscription = (tier: SubscriptionTier) => {
+        setSettings(s => ({ ...s, subscriptionTier: tier }));
+        setIsSubscriptionOpen(false);
+    };
 
     // Podcast Player Handlers
     const handlePlayPodcast = (podcast: Podcast) => {
@@ -280,7 +305,7 @@ const App: React.FC = () => {
     
     // Auth Handlers
     const handleLogin = () => { setIsAuthenticated(true); setIsLoginOpen(false); };
-    const handleLogout = () => { setIsAuthenticated(false); setIsConfirmOpen(false); };
+    const handleLogout = () => { setIsAuthenticated(false); setSettings(s => ({...s, subscriptionTier: 'Free'})); setIsConfirmOpen(false); };
     const handleConfirmLogout = () => {
         setConfirmAction({
             title: 'Confirm Logout',
@@ -314,12 +339,15 @@ const App: React.FC = () => {
             <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} settings={settings} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
             <BehindTheNewsModal isOpen={isBehindTheNewsOpen} article={articleForAI} settings={settings} onClose={() => {setIsBehindTheNewsOpen(false); setArticleForAI(null);}} />
             <ExpertAnalysisModal isOpen={isExpertAnalysisOpen} article={articleForAI} settings={settings} onClose={() => {setIsExpertAnalysisOpen(false); setArticleForAI(null);}} />
-            <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
+            <AskAuthorModal isOpen={isAskAuthorOpen} article={articleForAI} settings={settings} onClose={() => {setIsAskAuthorOpen(false); setArticleForAI(null);}} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
+            <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
             <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={isOfflineOpen} onClose={() => setIsOfflineOpen(false)} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />
             <LiveConversationModal isOpen={isLiveConvoOpen} onClose={() => setIsLiveConvoOpen(false)} />
+            <SubscriptionModal isOpen={isSubscriptionOpen} onClose={() => setIsSubscriptionOpen(false)} currentPlan={settings.subscriptionTier} onSelectPlan={handleSetSubscription} />
+            <NewsBriefingModal isOpen={isBriefingOpen} onClose={() => setIsBriefingOpen(false)} settings={settings} articles={filteredArticles} onPlayBriefing={handlePlayBriefing} />
             {confirmAction && <ConfirmationModal isOpen={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title={confirmAction.title} message={confirmAction.message} onConfirm={confirmAction.onConfirm} />}
         </>
     )
@@ -332,14 +360,13 @@ const App: React.FC = () => {
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                             <div className="lg:col-span-2">
-                                <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} onBehindTheNews={handleBehindTheNews} onExpertAnalysis={handleExpertAnalysis} settings={settings} />
+                                <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} onBehindTheNews={handleBehindTheNews} onExpertAnalysis={handleExpertAnalysis} onAskAuthor={handleAskAuthor} settings={settings} onPremiumClick={() => setIsSubscriptionOpen(true)} />
                             </div>
-                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} />
+                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => setIsSubscriptionOpen(true)} />
                         </div>
                     </div>
                 </main>
                  <Footer />
-                 {/* Modals are kept here to be accessible from the article view */}
                  <AllModals />
             </div>
         );
@@ -355,7 +382,7 @@ const App: React.FC = () => {
                             <div className="lg:col-span-2">
                                 <MoviePlayerPage movie={activeMovie} onWatchMovie={handleWatchMovie} onClose={handleGoHome} />
                             </div>
-                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} settings={settings} />
+                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} settings={settings} onGoPremium={() => setIsSubscriptionOpen(true)}/>
                         </div>
                     </div>
                 </main>
@@ -366,8 +393,26 @@ const App: React.FC = () => {
     }
     
     if (currentView === 'settings') {
-        return <SettingsPage onClose={() => setCurrentView('home')} settings={settings} onSettingsChange={setSettings} onClearBookmarks={handleClearBookmarks} onClearOffline={handleClearOffline} />;
+        return <SettingsPage onClose={() => setCurrentView('home')} settings={settings} onSettingsChange={setSettings} onClearBookmarks={handleClearBookmarks} onClearOffline={handleClearOffline} onManageSubscription={() => setIsSubscriptionOpen(true)} />;
     }
+
+    const MainContent = () => {
+        if (currentCategory === 'Movies & TV') {
+            return <MoviesTVPage onWatchMovie={handleWatchMovie} />;
+        }
+        return (
+            <>
+                {isGeneratingFeed ? (
+                    <div className="flex justify-center items-center h-96">
+                        <LoadingSpinner className="w-12 h-12 text-deep-red" />
+                    </div>
+                ) : (
+                    <GlobalHighlights articles={filteredArticles} onReadMore={handleReadMore} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} audioState={{ playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false }} bookmarkedArticleIds={Array.from(bookmarkedArticleIds)} onToggleBookmark={handleToggleBookmark} offlineArticleIds={Array.from(offlineArticleIds)} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                )}
+                {settings.homepageLayout === 'Dashboard' && currentCategory === 'All' && <DataDrivenInsights />}
+            </>
+        );
+    };
     
 
     return (
@@ -377,23 +422,16 @@ const App: React.FC = () => {
             <main className="pt-28">
                 {currentCategory === 'All' && <Hero article={articles[0]} onReadMore={() => handleReadMore(articles[0])} />}
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                    <FilterBar categories={categories} currentCategory={currentCategory} onSelectCategory={handleSelectCategory} />
+                    <FilterBar categories={categories} currentCategory={currentCategory} onSelectCategory={handleSelectCategory} onGenerateBriefing={handleGenerateBriefing} subscriptionTier={settings.subscriptionTier} />
                     
-                    {settings.showNowStreaming && currentCategory === 'Movies & TV' && <NowStreaming onWatchMovie={handleWatchMovie} />}
+                    {settings.showNowStreaming && currentCategory === 'All' && <NowStreaming onWatchMovie={handleWatchMovie} />}
                     {settings.showInnovationTimelines && currentCategory === 'Technology' && <InnovationTimeline />}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
                         <div className="lg:col-span-2 space-y-8">
-                           {isGeneratingFeed ? (
-                                <div className="flex justify-center items-center h-96">
-                                    <LoadingSpinner className="w-12 h-12 text-deep-red" />
-                                </div>
-                           ) : (
-                                <GlobalHighlights articles={filteredArticles} onReadMore={handleReadMore} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} audioState={{ playingArticleId: null, isGenerating: false }} bookmarkedArticleIds={Array.from(bookmarkedArticleIds)} onToggleBookmark={handleToggleBookmark} offlineArticleIds={Array.from(offlineArticleIds)} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                           )}
-                            {settings.homepageLayout === 'Dashboard' && currentCategory === 'All' && <DataDrivenInsights />}
+                           <MainContent />
                         </div>
-                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} settings={settings} />
+                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} settings={settings} onGoPremium={() => setIsSubscriptionOpen(true)} />
                     </div>
                      {currentCategory === 'All' && <>
                         <LiveStream />

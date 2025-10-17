@@ -1,4 +1,4 @@
-import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent } from './types';
+import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent, SubscriptionPlan, AiTtsVoice } from './types';
 
 export const mockUsers: { currentUser: User; otherUsers: User[] } = {
   currentUser: {
@@ -434,8 +434,66 @@ export const stockData: Stock[] = [
 ];
 
 export const LANGUAGES: string[] = [
-    "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", "Kinyarwanda", "Kiswahili", "Lingala"
+    "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", 
+    "Kinyarwanda", "Kiswahili", "Lingala", "Italian", "Korean", "Dutch", "Turkish", "Polish", "Swedish", "Norwegian", 
+    "Danish", "Finnish", "Greek", "Hebrew", "Thai", "Vietnamese", "Indonesian", "Malay", "Czech", "Hungarian", 
+    "Romanian", "Ukrainian", "Slovak", "Croatian", "Serbian", "Bulgarian", "Lithuanian", "Latvian", "Estonian", 
+    "Slovenian", "Icelandic", "Irish", "Welsh", "Scottish Gaelic", "Basque", "Catalan", "Galician", "Afrikaans", "Zulu", "Xhosa"
 ];
+
+export const TTS_VOICES: { name: string; value: AiTtsVoice, label: string }[] = [
+    { name: 'Zephyr (Male, Default)', value: 'Zephyr', label: 'Default' },
+    { name: 'Puck (Male, Calm)', value: 'Puck', label: 'Calm' },
+    { name: 'Charon (Male, Deep)', value: 'Charon', label: 'Deep' },
+    { name: 'Kore (Female, Warm)', value: 'Kore', label: 'Warm' },
+    { name: 'Fenrir (Female, Crisp)', value: 'Fenrir', label: 'Crisp' },
+    { name: 'en-US-A (Male)', value: 'en-US-A', label: 'US' },
+    { name: 'en-US-B (Male)', value: 'en-US-B', label: 'US' },
+    { name: 'en-US-C (Female)', value: 'en-US-C', label: 'US' },
+    { name: 'en-US-D (Male)', value: 'en-US-D', label: 'US' },
+    { name: 'en-US-E (Female)', value: 'en-US-E', label: 'US' },
+    { name: 'en-US-F (Female)', value: 'en-US-F', label: 'US' },
+    { name: 'en-GB-A (Female)', value: 'en-GB-A', label: 'UK' },
+    { name: 'en-GB-B (Male)', value: 'en-GB-B', label: 'UK' },
+    { name: 'en-GB-C (Female)', value: 'en-GB-C', label: 'UK' },
+    { name: 'en-GB-D (Male)', value: 'en-GB-D', label: 'UK' },
+    { name: 'en-GB-F (Female)', value: 'en-GB-F', label: 'UK' },
+    { name: 'fr-FR-A (Female)', value: 'fr-FR-A', label: 'FR' },
+    { name: 'fr-FR-B (Male)', value: 'fr-FR-B', label: 'FR' },
+    { name: 'fr-FR-C (Female)', value: 'fr-FR-C', label: 'FR' },
+    { name: 'fr-FR-D (Male)', value: 'fr-FR-D', label: 'FR' },
+    { name: 'fr-FR-E (Female)', value: 'fr-FR-E', label: 'FR' },
+    { name: 'es-ES-A (Female)', value: 'es-ES-A', label: 'ES' },
+    { name: 'es-ES-B (Male)', value: 'es-ES-B', label: 'ES' },
+    { name: 'es-ES-C (Female)', value: 'es-ES-C', label: 'ES' },
+    { name: 'es-ES-D (Male)', value: 'es-ES-D', label: 'ES' },
+    { name: 'de-DE-A (Female)', value: 'de-DE-A', label: 'DE' },
+    { name: 'de-DE-B (Male)', value: 'de-DE-B', label: 'DE' },
+    { name: 'de-DE-C (Female)', value: 'de-DE-C', label: 'DE' },
+    { name: 'de-DE-D (Male)', value: 'de-DE-D', label: 'DE' },
+    { name: 'ja-JP-A (Female)', value: 'ja-JP-A', label: 'JP' },
+    { name: 'ja-JP-B (Female)', value: 'ja-JP-B', label: 'JP' },
+    { name: 'ja-JP-C (Male)', value: 'ja-JP-C', label: 'JP' },
+    { name: 'ja-JP-D (Male)', value: 'ja-JP-D', label: 'JP' },
+    { name: 'ru-RU-A (Female)', value: 'ru-RU-A', label: 'RU' },
+    { name: 'ru-RU-B (Male)', value: 'ru-RU-B', label: 'RU' },
+    { name: 'ru-RU-C (Female)', value: 'ru-RU-C', label: 'RU' },
+    { name: 'ru-RU-D (Male)', value: 'ru-RU-D', label: 'RU' },
+    { name: 'cmn-CN-A (Female)', value: 'cmn-CN-A', label: 'CN' },
+    { name: 'cmn-CN-B (Male)', value: 'cmn-CN-B', label: 'CN' },
+    { name: 'cmn-CN-C (Male)', value: 'cmn-CN-C', label: 'CN' },
+    { name: 'rw-RW-A (Female, Mock)', value: 'rw-RW-A', label: 'RW' },
+    { name: 'rw-RW-B (Male, Mock)', value: 'rw-RW-B', label: 'RW' },
+    { name: 'sw-KE-A (Female, Mock)', value: 'sw-KE-A', label: 'KE' },
+    { name: 'sw-KE-B (Male, Mock)', value: 'sw-KE-B', label: 'KE' },
+    { name: 'ar-XA-A (Female)', value: 'ar-XA-A', label: 'AR' },
+    { name: 'ar-XA-B (Male)', value: 'ar-XA-B', label: 'AR' },
+    { name: 'it-IT-A (Female)', value: 'it-IT-A', label: 'IT' },
+    { name: 'it-IT-B (Male)', value: 'it-IT-B', label: 'IT' },
+    { name: 'ko-KR-A (Female)', value: 'ko-KR-A', label: 'KR' },
+    { name: 'ko-KR-B (Male)', value: 'ko-KR-B', label: 'KR' },
+];
+
 
 export const categories = ["For You", "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Science", "Environment", "Art", "Music", "Mahama Investigates"];
 
@@ -448,12 +506,44 @@ export const innovations: Innovation[] = [
 ];
 
 export const mockStreamingContent: StreamingContent[] = [
-  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A group of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.' },
-  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'In the aftermath of a great war, a lone warrior must protect a young heir from rival clans.' },
-  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'In a neon-drenched metropolis, a cynical detective uncovers a conspiracy that goes to the very top.' },
-  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A marine biologist discovers an ancient, intelligent life form in the deepest trench of the ocean.' },
-  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A team of climbers finds more than they bargained for when they scale a previously unconquered peak.' },
-  { id: 6, title: 'Chronos Enigma', posterUrl: 'https://picsum.photos/seed/movie6/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A historian finds a device that can view the past, but using it has unforeseen consequences on the present.' },
-  { id: 7, title: 'The Gilded Cage', posterUrl: 'https://picsum.photos/seed/movie7/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A psychological thriller about a wealthy family whose perfect facade begins to crumble during a tense dinner party.' },
-  { id: 8, title: 'Neon Wasteland', posterUrl: 'https://picsum.photos/seed/movie8/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'In a post-apocalyptic world, a scavenger must navigate a dangerous, neon-lit desert to find a rumored sanctuary.' },
+  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A group of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.' },
+  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'In the aftermath of a great war, a lone warrior must protect a young heir from rival clans.' },
+  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'In a neon-drenched metropolis, a cynical detective uncovers a conspiracy that goes to the very top.' },
+  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A marine biologist discovers an ancient, intelligent life form in the deepest trench of the ocean.' },
+  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A team of climbers finds more than they bargained for when they scale a previously unconquered peak.' },
+  { id: 9, title: 'Dune: Prophecy', posterUrl: 'https://picsum.photos/seed/dune2024/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A prequel series set 10,000 years before the birth of Paul Atreides, exploring the origins of the Bene Gesserit.', isNew: true },
+  { id: 10, title: 'Blade Runner 2099', posterUrl: 'https://picsum.photos/seed/br2099/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A new chapter in the Blade Runner saga, set fifty years after the events of Blade Runner 2049.', isNew: true },
+  { id: 6, title: 'Chronos Enigma', posterUrl: 'https://picsum.photos/seed/movie6/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A historian finds a device that can view the past, but using it has unforeseen consequences on the present.' },
+  { id: 11, title: 'Project Artemis', posterUrl: 'https://picsum.photos/seed/artemis/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A high-stakes sci-fi thriller about the race to establish a new human colony on the moon.', isNew: true },
+  { id: 7, title: 'The Gilded Cage', posterUrl: 'https://picsum.photos/seed/movie7/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'A psychological thriller about a wealthy family whose perfect facade begins to crumble during a tense dinner party.' },
+  { id: 8, title: 'Neon Wasteland', posterUrl: 'https://picsum.photos/seed/movie8/400/600', trailerUrl: 'https://www.youtube.com/embed/Y_plhk1FUQA', description: 'In a post-apocalyptic world, a scavenger must navigate a dangerous, neon-lit desert to find a rumored sanctuary.' },
+];
+
+export const subscriptionPlans: SubscriptionPlan[] = [
+    {
+        name: 'Free',
+        price: 'Free',
+        priceYearly: 'Free',
+        features: [
+            'Access to all news articles',
+            'Standard AI features (Summarize, Explain)',
+            'Speed AI Model',
+            'Limited "For You" recommendations',
+        ],
+    },
+    {
+        name: 'Premium',
+        price: '$9.99 / month',
+        priceYearly: '$99.99 / year',
+        features: [
+            'Everything in Free, plus:',
+            'Ad-free experience',
+            'Unlimited advanced AI features',
+            'Exclusive "Ask the Author" AI',
+            'AI-Generated News Briefings',
+            'Option for "Quality" AI model',
+            'Enhanced "For You" personalization',
+        ],
+        isRecommended: true,
+    }
 ];

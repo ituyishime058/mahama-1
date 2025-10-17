@@ -18,11 +18,16 @@ import EnvironmentIcon from './icons/EnvironmentIcon';
 import ArtIcon from './icons/ArtIcon';
 import MusicIcon from './icons/MusicIcon';
 import ForYouIcon from './icons/ForYouIcon';
+import BriefingIcon from './icons/BriefingIcon';
+import CrownIcon from './icons/CrownIcon';
+import type { SubscriptionTier } from '../types';
 
 interface FilterBarProps {
   categories: string[];
   currentCategory: string;
   onSelectCategory: (category: string) => void;
+  onGenerateBriefing: () => void;
+  subscriptionTier: SubscriptionTier;
 }
 
 const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
@@ -45,11 +50,22 @@ const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } 
   "Mahama Investigates": InvestigatesIcon,
 };
 
-const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSelectCategory }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSelectCategory, onGenerateBriefing, subscriptionTier }) => {
+  const isPremium = subscriptionTier === 'Premium';
+
   return (
     <nav className="border-b border-slate-200 dark:border-slate-800 sticky top-20 z-30 bg-slate-50/80 dark:bg-navy/80 backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-3 scrollbar-hide">
+          <button
+              onClick={onGenerateBriefing}
+              className="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 whitespace-nowrap bg-gold/20 text-gold hover:bg-gold/30 relative"
+          >
+              <BriefingIcon className="w-5 h-5 flex-shrink-0" />
+              <span className="hidden sm:inline">Generate Briefing</span>
+              {!isPremium && <CrownIcon className="absolute -top-1 -right-1 w-4 h-4 text-gold bg-navy rounded-full p-0.5" />}
+          </button>
+
           {categories.map((category) => {
             const Icon = categoryIcons[category];
             const isActive = category === currentCategory;

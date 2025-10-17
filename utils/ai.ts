@@ -5,12 +5,13 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
 // Helper to select model based on user settings
 const getModel = (settings: Settings) => {
-    return settings.aiModelPreference === 'Fast' ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
+    return settings.aiModelPreference === 'Speed' ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
 };
 
 // Helper to get config, disabling thinking for the fast model on interactive tasks
 const getInteractiveConfig = (settings: Settings) => {
     const model = getModel(settings);
+    // Disable thinking only for the 'Speed' model to improve responsiveness.
     return model === 'gemini-2.5-flash' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
 }
 
@@ -31,9 +32,9 @@ export async function* summarizeArticle(article: Article, settings: Settings): A
         }
 
         const response = await ai.models.generateContentStream({
-            model: getModel(settings),
+            model: 'gemini-2.5-flash', // Always use the fast model for summaries
             contents: prompt,
-            config: getInteractiveConfig(settings),
+            config: { thinkingConfig: { thinkingBudget: 0 } },
         });
 
         for await (const chunk of response) {
@@ -49,10 +50,10 @@ export async function* explainSimply(article: Article, settings: Settings): Asyn
     try {
         const prompt = `Explain the key points of this article as if you were talking to a 10-year-old. Use simple language and analogies.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContentStream({
-            model: getModel(settings),
+            model: 'gemini-2.5-flash', // Always use the fast model for explanations
             contents: prompt,
             config: {
-                ...getInteractiveConfig(settings),
+                thinkingConfig: { thinkingBudget: 0 },
                 systemInstruction: "You are a friendly and simple explainer for kids.",
             }
         });
@@ -65,17 +66,21 @@ export async function* explainSimply(article: Article, settings: Settings): Asyn
     }
 };
 
-export const textToSpeech = async (article: Article, voice: Settings['ttsVoice'] = 'Kore'): Promise<string> => {
+export const textToSpeech = async (text: string, voice: Settings['ttsVoice'] = 'Kore'): Promise<string> => {
     try {
-        const textToRead = `Article title: ${article.title}. By ${article.author}. ${article.excerpt}`;
+        // The API has a list of specific supported voices. We map our large list to the available ones.
+        // This is a simplification; a real app would need a more robust mapping.
+        const supportedVoices: Settings['ttsVoice'][] = ['Kore', 'Puck', 'Charon', 'Fenrir', 'Zephyr'];
+        const selectedVoice = supportedVoices.includes(voice) ? voice : 'Zephyr';
+
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
-            contents: [{ parts: [{ text: textToRead }] }],
+            contents: [{ parts: [{ text: text }] }],
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: voice },
+                        prebuiltVoiceConfig: { voiceName: selectedVoice },
                     },
                 },
             },
@@ -157,9 +162,9 @@ export const translateArticle = async (text: string, language: string, settings:
     try {
         const prompt = `Translate the following text into ${language}:\n\n${text}`;
         const response = await ai.models.generateContent({
-            model: getModel(settings),
+            model: 'gemini-2.5-flash', // Always use fast model for translation
             contents: prompt,
-            config: getInteractiveConfig(settings)
+            config: { thinkingConfig: { thinkingBudget: 0 } }
         });
         return response.text;
     } catch (error) {
@@ -293,6 +298,7 @@ export const generateArticleTimeline = async (article: Article, settings: Settin
             model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
@@ -331,7 +337,7 @@ export async function* generateBehindTheNews(article: Article, settings: Setting
 Article Title: ${article.title}
 Article Content: ${article.content}`;
         const response = await ai.models.generateContentStream({
-            model: getModel(settings),
+            model: getModel(settings), // This is a more complex task, so it respects the user's Quality/Speed choice
             contents: prompt,
             config: {
                 systemInstruction: "You are an expert news analyst providing deep, concise context for complex topics.",
@@ -350,7 +356,7 @@ export async function* generateExpertAnalysis(article: Article, persona: ExpertP
     try {
         const prompt = `You are an expert ${persona}. Analyze the following news article from your specific field of expertise. Provide a concise but insightful analysis in markdown format, focusing on aspects relevant to your role.\n\nArticle Title: ${article.title}\nContent: ${article.content}\n\nYour analysis as an ${persona}:`;
         const response = await ai.models.generateContentStream({
-            model: getModel(settings),
+            model: getModel(settings), // Also a complex task, respects user's choice
             contents: prompt,
             config: {
                  systemInstruction: `You are a world-renowned ${persona}. Your analysis is sharp, insightful, and accessible to an intelligent layperson.`,
@@ -385,6 +391,7 @@ Return only a JSON array of the recommended article IDs, like [1, 5, 8, 12, 15].
             model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.ARRAY,
@@ -492,5 +499,54 @@ export const applyReadingLens = async (articleContent: string, lens: ReadingLens
     } catch (error) {
         console.error("Error applying reading lens:", error);
         throw new Error("Failed to modify article content.");
+    }
+};
+
+export async function* generateAuthorResponse(article: Article, question: string, settings: Settings): AsyncGenerator<string, void, unknown> {
+    try {
+        const prompt = `You are ${article.author}, the author of the article titled "${article.title}". Based on the content and tone of your article provided below, answer the following user's question in your voice as the author.
+
+ARTICLE CONTENT:
+${article.content}
+
+USER QUESTION:
+${question}`;
+
+        const response = await ai.models.generateContentStream({
+            model: getModel(settings), // This is a premium feature, so it respects Quality/Speed setting
+            contents: prompt,
+            config: {
+                 systemInstruction: `You are role-playing as a journalist. Adopt their persona based on their writing.`,
+            }
+        });
+        for await (const chunk of response) {
+            yield chunk.text;
+        }
+    } catch (error) {
+        console.error("Error generating author response:", error);
+        throw new Error("Failed to generate the author's response. Please try again.");
+    }
+};
+
+export const generateNewsBriefing = async (articles: Article[], settings: Settings): Promise<string> => {
+    try {
+        const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
+
+        const prompt = `You are a news anchor for Mahama News Hub. Your task is to create a concise and engaging audio news briefing script based on the following top stories. Start with a friendly welcome, then briefly introduce each story, and end with a warm sign-off. The entire script should be natural-sounding and easy to read aloud.
+
+Here are today's top articles:
+${articleSummaries}
+
+Generate the full script now.`;
+
+        const response = await ai.models.generateContent({
+            model: getModel(settings),
+            contents: prompt,
+        });
+
+        return response.text;
+    } catch (error) {
+        console.error("Error generating news briefing script:", error);
+        throw new Error("Could not generate the news briefing. Please try again.");
     }
 };

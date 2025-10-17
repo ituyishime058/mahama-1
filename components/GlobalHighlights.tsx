@@ -46,7 +46,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   }
 
   const featuredArticle = articles[0];
-  const otherArticles = articles.slice(1, 5); // Limit to 4 other articles
+  const otherArticles = articles.slice(1); 
   
   return (
     <section className="space-y-8">
@@ -57,7 +57,6 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           onSummarize={onSummarize}
           onExplainSimply={onExplainSimply}
           onTextToSpeech={onTextToSpeech}
-          // FIX: Add missing onTranslate prop.
           onTranslate={onTranslate}
           onReadMore={onReadMore}
           audioState={audioState}
@@ -76,7 +75,6 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
-            // FIX: Add missing onTranslate prop.
             onTranslate={onTranslate}
             onReadMore={onReadMore}
             audioState={audioState}

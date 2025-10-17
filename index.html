@@ -31,6 +31,7 @@
                 'fade-in-down': 'fade-in-down 0.2s ease-out forwards',
                 'blink': 'blink 1s step-end infinite',
                 'gradient-shift': 'gradient-shift 10s ease infinite',
+                'glow': 'glow 2s ease-in-out infinite alternate',
             },
             keyframes: {
                 'ken-burns': {
@@ -70,6 +71,10 @@
                 'gradient-shift': {
                     '0%, 100%': { 'background-position': '0% 50%' },
                     '50%': { 'background-position': '100% 50%' },
+                },
+                'glow': {
+                  'from': { 'box-shadow': '0 0 5px #d97706, 0 0 10px #d97706, 0 0 15px #d97706' },
+                  'to': { 'box-shadow': '0 0 20px #d97706, 0 0 30px #d97706, 0 0 40px #d97706' }
                 }
             }
           }

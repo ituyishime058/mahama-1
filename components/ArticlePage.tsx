@@ -31,7 +31,9 @@ interface ArticlePageProps {
   onCounterpoint: (article: Article) => void;
   onBehindTheNews: (article: Article) => void;
   onExpertAnalysis: (article: Article) => void;
+  onAskAuthor: (article: Article) => void;
   settings: Settings;
+  onPremiumClick: () => void;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ 
@@ -48,7 +50,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onCounterpoint,
     onBehindTheNews,
     onExpertAnalysis,
+    onAskAuthor,
     settings,
+    onPremiumClick,
 }) => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
@@ -103,7 +107,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             setIsTranslating(true);
             setShowOriginal(false);
             try {
-                // FIX: Pass settings object to translateArticle
                 const translation = await translateArticle(article.content, settings.preferredLanguage, settings);
                 setTranslatedContent(translation);
             } catch (e) {
@@ -117,7 +120,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     }
 
     const fetchAIData = async () => {
-      // FIX: Pass settings object to AI utility functions
       const tagsPromise = generateTags(article, settings);
       const factCheckPromise = factCheckArticle(article, settings);
       const takeawaysPromise = generateKeyTakeaways(article, settings);
@@ -135,7 +137,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       setTakeawaysLoading(false);
 
       if (article.hasTimeline) {
-          // FIX: Pass settings object to generateArticleTimeline
           const timelinePromise = generateArticleTimeline(article, settings);
           const timelineResult = await Promise.resolve(timelinePromise);
           setTimelineEvents(timelineResult);
@@ -146,7 +147,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     };
 
     fetchAIData();
-  }, [article, settings.autoTranslate, settings.preferredLanguage, settings]);
+  }, [article, settings]);
 
   useEffect(() => {
     if (isZenMode) {
@@ -164,7 +165,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
         }
         setIsModifyingContent(true);
         try {
-            // FIX: Pass settings object to applyReadingLens
             const result = await applyReadingLens(article.content, activeLens, settings);
             setModifiedContent(result);
         } catch (e) {
@@ -295,7 +295,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
                 <CommentsSection initialComments={mockComments} />
                 
-                {/* FIX: Pass settings prop to RelatedArticles */}
                 <RelatedArticles currentArticle={article} allArticles={mockArticles} onArticleClick={onReadMore} settings={settings} />
             </div>
         </div>
@@ -317,10 +316,13 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onCounterpoint={onCounterpoint}
             onBehindTheNews={onBehindTheNews}
             onExpertAnalysis={onExpertAnalysis}
+            onAskAuthor={onAskAuthor}
             showCounterpoint={settings.showCounterpoint}
             isZenMode={isZenMode}
             activeLens={activeLens}
             onSetLens={setActiveLens}
+            subscriptionTier={settings.subscriptionTier}
+            onPremiumClick={onPremiumClick}
         />
     </div>
   );

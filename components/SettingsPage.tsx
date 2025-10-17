@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Settings } from '../types';
-import { categories } from '../constants';
+import { categories, TTS_VOICES } from '../constants';
 
 import CloseIcon from './icons/CloseIcon';
 import SunIcon from './icons/SunIcon';
@@ -19,6 +19,7 @@ import MicIcon from './icons/MicIcon';
 import MagicWandIcon from './icons/MagicWandIcon';
 import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import GlossaryIcon from './icons/GlossaryIcon';
+import CrownIcon from './icons/CrownIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -26,9 +27,10 @@ interface SettingsPageProps {
   onSettingsChange: (newSettings: Settings) => void;
   onClearBookmarks: () => void;
   onClearOffline: () => void;
+  onManageSubscription: () => void;
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettingsChange, onClearBookmarks, onClearOffline }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettingsChange, onClearBookmarks, onClearOffline, onManageSubscription }) => {
   const [localSettings, setLocalSettings] = useState(settings);
 
   const handleSettingChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -55,6 +57,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
     onSettingsChange(localSettings);
     onClose();
   };
+  
+  const isPremium = localSettings.subscriptionTier === 'Premium';
 
   return (
     <div className="fixed inset-0 z-[60] bg-slate-100 dark:bg-navy text-slate-800 dark:text-slate-200 animate-fade-in">
@@ -66,6 +70,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
 
         <main className="py-8 flex-grow overflow-y-auto">
           <div className="space-y-12">
+            {/* Subscription Section */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CrownIcon className="text-gold"/> Subscription</h2>
+              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg flex justify-between items-center">
+                  <div>
+                      <p className="font-semibold">Your current plan:</p>
+                      <p className={`text-2xl font-bold ${isPremium ? 'text-gold' : 'text-slate-600 dark:text-slate-300'}`}>{localSettings.subscriptionTier}</p>
+                  </div>
+                  <button onClick={onManageSubscription} className="px-4 py-2 bg-gold text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                      {isPremium ? 'Manage Subscription' : 'Upgrade to Premium'}
+                  </button>
+              </div>
+            </section>
+            
             {/* Appearance Section */}
             <section>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><PaletteIcon /> Appearance</h2>
@@ -126,6 +144,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> AI & Reading Experience</h2>
               <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
                 <div className="flex justify-between items-center pt-4 first:pt-0">
+                    <label className="font-semibold flex items-center gap-2"><SparklesIcon/> AI Model Preference</label>
+                    <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
+                        {/* FIX: Changed 'Fast' to 'Speed' to match the AIModelPreference type and fixed button text. */}
+                        <button onClick={() => handleSettingChange('aiModelPreference', 'Speed')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Speed' ? 'bg-white dark:bg-navy shadow' : ''}`}>Speed</button>
+                        <button onClick={() => handleSettingChange('aiModelPreference', 'Quality')} disabled={!isPremium} className={`relative px-3 py-1 rounded-full text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${localSettings.aiModelPreference === 'Quality' ? 'bg-white dark:bg-navy shadow' : ''}`}>
+                            Quality
+                            {!isPremium && <CrownIcon className="absolute -top-1 -right-1 w-4 h-4 text-gold"/>}
+                        </button>
+                    </div>
+                </div>
+                <div className="flex justify-between items-center pt-4">
                   <label htmlFor="interactive-glossary" className="font-semibold flex items-center gap-2"><GlossaryIcon/> Interactive Glossary</label>
                   <input type="checkbox" id="interactive-glossary" checked={localSettings.interactiveGlossary} onChange={e => handleSettingChange('interactiveGlossary', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
@@ -146,13 +175,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                   <select
                       value={localSettings.ttsVoice}
                       onChange={(e) => handleSettingChange('ttsVoice', e.target.value as Settings['ttsVoice'])}
-                      className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold"
+                      className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold max-w-xs"
                   >
-                      <option value="Zephyr">Zephyr (Male)</option>
-                      <option value="Puck">Puck (Male)</option>
-                      <option value="Charon">Charon (Male)</option>
-                      <option value="Kore">Kore (Female)</option>
-                      <option value="Fenrir">Fenrir (Female)</option>
+                      {TTS_VOICES.map(voice => (
+                          <option key={voice.value} value={voice.value}>{voice.name}</option>
+                      ))}
                   </select>
                 </div>
                 <div className="flex justify-between items-center pt-4">
