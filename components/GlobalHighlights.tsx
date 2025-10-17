@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Article } from '../types';
 import ArticleCard from './ArticleCard';
@@ -55,6 +56,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           onSummarize={onSummarize}
           onExplainSimply={onExplainSimply}
           onTextToSpeech={onTextToSpeech}
+          // FIX: Add missing onTranslate prop.
           onTranslate={onTranslate}
           onReadMore={onReadMore}
           audioState={audioState}
@@ -73,6 +75,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
+            // FIX: Add missing onTranslate prop.
             onTranslate={onTranslate}
             onReadMore={onReadMore}
             audioState={audioState}

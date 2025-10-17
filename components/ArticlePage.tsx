@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import type { Article } from '../types';
-import { mockComments } from '../constants';
+import { mockComments, mockArticles } from '../constants';
 import { generateTags, factCheckArticle } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
@@ -12,13 +12,14 @@ import FactCheck from './FactCheck';
 import CommentsSection from './CommentsSection';
 import ArticleProgressBar from './ArticleProgressBar';
 import FloatingActionbar from './FloatingActionbar';
+import RelatedArticles from './RelatedArticles';
 
 interface ArticlePageProps {
   article: Article;
   onClose: () => void;
   isBookmarked: boolean;
   onToggleBookmark: (id: number) => void;
-  // ... other props for AI actions
+  onReadMore: (article: Article) => void;
   onSummarize: (article: Article) => void;
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
@@ -31,6 +32,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onClose, 
     isBookmarked, 
     onToggleBookmark,
+    onReadMore,
     onSummarize,
     onExplainSimply,
     onTextToSpeech,
@@ -46,11 +48,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Fetch AI-generated content when component mounts
-    const fetchAIData = async () => {
-      setTagsLoading(true);
-      setFactCheckLoading(true);
+    // Reset state and scroll to top when article changes
+    window.scrollTo(0, 0);
+    setTags([]);
+    setFactCheckResult(null);
+    setTagsLoading(true);
+    setFactCheckLoading(true);
 
+    const fetchAIData = async () => {
       const tagsPromise = generateTags(article);
       const factCheckPromise = factCheckArticle(article);
       
@@ -74,6 +79,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     <div ref={articleRef} className={`transition-colors duration-300 ${isZenMode ? 'bg-slate-50 dark:bg-gray-900' : 'bg-white dark:bg-navy'}`}>
         <ArticleProgressBar targetRef={articleRef} />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <button onClick={onClose} className="mb-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
+                &larr; Back to Home
+            </button>
             <div className={`max-w-4xl mx-auto transition-all duration-300 ${isZenMode ? 'max-w-3xl' : ''}`}>
                 <div className="relative">
                     <SocialShare 
@@ -99,15 +107,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         <KeyTakeaways takeaways={article.keyTakeaways} />
                         <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
                         
-                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300">
-                           <p>{article.content}</p>
-                           {/* Add more paragraphs if content is longer */}
-                        </div>
+                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }} />
 
                         <AITags tags={tags} isLoading={tagsLoading} />
                     </main>
 
                     <CommentsSection initialComments={mockComments} />
+                    
+                    <RelatedArticles currentArticle={article} allArticles={mockArticles} onArticleClick={onReadMore} />
                 </div>
             </div>
         </div>

@@ -15,6 +15,8 @@ import InvestigatesIcon from './icons/InvestigatesIcon';
 import MoviesTVIcon from './icons/MoviesTVIcon';
 import ScienceIcon from './icons/ScienceIcon';
 import EnvironmentIcon from './icons/EnvironmentIcon';
+import ArtIcon from './icons/ArtIcon';
+import MusicIcon from './icons/MusicIcon';
 
 interface FilterBarProps {
   categories: string[];
@@ -36,6 +38,8 @@ const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } 
   "Entertainment": EntertainmentIcon,
   "Science": ScienceIcon,
   "Environment": EnvironmentIcon,
+  "Art": ArtIcon,
+  "Music": MusicIcon,
   "Mahama Investigates": InvestigatesIcon,
 };
 

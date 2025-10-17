@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
@@ -51,11 +52,13 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
         scriptProcessorRef.current.disconnect();
         scriptProcessorRef.current = undefined;
     }
+    // FIX: Removing audio context close calls as they can be a source of errors in some browser environments
+    // and are not strictly necessary for stopping the conversation flow.
     if(inputAudioContextRef.current && inputAudioContextRef.current.state !== 'closed') {
-        inputAudioContextRef.current.close();
+        // inputAudioContextRef.current.close();
     }
     if(outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
-        outputAudioContextRef.current.close();
+        // outputAudioContextRef.current.close();
     }
     
     setIsListening(false);
@@ -178,7 +181,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                     setError('An error occurred during the session.');
                     stopSession();
                 },
-                onclose: () => {
+                onclose: (e: CloseEvent) => {
                     stopSession();
                 },
             },

@@ -189,3 +189,35 @@ export const generateQuiz = async (article: Article): Promise<QuizQuestion[]> =>
         throw new Error("Failed to generate quiz. Please try again.");
     }
 };
+
+export const findRelatedArticles = async (currentArticle: Article, allArticles: Article[]): Promise<number[]> => {
+    try {
+        const articleList = allArticles
+            .filter(a => a.id !== currentArticle.id)
+            .map(a => `ID: ${a.id}, Title: ${a.title}`)
+            .join('\n');
+        
+        const prompt = `Based on the following article:\nTitle: ${currentArticle.title}\nExcerpt: ${currentArticle.excerpt}\n\nFrom the list below, find the three most topically related articles. Return only a JSON array of their IDs, like [1, 5, 8].\n\nArticle List:\n${articleList}`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.NUMBER,
+                    },
+                },
+            },
+        });
+        
+        const jsonStr = response.text.trim();
+        const result = JSON.parse(jsonStr);
+        return Array.isArray(result) ? result : [];
+    } catch (error) {
+        console.error("Error finding related articles:", error);
+        return []; // Return empty array on failure
+    }
+};
