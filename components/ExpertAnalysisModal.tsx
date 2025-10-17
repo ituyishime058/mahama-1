@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import type { Article, ExpertPersona } from '../types';
+// FIX: Import Settings type
+import type { Article, ExpertPersona, Settings } from '../types';
 import { generateExpertAnalysis } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 import AnalysisIcon from './icons/AnalysisIcon';
@@ -7,6 +8,8 @@ import AnalysisIcon from './icons/AnalysisIcon';
 interface ExpertAnalysisModalProps {
   isOpen: boolean;
   article: Article | null;
+  // FIX: Add settings prop
+  settings: Settings;
   onClose: () => void;
 }
 
@@ -18,7 +21,8 @@ const expertPersonas: ExpertPersona[] = [
     'Environmental Scientist'
 ];
 
-const BehindTheNewsModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, article, onClose }) => {
+// FIX: Correct component name and destructure settings prop
+const ExpertAnalysisModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +35,8 @@ const BehindTheNewsModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, articl
         setError('');
         setContent('');
         try {
-          const stream = await generateExpertAnalysis(article, selectedPersona);
+          // FIX: Pass settings to generateExpertAnalysis
+          const stream = await generateExpertAnalysis(article, selectedPersona, settings);
           for await (const chunk of stream) {
             setContent(prev => prev + chunk);
           }
@@ -43,7 +48,8 @@ const BehindTheNewsModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, articl
       };
       getAnalysis();
     }
-  }, [article, isOpen, selectedPersona]);
+    // FIX: Add settings to dependency array
+  }, [article, isOpen, selectedPersona, settings]);
   
   const formattedContent = useMemo(() => content
     .replace(/### (.*)/g, '<h3 class="text-lg font-bold my-2">$1</h3>')
@@ -89,4 +95,5 @@ const BehindTheNewsModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, articl
   );
 };
 
-export default BehindTheNewsModal;
+// FIX: Export with the correct component name
+export default ExpertAnalysisModal;

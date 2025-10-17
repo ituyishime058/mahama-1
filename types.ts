@@ -58,6 +58,8 @@ export type AiVoicePersonality = 'Professional' | 'Friendly' | 'Witty';
 
 export type ReadingLens = 'None' | 'Simplify' | 'DefineTerms';
 
+export type AIModelPreference = 'Fast' | 'Quality';
+
 export interface QuizQuestion {
   question: string;
   options: string[];
@@ -98,6 +100,7 @@ export interface Settings {
         aiRecommendations: boolean;
     };
     aiReadingLens: ReadingLens;
+    aiModelPreference: AIModelPreference;
     interactiveGlossary: boolean;
 }
 
@@ -106,6 +109,7 @@ export interface StreamingContent {
   title: string;
   posterUrl: string;
   trailerUrl: string; // e.g., YouTube embed URL
+  description: string;
 }
 
 export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';

@@ -29,7 +29,7 @@ import PodcastHub from './components/PodcastHub';
 import NowStreaming from './components/NowStreaming';
 import InnovationTimeline from './components/InnovationTimeline';
 import DataDrivenInsights from './components/DataDrivenInsights';
-import TrailerModal from './components/TrailerModal';
+import MoviePlayerPage from './components/MoviePlayerPage';
 import FilterBar from './components/FilterBar';
 import CounterpointModal from './components/CounterpointModal';
 import BehindTheNewsModal from './components/BehindTheNewsModal';
@@ -37,7 +37,7 @@ import ExpertAnalysisModal from './components/ExpertAnalysisModal';
 import LoadingSpinner from './components/icons/LoadingSpinner';
 
 
-import type { Article, Podcast, Settings } from './types';
+import type { Article, Podcast, Settings, StreamingContent } from './types';
 import { mockArticles, mockPodcasts, categories } from './constants';
 import { saveArticleForOffline, getOfflineArticleIds, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { generatePersonalizedFeed } from './utils/ai';
@@ -62,6 +62,7 @@ const defaultSettings: Settings = {
         aiRecommendations: true,
     },
     aiReadingLens: 'None',
+    aiModelPreference: 'Fast',
     interactiveGlossary: true,
 };
 
@@ -80,9 +81,10 @@ const App: React.FC = () => {
     const [filteredArticles, setFilteredArticles] = useState<Article[]>(mockArticles);
     const [currentCategory, setCurrentCategory] = useState<string>('All');
     const [activeArticle, setActiveArticle] = useState<Article | null>(null);
+    const [activeMovie, setActiveMovie] = useState<StreamingContent | null>(null);
 
     // View state
-    const [currentView, setCurrentView] = useState<'home' | 'article' | 'settings'>('home');
+    const [currentView, setCurrentView] = useState<'home' | 'article' | 'settings' | 'movie'>('home');
     
     // Modal states
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -97,8 +99,6 @@ const App: React.FC = () => {
     const [isLiveConvoOpen, setIsLiveConvoOpen] = useState(false);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
-    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
-    const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
     const [isCounterpointOpen, setIsCounterpointOpen] = useState(false);
     const [isBehindTheNewsOpen, setIsBehindTheNewsOpen] = useState(false);
     const [isExpertAnalysisOpen, setIsExpertAnalysisOpen] = useState(false);
@@ -154,7 +154,7 @@ const App: React.FC = () => {
             if (currentCategory === 'For You') {
                 setIsGeneratingFeed(true);
                 try {
-                    const recommendedIds = await generatePersonalizedFeed(bookmarkedArticles, settings.contentPreferences, mockArticles);
+                    const recommendedIds = await generatePersonalizedFeed(bookmarkedArticles, settings, mockArticles);
                     articlesToFilter = recommendedIds.map(id => mockArticles.find(a => a.id === id)).filter(Boolean) as Article[];
                 } catch (e) {
                     console.error("Failed to generate personalized feed", e);
@@ -175,12 +175,14 @@ const App: React.FC = () => {
         };
         
         filterArticles();
-    }, [currentCategory, settings.contentPreferences, bookmarkedArticleIds]);
+    }, [currentCategory, settings.contentPreferences, bookmarkedArticleIds, settings.aiModelPreference]);
     
     // Handlers
     const handleSelectCategory = (category: string) => {
         setCurrentCategory(category);
         setCurrentView('home');
+        setActiveArticle(null);
+        setActiveMovie(null);
         setIsMenuOpen(false);
     };
 
@@ -194,6 +196,7 @@ const App: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentView('home');
         setActiveArticle(null);
+        setActiveMovie(null);
     };
 
     // AI Action Handlers
@@ -211,9 +214,10 @@ const App: React.FC = () => {
         setActivePodcast(prev => prev?.id === podcast.id ? (setIsPodcastPlaying(!isPodcastPlaying), prev) : (setIsPodcastPlaying(true), podcast));
     };
     
-    const handleWatchTrailer = (url: string) => {
-        setTrailerUrl(url);
-        setIsTrailerOpen(true);
+    const handleWatchMovie = (movie: StreamingContent) => {
+        setActiveMovie(movie);
+        setCurrentView('movie');
+        window.scrollTo(0, 0);
     };
 
     // Bookmarking
@@ -299,19 +303,17 @@ const App: React.FC = () => {
       setTimeout(() => handleReadMore(article), 300);
     };
 
-    // FIX: Moved AllModals component definition before its first usage.
     const AllModals: React.FC = () => (
          <>
             <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
             <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
-            <SummarizerModal isOpen={isSummarizerOpen} article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
-            <ExplainSimplyModal isOpen={isExplainSimplyOpen} article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
-            <TranslationModal isOpen={isTranslationOpen} article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
-            <QuizModal isOpen={isQuizOpen} article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
-            <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
-            <BehindTheNewsModal isOpen={isBehindTheNewsOpen} article={articleForAI} onClose={() => {setIsBehindTheNewsOpen(false); setArticleForAI(null);}} />
-            <ExpertAnalysisModal isOpen={isExpertAnalysisOpen} article={articleForAI} onClose={() => {setIsExpertAnalysisOpen(false); setArticleForAI(null);}} />
-            <TrailerModal isOpen={isTrailerOpen} onClose={() => { setIsTrailerOpen(false); setTrailerUrl(null); }} trailerUrl={trailerUrl} />
+            <SummarizerModal isOpen={isSummarizerOpen} article={articleForAI} settings={settings} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
+            <ExplainSimplyModal isOpen={isExplainSimplyOpen} article={articleForAI} settings={settings} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
+            <TranslationModal isOpen={isTranslationOpen} article={articleForAI} settings={settings} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
+            <QuizModal isOpen={isQuizOpen} article={articleForAI} settings={settings} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
+            <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} settings={settings} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
+            <BehindTheNewsModal isOpen={isBehindTheNewsOpen} article={articleForAI} settings={settings} onClose={() => {setIsBehindTheNewsOpen(false); setArticleForAI(null);}} />
+            <ExpertAnalysisModal isOpen={isExpertAnalysisOpen} article={articleForAI} settings={settings} onClose={() => {setIsExpertAnalysisOpen(false); setArticleForAI(null);}} />
             <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
             <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />
@@ -332,12 +334,32 @@ const App: React.FC = () => {
                             <div className="lg:col-span-2">
                                 <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} onBehindTheNews={handleBehindTheNews} onExpertAnalysis={handleExpertAnalysis} settings={settings} />
                             </div>
-                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} />
+                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} />
                         </div>
                     </div>
                 </main>
                  <Footer />
                  {/* Modals are kept here to be accessible from the article view */}
+                 <AllModals />
+            </div>
+        );
+    }
+    
+    if (currentView === 'movie' && activeMovie) {
+        return (
+            <div className="font-sans antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-navy">
+                <Header onMenuClick={() => setIsMenuOpen(true)} onSearchClick={() => setIsSearchOpen(true)} onSettingsClick={() => setCurrentView('settings')} onLogoClick={handleGoHome} categories={categories} onSelectCategory={handleSelectCategory} isAuthenticated={isAuthenticated} onLoginClick={() => setIsLoginOpen(true)} onLogout={handleConfirmLogout} />
+                <main className="pt-20">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                            <div className="lg:col-span-2">
+                                <MoviePlayerPage movie={activeMovie} onWatchMovie={handleWatchMovie} onClose={handleGoHome} />
+                            </div>
+                             <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} settings={settings} />
+                        </div>
+                    </div>
+                </main>
+                 <Footer />
                  <AllModals />
             </div>
         );
@@ -357,7 +379,7 @@ const App: React.FC = () => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
                     <FilterBar categories={categories} currentCategory={currentCategory} onSelectCategory={handleSelectCategory} />
                     
-                    {settings.showNowStreaming && currentCategory === 'Movies & TV' && <NowStreaming onWatchTrailer={handleWatchTrailer} />}
+                    {settings.showNowStreaming && currentCategory === 'Movies & TV' && <NowStreaming onWatchMovie={handleWatchMovie} />}
                     {settings.showInnovationTimelines && currentCategory === 'Technology' && <InnovationTimeline />}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
@@ -371,7 +393,7 @@ const App: React.FC = () => {
                            )}
                             {settings.homepageLayout === 'Dashboard' && currentCategory === 'All' && <DataDrivenInsights />}
                         </div>
-                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} />
+                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={null} settings={settings} />
                     </div>
                      {currentCategory === 'All' && <>
                         <LiveStream />

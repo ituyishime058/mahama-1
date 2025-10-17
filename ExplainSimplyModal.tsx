@@ -1,46 +1,42 @@
 import React, { useEffect, useState } from 'react';
-// FIX: Add Settings to type imports
-import type { Article, AiSummaryLength, Settings } from '../types';
-import { summarizeArticle } from '../utils/ai';
+import type { Article, Settings } from '../types';
+import { explainSimply } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
+import ChildIcon from './icons/ChildIcon';
 
-interface SummarizerModalProps {
+interface ExplainSimplyModalProps {
   isOpen: boolean;
   article: Article | null;
-  // FIX: Replace summaryLength with the more general settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
-const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, settings, onClose }) => {
-  const [summary, setSummary] = useState('');
+const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ isOpen, article, settings, onClose }) => {
+  const [explanation, setExplanation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (article && isOpen) {
-      const getSummary = async () => {
+      const getExplanation = async () => {
         setIsLoading(true);
         setError('');
-        setSummary(''); 
+        setExplanation('');
         try {
-          // FIX: Pass the entire settings object to the AI function
-          const stream = await summarizeArticle(article, settings);
+          const stream = await explainSimply(article, settings);
           for await (const chunk of stream) {
-            setSummary(prev => prev + chunk);
+            setExplanation(prev => prev + chunk);
           }
         } catch (err: any) {
-          setError(err.message || 'Failed to generate summary.');
+          setError(err.message || 'Failed to generate explanation.');
         } finally {
           setIsLoading(false);
         }
       };
-      getSummary();
+      getExplanation();
     }
-    // FIX: Add settings to the dependency array
-  }, [article, settings, isOpen]);
-
+  }, [article, isOpen, settings]);
+  
   if (!isOpen || !article) return null;
 
   return (
@@ -53,14 +49,14 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, sett
           <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-800 dark:hover:text-white">
             <CloseIcon />
           </button>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{article.title}</h2>
-          <p className="text-sm text-slate-500 mb-4">{article.author} &bull; {article.date}</p>
+          <div className="flex items-center gap-3 text-deep-red dark:text-gold mb-4">
+            <ChildIcon className="w-8 h-8"/>
+            <h3 className="font-bold text-2xl">Explained Simply</h3>
+          </div>
           <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-            {/* FIX: Access summaryLength from the settings object */}
-            <h3 className="font-bold text-lg mb-2 text-deep-red dark:text-gold">AI Summary ({settings.summaryLength})</h3>
             {error && <p className="text-red-500">{error}</p>}
-            <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap min-h-[5rem]">
-                {summary}
+             <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap min-h-[5rem]">
+                {explanation}
                 {isLoading && <span className="inline-block w-2 h-5 bg-slate-600 dark:bg-slate-300 animate-blink ml-1"></span>}
             </p>
           </div>
@@ -70,4 +66,4 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, sett
   );
 };
 
-export default SummarizerModal;
+export default ExplainSimplyModal;

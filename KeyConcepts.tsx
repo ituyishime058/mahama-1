@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, KeyConcept, Settings } from '../types';
 import { extractKeyConcepts } from '../utils/ai';
 import KeyIcon from './icons/KeyIcon';
@@ -11,7 +10,6 @@ import LoadingSpinner from './icons/LoadingSpinner';
 
 interface KeyConceptsProps {
   article: Article;
-  // FIX: Add settings prop
   settings: Settings;
 }
 
@@ -22,7 +20,6 @@ const typeIcons: Record<KeyConcept['type'], React.FC<any>> = {
   Concept: SparklesIcon,
 };
 
-// FIX: Destructure settings from props
 const KeyConcepts: React.FC<KeyConceptsProps> = ({ article, settings }) => {
   const [concepts, setConcepts] = useState<KeyConcept[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +28,6 @@ const KeyConcepts: React.FC<KeyConceptsProps> = ({ article, settings }) => {
     const fetchConcepts = async () => {
       setIsLoading(true);
       try {
-        // FIX: Pass settings to extractKeyConcepts
         const result = await extractKeyConcepts(article, settings);
         setConcepts(result);
       } catch (error) {
@@ -41,7 +37,6 @@ const KeyConcepts: React.FC<KeyConceptsProps> = ({ article, settings }) => {
       }
     };
     fetchConcepts();
-    // FIX: Add settings to dependency array
   }, [article, settings]);
 
   return (

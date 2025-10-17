@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from 'react';
-// FIX: Add Settings to type imports
-import type { Article, AiSummaryLength, Settings } from '../types';
+import type { Article, Settings } from '../types';
 import { summarizeArticle } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 
 interface SummarizerModalProps {
   isOpen: boolean;
   article: Article | null;
-  // FIX: Replace summaryLength with the more general settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
 const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [summary, setSummary] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +22,6 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, sett
         setError('');
         setSummary(''); 
         try {
-          // FIX: Pass the entire settings object to the AI function
           const stream = await summarizeArticle(article, settings);
           for await (const chunk of stream) {
             setSummary(prev => prev + chunk);
@@ -38,7 +34,6 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, sett
       };
       getSummary();
     }
-    // FIX: Add settings to the dependency array
   }, [article, settings, isOpen]);
 
   if (!isOpen || !article) return null;
@@ -56,7 +51,6 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, sett
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{article.title}</h2>
           <p className="text-sm text-slate-500 mb-4">{article.author} &bull; {article.date}</p>
           <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-            {/* FIX: Access summaryLength from the settings object */}
             <h3 className="font-bold text-lg mb-2 text-deep-red dark:text-gold">AI Summary ({settings.summaryLength})</h3>
             {error && <p className="text-red-500">{error}</p>}
             <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap min-h-[5rem]">

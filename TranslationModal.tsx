@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, Settings } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
@@ -9,14 +8,11 @@ import { LANGUAGES } from '../constants';
 
 interface TranslationModalProps {
   article: Article | null;
-  // FIX: Replace defaultLanguage with the more general settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
 const TranslationModal: React.FC<TranslationModalProps> = ({ article, settings, onClose }) => {
-  // FIX: Use settings.preferredLanguage for initial state
   const [targetLanguage, setTargetLanguage] = useState(settings.preferredLanguage);
   const [translatedText, setTranslatedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +27,6 @@ const TranslationModal: React.FC<TranslationModalProps> = ({ article, settings, 
       setTranslatedText('');
       try {
         const textToTranslate = `Title: ${article.title}\n\n${article.content}`;
-        // FIX: Pass settings to translateArticle
         const result = await translateArticle(textToTranslate, targetLanguage, settings);
         setTranslatedText(result);
       } catch (err: any) {
@@ -42,14 +37,11 @@ const TranslationModal: React.FC<TranslationModalProps> = ({ article, settings, 
     };
     
     handleTranslate();
-    // FIX: Add settings to dependency array
   }, [article, targetLanguage, settings]);
   
   // Reset language to default when the modal is reopened for a new article
   useEffect(() => {
-    // FIX: Use settings.preferredLanguage
     setTargetLanguage(settings.preferredLanguage)
-    // FIX: Use settings.preferredLanguage in dependency array
   },[article, settings.preferredLanguage]);
 
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Article } from '../types';
+import type { Article, Settings } from '../types';
 import TrendingNews from './TrendingNews';
 import AdPlaceholder from './AdPlaceholder';
 import CommunityPoll from './CommunityPoll';
@@ -12,16 +12,20 @@ interface RightAsideProps {
   trendingArticles: Article[];
   onArticleClick: (article: Article) => void;
   activeArticle: Article | null;
+  // FIX: Add settings prop to be passed to child components
+  settings: Settings;
 }
 
-const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle }) => {
+const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle, settings }) => {
   return (
     <div className="lg:col-span-1">
       <div className="sticky top-28 space-y-8">
         {activeArticle ? (
           <>
-            <ArticleCompanion article={activeArticle} />
-            <KeyConcepts article={activeArticle} />
+            {/* FIX: Pass settings prop to ArticleCompanion */}
+            <ArticleCompanion article={activeArticle} settings={settings} />
+            {/* FIX: Pass settings prop to KeyConcepts */}
+            <KeyConcepts article={activeArticle} settings={settings} />
           </>
         ) : (
           <>

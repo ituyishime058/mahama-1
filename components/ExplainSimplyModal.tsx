@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import type { Article } from '../types';
+// FIX: Import Settings type
+import type { Article, Settings } from '../types';
 import { explainSimply } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 import ChildIcon from './icons/ChildIcon';
@@ -7,10 +8,13 @@ import ChildIcon from './icons/ChildIcon';
 interface ExplainSimplyModalProps {
   isOpen: boolean;
   article: Article | null;
+  // FIX: Add settings prop
+  settings: Settings;
   onClose: () => void;
 }
 
-const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ isOpen, article, onClose }) => {
+// FIX: Destructure settings from props
+const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [explanation, setExplanation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +26,8 @@ const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ isOpen, article
         setError('');
         setExplanation('');
         try {
-          const stream = await explainSimply(article);
+          // FIX: Pass settings to explainSimply
+          const stream = await explainSimply(article, settings);
           for await (const chunk of stream) {
             setExplanation(prev => prev + chunk);
           }
@@ -34,7 +39,8 @@ const ExplainSimplyModal: React.FC<ExplainSimplyModalProps> = ({ isOpen, article
       };
       getExplanation();
     }
-  }, [article, isOpen]);
+    // FIX: Add settings to dependency array
+  }, [article, isOpen, settings]);
   
   if (!isOpen || !article) return null;
 

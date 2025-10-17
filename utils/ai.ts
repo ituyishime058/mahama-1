@@ -1,12 +1,23 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice, TimelineEvent, ExpertPersona, KeyConcept, ChatMessage, ReadingLens } from '../types';
+import type { Article, QuizQuestion, Settings, TimelineEvent, ExpertPersona, KeyConcept, ChatMessage, ReadingLens } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-export async function* summarizeArticle(article: Article, length: AiSummaryLength = 'Medium'): AsyncGenerator<string, void, unknown> {
+// Helper to select model based on user settings
+const getModel = (settings: Settings) => {
+    return settings.aiModelPreference === 'Fast' ? 'gemini-2.5-flash' : 'gemini-2.5-pro';
+};
+
+// Helper to get config, disabling thinking for the fast model on interactive tasks
+const getInteractiveConfig = (settings: Settings) => {
+    const model = getModel(settings);
+    return model === 'gemini-2.5-flash' ? { thinkingConfig: { thinkingBudget: 0 } } : {};
+}
+
+export async function* summarizeArticle(article: Article, settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
         let prompt: string;
-        switch(length) {
+        switch(settings.summaryLength) {
             case 'Short':
                 prompt = `Summarize the following news article in one single, concise sentence:\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
                 break;
@@ -20,8 +31,9 @@ export async function* summarizeArticle(article: Article, length: AiSummaryLengt
         }
 
         const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
+            config: getInteractiveConfig(settings),
         });
 
         for await (const chunk of response) {
@@ -33,13 +45,14 @@ export async function* summarizeArticle(article: Article, length: AiSummaryLengt
     }
 };
 
-export async function* explainSimply(article: Article): AsyncGenerator<string, void, unknown> {
+export async function* explainSimply(article: Article, settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
         const prompt = `Explain the key points of this article as if you were talking to a 10-year-old. Use simple language and analogies.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 systemInstruction: "You are a friendly and simple explainer for kids.",
             }
         });
@@ -52,7 +65,7 @@ export async function* explainSimply(article: Article): AsyncGenerator<string, v
     }
 };
 
-export const textToSpeech = async (article: Article, voice: AiTtsVoice = 'Kore'): Promise<string> => {
+export const textToSpeech = async (article: Article, voice: Settings['ttsVoice'] = 'Kore'): Promise<string> => {
     try {
         const textToRead = `Article title: ${article.title}. By ${article.author}. ${article.excerpt}`;
         const response = await ai.models.generateContent({
@@ -78,13 +91,14 @@ export const textToSpeech = async (article: Article, voice: AiTtsVoice = 'Kore')
     }
 };
 
-export const generateTags = async (article: Article): Promise<string[]> => {
+export const generateTags = async (article: Article, settings: Settings): Promise<string[]> => {
     try {
         const prompt = `Generate 4-5 relevant tags for this news article. The tags should be short, single or two-word concepts.\n\nTitle: ${article.title}\n\nExcerpt: ${article.excerpt}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.OBJECT,
@@ -107,7 +121,7 @@ export const generateTags = async (article: Article): Promise<string[]> => {
     }
 };
 
-export const factCheckArticle = async (article: Article): Promise<{ status: string; summary: string } | null> => {
+export const factCheckArticle = async (article: Article, settings: Settings): Promise<{ status: string; summary: string } | null> => {
     try {
         const prompt = `Analyze the claims made in the following article and provide a fact-check summary. 
 First, on a single line, categorize the overall accuracy as 'Verified', 'Mixed', or 'Unverified'.
@@ -119,7 +133,7 @@ SUMMARY: [Your summary]
 Title: ${article.title}
 Content: ${article.content}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
@@ -139,12 +153,13 @@ Content: ${article.content}`;
     }
 };
 
-export const translateArticle = async (text: string, language: string): Promise<string> => {
+export const translateArticle = async (text: string, language: string, settings: Settings): Promise<string> => {
     try {
         const prompt = `Translate the following text into ${language}:\n\n${text}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt
+            model: getModel(settings),
+            contents: prompt,
+            config: getInteractiveConfig(settings)
         });
         return response.text;
     } catch (error) {
@@ -153,13 +168,14 @@ export const translateArticle = async (text: string, language: string): Promise<
     }
 };
 
-export const generateQuiz = async (article: Article): Promise<QuizQuestion[]> => {
+export const generateQuiz = async (article: Article, settings: Settings): Promise<QuizQuestion[]> => {
     try {
         const prompt = `Create a 3-question multiple-choice quiz based on the following article. For each question, provide four options and indicate the correct answer.\n\nArticle: ${article.content}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.OBJECT,
@@ -189,7 +205,7 @@ export const generateQuiz = async (article: Article): Promise<QuizQuestion[]> =>
     }
 };
 
-export const findRelatedArticles = async (currentArticle: Article, allArticles: Article[]): Promise<number[]> => {
+export const findRelatedArticles = async (currentArticle: Article, allArticles: Article[], settings: Settings): Promise<number[]> => {
     try {
         const articleList = allArticles
             .filter(a => a.id !== currentArticle.id)
@@ -199,9 +215,10 @@ export const findRelatedArticles = async (currentArticle: Article, allArticles: 
         const prompt = `Based on the following article:\nTitle: ${currentArticle.title}\nExcerpt: ${currentArticle.excerpt}\n\nFrom the list below, find the three most topically related articles. Return only a JSON array of their IDs, like [1, 5, 8].\n\nArticle List:\n${articleList}`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.ARRAY,
@@ -221,14 +238,14 @@ export const findRelatedArticles = async (currentArticle: Article, allArticles: 
     }
 };
 
-export async function* generateCounterpoint(article: Article): AsyncGenerator<string, void, unknown> {
+export async function* generateCounterpoint(article: Article, settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
         const prompt = `Analyze the following news article and provide a brief, thoughtful counterpoint or alternative perspective. Consider the other side of the argument, potential unintended consequences, or a different interpretation of the facts. Keep it concise and objective.\n\nTitle: ${article.title}\n\nExcerpt: ${article.excerpt}`;
         const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
             config: {
-                systemInstruction: "You are a balanced and objective analyst who provides nuanced alternative perspectives.",
+                 systemInstruction: "You are a balanced and objective analyst who provides nuanced alternative perspectives.",
             }
         });
          for await (const chunk of response) {
@@ -240,13 +257,14 @@ export async function* generateCounterpoint(article: Article): AsyncGenerator<st
     }
 };
 
-export const generateKeyTakeaways = async (article: Article): Promise<string[]> => {
+export const generateKeyTakeaways = async (article: Article, settings: Settings): Promise<string[]> => {
     try {
         const prompt = `Generate 3-4 key takeaways from the following news article. Each takeaway should be a single, concise sentence. Return the result as a JSON object with a single key "takeaways" which is an array of strings.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
@@ -268,11 +286,11 @@ export const generateKeyTakeaways = async (article: Article): Promise<string[]> 
     }
 };
 
-export const generateArticleTimeline = async (article: Article): Promise<TimelineEvent[]> => {
+export const generateArticleTimeline = async (article: Article, settings: Settings): Promise<TimelineEvent[]> => {
     try {
         const prompt = `Analyze the following article and extract key events with their corresponding dates or timeframes. Format the output as a JSON object with a single key "events", which is an array of objects. Each object should have a "year" (as a string, e.g., "2023" or "Bronze Age") and a "description". Only include major events.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -303,7 +321,7 @@ export const generateArticleTimeline = async (article: Article): Promise<Timelin
     }
 };
 
-export async function* generateBehindTheNews(article: Article): AsyncGenerator<string, void, unknown> {
+export async function* generateBehindTheNews(article: Article, settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
         const prompt = `For the following news article, provide a "Behind the News" briefing. The response should be in markdown format. Include the following sections with H2 headers (##):
 - ## Historical Context: Briefly explain the background and events leading up to this news.
@@ -313,7 +331,7 @@ export async function* generateBehindTheNews(article: Article): AsyncGenerator<s
 Article Title: ${article.title}
 Article Content: ${article.content}`;
         const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
             config: {
                 systemInstruction: "You are an expert news analyst providing deep, concise context for complex topics.",
@@ -328,11 +346,11 @@ Article Content: ${article.content}`;
     }
 };
 
-export async function* generateExpertAnalysis(article: Article, persona: ExpertPersona): AsyncGenerator<string, void, unknown> {
+export async function* generateExpertAnalysis(article: Article, persona: ExpertPersona, settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
         const prompt = `You are an expert ${persona}. Analyze the following news article from your specific field of expertise. Provide a concise but insightful analysis in markdown format, focusing on aspects relevant to your role.\n\nArticle Title: ${article.title}\nContent: ${article.content}\n\nYour analysis as an ${persona}:`;
         const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
             config: {
                  systemInstruction: `You are a world-renowned ${persona}. Your analysis is sharp, insightful, and accessible to an intelligent layperson.`,
@@ -347,10 +365,10 @@ export async function* generateExpertAnalysis(article: Article, persona: ExpertP
     }
 };
 
-export const generatePersonalizedFeed = async (bookmarkedArticles: Article[], contentPreferences: string[], allArticles: Article[]): Promise<number[]> => {
+export const generatePersonalizedFeed = async (bookmarkedArticles: Article[], settings: Settings, allArticles: Article[]): Promise<number[]> => {
     try {
         const bookmarkedTitles = bookmarkedArticles.map(a => a.title).join(', ');
-        const interestSummary = `The user has bookmarked articles like: "${bookmarkedTitles}". Their preferred categories are: ${contentPreferences.join(', ')}.`;
+        const interestSummary = `The user has bookmarked articles like: "${bookmarkedTitles}". Their preferred categories are: ${settings.contentPreferences.join(', ')}.`;
         
         const articleList = allArticles.map(a => `ID: ${a.id}, Title: ${a.title}, Category: ${a.category}`).join('\n');
         
@@ -364,7 +382,7 @@ ${articleList}
 Return only a JSON array of the recommended article IDs, like [1, 5, 8, 12, 15].`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
@@ -386,15 +404,16 @@ Return only a JSON array of the recommended article IDs, like [1, 5, 8, 12, 15].
     }
 };
 
-export async function* askAboutArticle(article: Article, question: string, history: ChatMessage[]): AsyncGenerator<string, void, unknown> {
+export async function* askAboutArticle(article: Article, question: string, history: ChatMessage[], settings: Settings): AsyncGenerator<string, void, unknown> {
     try {
         const formattedHistory = history.map(m => `${m.role}: ${m.content}`).join('\n');
         const prompt = `Based on the following article, answer the user's question. Keep your answer concise and directly related to the article's content.\n\n---\n\nARTICLE CONTENT:\n${article.content}\n\n---\n\nCONVERSATION HISTORY:\n${formattedHistory}\n\nUSER QUESTION:\n${question}`;
 
         const response = await ai.models.generateContentStream({
-            model: 'gemini-2.5-flash',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 systemInstruction: "You are a helpful 'Article Companion' AI. Your task is to answer questions based *only* on the provided article content. If the answer is not in the article, say 'That information is not available in this article.' Do not use external knowledge.",
             }
         });
@@ -409,16 +428,17 @@ export async function* askAboutArticle(article: Article, question: string, histo
     }
 }
 
-export const extractKeyConcepts = async (article: Article): Promise<KeyConcept[]> => {
+export const extractKeyConcepts = async (article: Article, settings: Settings): Promise<KeyConcept[]> => {
     try {
         const prompt = `Analyze the following article and extract the key people, organizations, locations, and concepts. For each, provide a very brief, one-sentence description based on its role in the article.
 
 Article: ${article.content}`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
             config: {
+                ...getInteractiveConfig(settings),
                 responseMimeType: 'application/json',
                 responseSchema: {
                     type: Type.OBJECT,
@@ -449,7 +469,7 @@ Article: ${article.content}`;
     }
 };
 
-export const applyReadingLens = async (articleContent: string, lens: ReadingLens): Promise<string> => {
+export const applyReadingLens = async (articleContent: string, lens: ReadingLens, settings: Settings): Promise<string> => {
     let prompt = '';
     switch (lens) {
         case 'Simplify':
@@ -464,8 +484,9 @@ export const applyReadingLens = async (articleContent: string, lens: ReadingLens
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: getModel(settings),
             contents: prompt,
+            config: getInteractiveConfig(settings)
         });
         return response.text;
     } catch (error) {

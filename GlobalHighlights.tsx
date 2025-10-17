@@ -1,14 +1,15 @@
+
+
 import React from 'react';
-// FIX: Correct import path for types from root level.
-import type { Article } from './types';
-// FIX: Correct import path for ArticleCard component from root level.
-import ArticleCard from './components/ArticleCard';
+import type { Article } from '../types';
+import ArticleCard from './ArticleCard';
 
 interface GlobalHighlightsProps {
   articles: Article[];
   onSummarize: (article: Article) => void;
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
+  onTranslate: (article: Article) => void;
   onReadMore: (article: Article) => void;
   audioState: {
     playingArticleId: number | null;
@@ -26,6 +27,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   onSummarize, 
   onExplainSimply, 
   onTextToSpeech,
+  onTranslate,
   onReadMore, 
   audioState,
   bookmarkedArticleIds,
@@ -34,8 +36,17 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   downloadingArticleId,
   onDownloadArticle
 }) => {
+  if (!articles || articles.length === 0) {
+    return (
+      <section className="text-center py-10">
+        <h2 className="text-2xl font-bold">No articles to display.</h2>
+        <p>Please check your content preferences in the settings.</p>
+      </section>
+    );
+  }
+
   const featuredArticle = articles[0];
-  const otherArticles = articles.slice(1);
+  const otherArticles = articles.slice(1); 
   
   return (
     <section className="space-y-8">
@@ -46,6 +57,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           onSummarize={onSummarize}
           onExplainSimply={onExplainSimply}
           onTextToSpeech={onTextToSpeech}
+          onTranslate={onTranslate}
           onReadMore={onReadMore}
           audioState={audioState}
           isBookmarked={bookmarkedArticleIds.includes(featuredArticle.id)}
@@ -63,6 +75,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
+            onTranslate={onTranslate}
             onReadMore={onReadMore}
             audioState={audioState}
             isBookmarked={bookmarkedArticleIds.includes(article.id)}

@@ -1,34 +1,38 @@
-
-import React, { useEffect, useState } from 'react';
-// FIX: Import Settings type
-import type { Article, Settings } from '../types';
-import { generateBehindTheNews } from '../utils/ai';
+import React, { useEffect, useState, useMemo } from 'react';
+import type { Article, ExpertPersona, Settings } from '../types';
+import { generateExpertAnalysis } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
-import InfoIcon from './icons/InfoIcon';
+import AnalysisIcon from './icons/AnalysisIcon';
 
-interface BehindTheNewsModalProps {
+interface ExpertAnalysisModalProps {
   isOpen: boolean;
   article: Article | null;
-  // FIX: Add settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
-const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article, settings, onClose }) => {
+const expertPersonas: ExpertPersona[] = [
+    'Economist', 
+    'Political Analyst', 
+    'Sociologist', 
+    'Technologist', 
+    'Environmental Scientist'
+];
+
+const ExpertAnalysisModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedPersona, setSelectedPersona] = useState<ExpertPersona>(expertPersonas[0]);
 
   useEffect(() => {
-    if (article && isOpen) {
-      const getContext = async () => {
+    if (article && isOpen && selectedPersona) {
+      const getAnalysis = async () => {
         setIsLoading(true);
         setError('');
         setContent('');
         try {
-          // FIX: Pass settings to generateBehindTheNews
-          const stream = await generateBehindTheNews(article, settings);
+          const stream = await generateExpertAnalysis(article, selectedPersona, settings);
           for await (const chunk of stream) {
             setContent(prev => prev + chunk);
           }
@@ -38,15 +42,16 @@ const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article
           setIsLoading(false);
         }
       };
-      getContext();
+      getAnalysis();
     }
-    // FIX: Add settings to dependency array
-  }, [article, isOpen, settings]);
+  }, [article, isOpen, selectedPersona, settings]);
   
-  const formattedContent = content
+  const formattedContent = useMemo(() => content
+    .replace(/### (.*)/g, '<h3 class="text-lg font-bold my-2">$1</h3>')
     .replace(/## (.*)/g, '<h2 class="text-xl font-bold text-deep-red dark:text-gold my-4">$1</h2>')
     .replace(/\* \*(.*?)\* \*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br />');
+    .replace(/\* (.*)/g, '<li class="ml-4">$1</li>')
+    .replace(/\n/g, '<br />'), [content]);
 
   if (!isOpen || !article) return null;
 
@@ -62,8 +67,17 @@ const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article
                 <CloseIcon />
             </button>
             <div className="flex items-center gap-3">
-                <InfoIcon className="w-8 h-8 text-deep-red dark:text-gold"/>
-                <h3 className="font-bold text-2xl">Behind the News</h3>
+                <AnalysisIcon className="w-8 h-8 text-deep-red dark:text-gold"/>
+                <h3 className="font-bold text-2xl">Expert Analysis</h3>
+            </div>
+             <div className="mt-4">
+                <select
+                value={selectedPersona}
+                onChange={(e) => setSelectedPersona(e.target.value as ExpertPersona)}
+                className="w-full p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold"
+                >
+                {expertPersonas.map(persona => <option key={persona} value={persona}>Analyze as {persona}</option>)}
+                </select>
             </div>
         </div>
         <div className="p-6 flex-grow overflow-y-auto">
@@ -76,4 +90,4 @@ const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article
   );
 };
 
-export default BehindTheNewsModal;
+export default ExpertAnalysisModal;

@@ -448,12 +448,12 @@ export const innovations: Innovation[] = [
 ];
 
 export const mockStreamingContent: StreamingContent[] = [
-  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 6, title: 'Chronos Enigma', posterUrl: 'https://picsum.photos/seed/movie6/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 7, title: 'The Gilded Cage', posterUrl: 'https://picsum.photos/seed/movie7/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { id: 8, title: 'Neon Wasteland', posterUrl: 'https://picsum.photos/seed/movie8/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A group of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.' },
+  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'In the aftermath of a great war, a lone warrior must protect a young heir from rival clans.' },
+  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'In a neon-drenched metropolis, a cynical detective uncovers a conspiracy that goes to the very top.' },
+  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A marine biologist discovers an ancient, intelligent life form in the deepest trench of the ocean.' },
+  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A team of climbers finds more than they bargained for when they scale a previously unconquered peak.' },
+  { id: 6, title: 'Chronos Enigma', posterUrl: 'https://picsum.photos/seed/movie6/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A historian finds a device that can view the past, but using it has unforeseen consequences on the present.' },
+  { id: 7, title: 'The Gilded Cage', posterUrl: 'https://picsum.photos/seed/movie7/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'A psychological thriller about a wealthy family whose perfect facade begins to crumble during a tense dinner party.' },
+  { id: 8, title: 'Neon Wasteland', posterUrl: 'https://picsum.photos/seed/movie8/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', description: 'In a post-apocalyptic world, a scavenger must navigate a dangerous, neon-lit desert to find a rumored sanctuary.' },
 ];

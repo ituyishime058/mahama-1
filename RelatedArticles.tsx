@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, Settings } from '../types';
 import { findRelatedArticles } from '../utils/ai';
 import SparklesIcon from './icons/SparklesIcon';
@@ -8,11 +7,9 @@ interface RelatedArticlesProps {
   currentArticle: Article;
   allArticles: Article[];
   onArticleClick: (article: Article) => void;
-  // FIX: Add settings prop
   settings: Settings;
 }
 
-// FIX: Destructure settings from props
 const RelatedArticles: React.FC<RelatedArticlesProps> = ({ currentArticle, allArticles, onArticleClick, settings }) => {
   const [related, setRelated] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +18,6 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({ currentArticle, allAr
     const fetchRelated = async () => {
       setIsLoading(true);
       try {
-        // FIX: Pass settings to findRelatedArticles
         const relatedIds = await findRelatedArticles(currentArticle, allArticles, settings);
         const relatedArticles = allArticles.filter(a => relatedIds.includes(a.id));
         setRelated(relatedArticles);
@@ -32,7 +28,6 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({ currentArticle, allAr
       }
     };
     fetchRelated();
-    // FIX: Add settings to dependency array
   }, [currentArticle, allArticles, settings]);
   
   if (isLoading) {
