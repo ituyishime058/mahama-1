@@ -2,27 +2,30 @@ import React, { useEffect, useState } from 'react';
 import type { Article, AiSummaryLength } from '../types';
 import { summarizeArticle } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
-import LoadingSpinner from './icons/LoadingSpinner';
 
 interface SummarizerModalProps {
+  isOpen: boolean;
   article: Article | null;
   summaryLength: AiSummaryLength;
   onClose: () => void;
 }
 
-const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summaryLength, onClose }) => {
+const SummarizerModal: React.FC<SummarizerModalProps> = ({ isOpen, article, summaryLength, onClose }) => {
   const [summary, setSummary] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (article) {
+    if (article && isOpen) {
       const getSummary = async () => {
         setIsLoading(true);
         setError('');
+        setSummary(''); 
         try {
-          const result = await summarizeArticle(article, summaryLength);
-          setSummary(result);
+          const stream = await summarizeArticle(article, summaryLength);
+          for await (const chunk of stream) {
+            setSummary(prev => prev + chunk);
+          }
         } catch (err: any) {
           setError(err.message || 'Failed to generate summary.');
         } finally {
@@ -31,14 +34,14 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summaryLengt
       };
       getSummary();
     }
-  }, [article, summaryLength]);
+  }, [article, summaryLength, isOpen]);
 
-  if (!article) return null;
+  if (!isOpen || !article) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       <div 
-        className="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden transform transition-all duration-300"
+        className="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden transform transition-all duration-300 animate-slide-up"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6">
@@ -49,14 +52,11 @@ const SummarizerModal: React.FC<SummarizerModalProps> = ({ article, summaryLengt
           <p className="text-sm text-slate-500 mb-4">{article.author} &bull; {article.date}</p>
           <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
             <h3 className="font-bold text-lg mb-2 text-deep-red dark:text-gold">AI Summary ({summaryLength})</h3>
-            {isLoading && (
-              <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-400">
-                <LoadingSpinner />
-                <span>Generating summary...</span>
-              </div>
-            )}
             {error && <p className="text-red-500">{error}</p>}
-            {summary && !isLoading && <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line">{summary}</p>}
+            <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap min-h-[5rem]">
+                {summary}
+                {isLoading && <span className="inline-block w-2 h-5 bg-slate-600 dark:bg-slate-300 animate-blink ml-1"></span>}
+            </p>
           </div>
         </div>
       </div>

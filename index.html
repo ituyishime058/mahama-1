@@ -29,6 +29,7 @@
                 'slide-up': 'slide-up 0.3s ease-out forwards',
                 'equalizer': 'equalizer 1.2s infinite ease-in-out',
                 'fade-in-down': 'fade-in-down 0.2s ease-out forwards',
+                'blink': 'blink 1s step-end infinite',
             },
             keyframes: {
                 'ken-burns': {
@@ -60,6 +61,10 @@
                 'fade-in-down': {
                     'from': { opacity: '0', transform: 'translateY(-10px)' },
                     'to': { opacity: '1', transform: 'translateY(0)' },
+                },
+                'blink': {
+                    'from, to': { opacity: '1' },
+                    '50%': { opacity: '0' },
                 }
             }
           }

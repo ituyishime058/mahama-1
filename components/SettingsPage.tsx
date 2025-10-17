@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Settings } from '../types';
+import { categories } from '../constants';
 
 import CloseIcon from './icons/CloseIcon';
 import SunIcon from './icons/SunIcon';
@@ -11,6 +12,7 @@ import SansFontIcon from './icons/SansFontIcon';
 import SerifFontIcon from './icons/SerifFontIcon';
 import TrashIcon from './icons/TrashIcon';
 import DataIcon from './icons/DataIcon';
+import ContentFilterIcon from './icons/ContentFilterIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -27,6 +29,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
     setLocalSettings(prev => ({ ...prev, [key]: value }));
   };
   
+  const handleTogglePreference = (category: string) => {
+    if (category === 'All') return;
+    const currentPrefs = localSettings.contentPreferences || [];
+    const newPrefs = currentPrefs.includes(category)
+        ? currentPrefs.filter(p => p !== category)
+        : [...currentPrefs, category];
+    handleSettingChange('contentPreferences', newPrefs);
+  };
+
   const handleSave = () => {
     onSettingsChange(localSettings);
     onClose();
@@ -71,6 +82,32 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
               </div>
             </section>
             
+            {/* Content Preferences Section */}
+            <section>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ContentFilterIcon /> Content Preferences</h2>
+              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
+                <p className="mb-4 text-slate-600 dark:text-slate-400">Select topics you're interested in to personalize your homepage news feed.</p>
+                <div className="flex flex-wrap gap-2">
+                    {categories.filter(c => c !== 'All').map(category => {
+                        const isSelected = localSettings.contentPreferences.includes(category);
+                        return (
+                            <button
+                                key={category}
+                                onClick={() => handleTogglePreference(category)}
+                                className={`px-4 py-2 rounded-full font-semibold text-sm transition-colors duration-200 ${
+                                    isSelected
+                                        ? 'bg-deep-red text-white'
+                                        : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'
+                                }`}
+                            >
+                                {category}
+                            </button>
+                        );
+                    })}
+                </div>
+              </div>
+            </section>
+
             {/* Advanced Features Section */}
             <section>
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> Advanced Features</h2>

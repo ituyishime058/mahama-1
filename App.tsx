@@ -130,15 +130,19 @@ const App: React.FC = () => {
 
     // Effect for filtering articles
     useEffect(() => {
-        let articlesToFilter = mockArticles;
+        let articlesToFilter = [...mockArticles];
         
         if (currentCategory !== 'All') {
             articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
+        } else if (settings.contentPreferences && settings.contentPreferences.length > 0) {
+            const preferred = articlesToFilter.filter(a => settings.contentPreferences.includes(a.category));
+            const others = articlesToFilter.filter(a => !settings.contentPreferences.includes(a.category));
+            articlesToFilter = [...preferred, ...others];
         }
         
         setFilteredArticles(articlesToFilter);
         window.scrollTo(0, 0);
-    }, [currentCategory]);
+    }, [currentCategory, settings.contentPreferences]);
     
     // Handlers
     const handleSelectCategory = (category: string) => {
@@ -295,11 +299,11 @@ const App: React.FC = () => {
 
             <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
             <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
-            <SummarizerModal article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
-            <ExplainSimplyModal article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
-            <TranslationModal article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
-            <QuizModal article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
-            <CounterpointModal article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
+            <SummarizerModal isOpen={isSummarizerOpen} article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} />
+            <ExplainSimplyModal isOpen={isExplainSimplyOpen} article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
+            <TranslationModal isOpen={isTranslationOpen} article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
+            <QuizModal isOpen={isQuizOpen} article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
+            <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
             <TrailerModal isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
             <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />

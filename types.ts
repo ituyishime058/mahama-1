@@ -1,5 +1,10 @@
 export type Sentiment = 'Positive' | 'Neutral' | 'Negative';
 
+export interface TimelineEvent {
+  year: string;
+  description: string;
+}
+
 export interface Article {
   id: number;
   title: string;
@@ -14,6 +19,7 @@ export interface Article {
   region?: 'North America' | 'South America' | 'Europe' | 'Africa' | 'Asia' | 'Oceania';
   keyTakeaways: string[];
   sentiment?: Sentiment;
+  hasTimeline?: boolean;
 }
 
 export interface Podcast {

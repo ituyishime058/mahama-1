@@ -1,11 +1,9 @@
-// FIX: Import `Modality` for use in textToSpeech config.
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice } from '../types';
+import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice, TimelineEvent } from '../types';
 
-// FIX: Initialize the GoogleGenAI client. Ensure API_KEY is set in the environment.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-export const summarizeArticle = async (article: Article, length: AiSummaryLength = 'Medium'): Promise<string> => {
+export async function* summarizeArticle(article: Article, length: AiSummaryLength = 'Medium'): AsyncGenerator<string, void, unknown> {
     try {
         let prompt: string;
         switch(length) {
@@ -17,32 +15,37 @@ export const summarizeArticle = async (article: Article, length: AiSummaryLength
                 break;
             case 'Medium':
             default:
-                 prompt = `Summarize the following news article in 3-4 concise bullet points:\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+                 prompt = `Summarize the following news article in 3-4 concise bullet points. Use a '-' for each bullet point.:\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
                 break;
         }
 
-        const response = await ai.models.generateContent({
+        const response = await ai.models.generateContentStream({
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
-        return response.text;
+
+        for await (const chunk of response) {
+            yield chunk.text;
+        }
     } catch (error) {
         console.error("Error summarizing article:", error);
         throw new Error("Failed to generate summary. Please try again.");
     }
 };
 
-export const explainSimply = async (article: Article): Promise<string> => {
+export async function* explainSimply(article: Article): AsyncGenerator<string, void, unknown> {
     try {
         const prompt = `Explain the key points of this article as if you were talking to a 10-year-old. Use simple language and analogies.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
-        const response = await ai.models.generateContent({
+        const response = await ai.models.generateContentStream({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
                 systemInstruction: "You are a friendly and simple explainer for kids.",
             }
         });
-        return response.text;
+        for await (const chunk of response) {
+            yield chunk.text;
+        }
     } catch (error) {
         console.error("Error explaining article:", error);
         throw new Error("Failed to generate simple explanation. Please try again.");
@@ -56,7 +59,6 @@ export const textToSpeech = async (article: Article, voice: AiTtsVoice = 'Kore')
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text: textToRead }] }],
             config: {
-                // FIX: Use Modality enum instead of a string literal for responseModalities.
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: {
@@ -101,32 +103,29 @@ export const generateTags = async (article: Article): Promise<string[]> => {
         return result.tags || [];
     } catch (error) {
         console.error("Error generating tags:", error);
-        return []; // Return empty array on failure
+        return [];
     }
 };
 
 export const factCheckArticle = async (article: Article): Promise<{ status: string; summary: string } | null> => {
     try {
-        // FIX: Update prompt to request a specific text format, as JSON output is not guaranteed with googleSearch tool.
         const prompt = `Analyze the claims made in the following article and provide a fact-check summary. 
 First, on a single line, categorize the overall accuracy as 'Verified', 'Mixed', or 'Unverified'.
 Then, on a new line, provide a brief summary of your findings.
-Your entire response should be in the format:
+Your entire response MUST follow this exact format:
 STATUS: [Your status]
 SUMMARY: [Your summary]
 
 Title: ${article.title}
 Content: ${article.content}`;
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro', // Using a more powerful model for reasoning
+            model: 'gemini-2.5-pro',
             contents: prompt,
-            // FIX: Remove responseMimeType and responseSchema as they are not allowed when using the googleSearch tool.
             config: {
                 tools: [{ googleSearch: {} }],
             }
         });
         const text = response.text;
-        // FIX: Parse the structured text response instead of attempting to parse JSON.
         const statusMatch = text.match(/STATUS:\s*(.*)/);
         const summaryMatch = text.match(/SUMMARY:\s*(.*)/s);
 
@@ -218,23 +217,88 @@ export const findRelatedArticles = async (currentArticle: Article, allArticles: 
         return Array.isArray(result) ? result : [];
     } catch (error) {
         console.error("Error finding related articles:", error);
-        return []; // Return empty array on failure
+        return [];
     }
 };
 
-export const generateCounterpoint = async (article: Article): Promise<string> => {
+export async function* generateCounterpoint(article: Article): AsyncGenerator<string, void, unknown> {
     try {
         const prompt = `Analyze the following news article and provide a brief, thoughtful counterpoint or alternative perspective. Consider the other side of the argument, potential unintended consequences, or a different interpretation of the facts. Keep it concise and objective.\n\nTitle: ${article.title}\n\nExcerpt: ${article.excerpt}`;
-        const response = await ai.models.generateContent({
+        const response = await ai.models.generateContentStream({
             model: 'gemini-2.5-pro',
             contents: prompt,
             config: {
                 systemInstruction: "You are a balanced and objective analyst who provides nuanced alternative perspectives.",
             }
         });
-        return response.text;
+         for await (const chunk of response) {
+            yield chunk.text;
+        }
     } catch (error) {
         console.error("Error generating counterpoint:", error);
         throw new Error("Failed to generate counterpoint. Please try again.");
+    }
+};
+
+export const generateKeyTakeaways = async (article: Article): Promise<string[]> => {
+    try {
+        const prompt = `Generate 3-4 key takeaways from the following news article. Each takeaway should be a single, concise sentence. Return the result as a JSON object with a single key "takeaways" which is an array of strings.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        takeaways: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    }
+                }
+            }
+        });
+        const jsonStr = response.text.trim();
+        const result = JSON.parse(jsonStr);
+        return result.takeaways || [];
+    } catch (error) {
+        console.error("Error generating key takeaways:", error);
+        return [];
+    }
+};
+
+export const generateArticleTimeline = async (article: Article): Promise<TimelineEvent[]> => {
+    try {
+        const prompt = `Analyze the following article and extract key events with their corresponding dates or timeframes. Format the output as a JSON object with a single key "events", which is an array of objects. Each object should have a "year" (as a string, e.g., "2023" or "Bronze Age") and a "description". Only include major events.\n\nTitle: ${article.title}\n\nContent: ${article.content}`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        events: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    year: { type: Type.STRING },
+                                    description: { type: Type.STRING }
+                                },
+                                required: ["year", "description"]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        const jsonStr = response.text.trim();
+        const result = JSON.parse(jsonStr);
+        return result.events || [];
+    } catch (error) {
+        console.error("Error generating article timeline:", error);
+        return [];
     }
 };

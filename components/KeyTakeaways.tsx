@@ -4,10 +4,28 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface KeyTakeawaysProps {
   takeaways: string[];
+  isLoading: boolean;
 }
 
-const KeyTakeaways: React.FC<KeyTakeawaysProps> = ({ takeaways }) => {
+const KeyTakeaways: React.FC<KeyTakeawaysProps> = ({ takeaways, isLoading }) => {
   const [isOpen, setIsOpen] = useState(true);
+
+  if (isLoading) {
+    return (
+        <div className="mb-8 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 animate-pulse">
+            <div className="p-4">
+                <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded-md mb-4"></div>
+                <div className="space-y-2">
+                    <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                    <div className="h-4 w-5/6 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                    <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                </div>
+            </div>
+        </div>
+    );
+  }
+
+  if (takeaways.length === 0) return null;
 
   return (
     <div className="mb-8 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
@@ -19,7 +37,7 @@ const KeyTakeaways: React.FC<KeyTakeawaysProps> = ({ takeaways }) => {
         <div className="flex items-center gap-3">
           <LightbulbIcon className="w-6 h-6 text-gold" />
           <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-            Key Takeaways
+            AI Key Takeaways
           </h3>
         </div>
         <ChevronDownIcon className={`w-6 h-6 text-slate-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />

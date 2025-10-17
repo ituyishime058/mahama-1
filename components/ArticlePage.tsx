@@ -1,9 +1,9 @@
 
 
 import React, { useEffect, useState, useRef } from 'react';
-import type { Article, Settings } from '../types';
+import type { Article, Settings, TimelineEvent } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { generateTags, factCheckArticle } from '../utils/ai';
+import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import SocialShare from './SocialShare';
@@ -14,6 +14,7 @@ import CommentsSection from './CommentsSection';
 import ArticleProgressBar from './ArticleProgressBar';
 import FloatingActionbar from './FloatingActionbar';
 import RelatedArticles from './RelatedArticles';
+import ArticleTimeline from './ArticleTimeline';
 
 interface ArticlePageProps {
   article: Article;
@@ -49,6 +50,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [factCheckResult, setFactCheckResult] = useState<{ status: string; summary: string } | null>(null);
   const [factCheckLoading, setFactCheckLoading] = useState(true);
   const [isZenMode, setIsZenMode] = useState(false);
+  const [aiTakeaways, setAiTakeaways] = useState<string[]>([]);
+  const [takeawaysLoading, setTakeawaysLoading] = useState(true);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(true);
   
   const articleRef = useRef<HTMLDivElement>(null);
 
@@ -57,24 +62,37 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     window.scrollTo(0, 0);
     setTags([]);
     setFactCheckResult(null);
+    setAiTakeaways([]);
+    setTimelineEvents([]);
+
     setTagsLoading(true);
     setFactCheckLoading(true);
+    setTakeawaysLoading(true);
+    setTimelineLoading(true);
 
     const fetchAIData = async () => {
       const tagsPromise = generateTags(article);
       const factCheckPromise = factCheckArticle(article);
+      const takeawaysPromise = generateKeyTakeaways(article);
       
-      const [tagsResult, factCheckData] = await Promise.allSettled([tagsPromise, factCheckPromise]);
+      const [tagsResult, factCheckData, takeawaysResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise]);
 
-      if (tagsResult.status === 'fulfilled') {
-        setTags(tagsResult.value);
-      }
-      if (factCheckData.status === 'fulfilled') {
-        setFactCheckResult(factCheckData.value);
-      }
+      if (tagsResult.status === 'fulfilled') setTags(tagsResult.value);
+      if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value);
+      if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value);
       
       setTagsLoading(false);
       setFactCheckLoading(false);
+      setTakeawaysLoading(false);
+
+      if (article.hasTimeline) {
+          const timelinePromise = generateArticleTimeline(article);
+          const timelineResult = await Promise.resolve(timelinePromise);
+          setTimelineEvents(timelineResult);
+          setTimelineLoading(false);
+      } else {
+          setTimelineLoading(false);
+      }
     };
 
     fetchAIData();
@@ -109,10 +127,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                             <figcaption className="text-center text-sm text-slate-500 mt-2">A representative image for the article.</figcaption>
                         </figure>
                         
-                        <KeyTakeaways takeaways={article.keyTakeaways} />
+                        <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                         <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
                         
                         <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }} />
+                        
+                        {article.hasTimeline && <ArticleTimeline events={timelineEvents} isLoading={timelineLoading} />}
 
                         <AITags tags={tags} isLoading={tagsLoading} />
                     </main>
