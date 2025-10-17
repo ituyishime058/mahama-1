@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { Settings } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -8,6 +9,8 @@ import SansFontIcon from './icons/SansFontIcon';
 import SerifFontIcon from './icons/SerifFontIcon';
 import AccessibilityIcon from './icons/AccessibilityIcon';
 import DataIcon from './icons/DataIcon';
+import NotificationIcon from './icons/NotificationIcon';
+import SparklesIcon from './icons/SparklesIcon';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -26,11 +29,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     <div className="space-y-6">
       <SettingGroup title="Theme">
         <div className="grid grid-cols-2 gap-4">
-          <button onClick={() => onUpdateSettings({ theme: 'light' })} className={`p-4 rounded-lg border-2 ${settings.theme === 'light' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
+          <button onClick={() => onUpdateSettings({ theme: 'light' })} className={`p-4 rounded-lg border-2 ${settings.theme === 'light' ? 'border-[var(--accent-color)]' : 'border-slate-300 dark:border-slate-600'}`}>
             <SunIcon className="mx-auto mb-2 w-8 h-8"/>
             <span className="font-semibold">Light</span>
           </button>
-           <button onClick={() => onUpdateSettings({ theme: 'dark' })} className={`p-4 rounded-lg border-2 ${settings.theme === 'dark' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
+           <button onClick={() => onUpdateSettings({ theme: 'dark' })} className={`p-4 rounded-lg border-2 ${settings.theme === 'dark' ? 'border-[var(--accent-color)]' : 'border-slate-300 dark:border-slate-600'}`}>
             <MoonIcon className="mx-auto mb-2 w-8 h-8"/>
             <span className="font-semibold">Dark</span>
           </button>
@@ -38,11 +41,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
       </SettingGroup>
       <SettingGroup title="Accent Color">
         <div className="grid grid-cols-2 gap-4">
-          <button onClick={() => onUpdateSettings({ accentColor: 'gold' })} className={`flex items-center gap-3 p-4 rounded-lg border-2 ${settings.accentColor === 'gold' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
+          <button onClick={() => onUpdateSettings({ accentColor: 'gold' })} className={`flex items-center gap-3 p-4 rounded-lg border-2 ${settings.accentColor === 'gold' ? 'border-[var(--accent-color)]' : 'border-slate-300 dark:border-slate-600'}`}>
             <div className="w-6 h-6 rounded-full bg-gold"></div>
             <span className="font-semibold">Gold</span>
           </button>
-          <button onClick={() => onUpdateSettings({ accentColor: 'deep-red' })} className={`flex items-center gap-3 p-4 rounded-lg border-2 ${settings.accentColor === 'deep-red' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
+          <button onClick={() => onUpdateSettings({ accentColor: 'deep-red' })} className={`flex items-center gap-3 p-4 rounded-lg border-2 ${settings.accentColor === 'deep-red' ? 'border-[var(--accent-color)]' : 'border-slate-300 dark:border-slate-600'}`}>
             <div className="w-6 h-6 rounded-full bg-deep-red"></div>
             <span className="font-semibold">Red</span>
           </button>
@@ -50,11 +53,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
       </SettingGroup>
       <SettingGroup title="Font Style">
         <div className="grid grid-cols-2 gap-4">
-          <button onClick={() => onUpdateSettings({ fontFamily: 'sans' })} className={`p-4 rounded-lg border-2 ${settings.fontFamily === 'sans' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
+          <button onClick={() => onUpdateSettings({ fontFamily: 'sans' })} className={`p-4 rounded-lg border-2 ${settings.fontFamily === 'sans' ? 'border-[var(--accent-color)]' : 'border-slate-300 dark:border-slate-600'}`}>
             <SansFontIcon className="mx-auto mb-2 w-8 h-8"/>
             <span className="font-semibold font-sans">Sans-Serif</span>
           </button>
-           <button onClick={() => onUpdateSettings({ fontFamily: 'serif' })} className={`p-4 rounded-lg border-2 ${settings.fontFamily === 'serif' ? 'border-blue-500' : 'border-slate-300 dark:border-slate-600'}`}>
+           <button onClick={() => onUpdateSettings({ fontFamily: 'serif' })} className={`p-4 rounded-lg border-2 ${settings.fontFamily === 'serif' ? 'border-[var(--accent-color)]' : 'border-slate-300 dark:border-slate-600'}`}>
             <SerifFontIcon className="mx-auto mb-2 w-8 h-8"/>
             <span className="font-semibold font-serif">Serif</span>
           </button>
@@ -80,6 +83,55 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
             </SettingGroup>
       </div>
   );
+
+  const renderNotificationsTab = () => (
+    <div className="space-y-6">
+        <SettingGroupSwitch
+            title="Breaking News Alerts"
+            description="Receive push notifications for major breaking stories."
+            enabled={settings.notifications.breakingNews}
+            onChange={(val) => onUpdateSettings({ notifications: { ...settings.notifications, breakingNews: val } })}
+        />
+        <SettingGroupSwitch
+            title="Newsletter Subscription"
+            description="Get the day's top headlines delivered to your inbox."
+            enabled={settings.notifications.newsletter}
+            onChange={(val) => onUpdateSettings({ notifications: { ...settings.notifications, newsletter: val } })}
+        />
+    </div>
+  );
+
+  const renderAITab = () => (
+    <div className="space-y-6">
+        <SettingGroupSwitch
+            title="Enable AI Features"
+            description="Use AI to summarize articles and provide text-to-speech."
+            enabled={settings.ai.enabled}
+            onChange={(val) => onUpdateSettings({ ai: { ...settings.ai, enabled: val } })}
+        />
+         <SettingGroupSelect
+            title="AI Summary Length"
+            value={settings.ai.summaryLength}
+            onChange={(e) => onUpdateSettings({ ai: { ...settings.ai, summaryLength: e.target.value as any }})}
+            options={[
+                { value: 'short', label: 'Short (TL;DR)' },
+                { value: 'medium', label: 'Medium (Key Points)' },
+                { value: 'detailed', label: 'Detailed (In-depth)' },
+            ]}
+        />
+        <SettingGroupSelect
+            title="Text-to-Speech Voice"
+            value={settings.ai.ttsVoice}
+            onChange={(e) => onUpdateSettings({ ai: { ...settings.ai, ttsVoice: e.target.value }})}
+            options={[
+                { value: 'Zephyr', label: 'Zephyr (Calm, Male)' },
+                { value: 'Kore', label: 'Kore (Warm, Female)' },
+                { value: 'Puck', label: 'Puck (Energetic, Male)' },
+                { value: 'Charon', label: 'Charon (Deep, Male)' },
+            ]}
+        />
+    </div>
+  );
     
   const renderDataTab = () => (
     <div className="space-y-6">
@@ -101,7 +153,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     >
       <div
         className={`relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-lg shadow-xl flex flex-col md:flex-row transform transition-all duration-300 ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
-        style={{ height: 'clamp(400px, 90vh, 600px)' }}
+        style={{ height: 'clamp(400px, 90vh, 650px)' }}
         onClick={e => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-800 dark:hover:text-white z-20"><CloseIcon /></button>
@@ -111,6 +163,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
             <div className="space-y-2">
                 <TabButton name="Appearance" icon={<PaletteIcon/>} isActive={activeTab === 'appearance'} onClick={() => setActiveTab('appearance')} />
                 <TabButton name="Accessibility" icon={<AccessibilityIcon/>} isActive={activeTab === 'accessibility'} onClick={() => setActiveTab('accessibility')} />
+                <TabButton name="Notifications" icon={<NotificationIcon/>} isActive={activeTab === 'notifications'} onClick={() => setActiveTab('notifications')} />
+                <TabButton name="AI Features" icon={<SparklesIcon/>} isActive={activeTab === 'ai'} onClick={() => setActiveTab('ai')} />
                 <TabButton name="Data" icon={<DataIcon/>} isActive={activeTab === 'data'} onClick={() => setActiveTab('data')} />
             </div>
         </div>
@@ -118,6 +172,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
         <div className="flex-grow p-8 overflow-y-auto">
             {activeTab === 'appearance' && renderAppearanceTab()}
             {activeTab === 'accessibility' && renderAccessibilityTab()}
+            {activeTab === 'notifications' && renderNotificationsTab()}
+            {activeTab === 'ai' && renderAITab()}
             {activeTab === 'data' && renderDataTab()}
         </div>
       </div>
@@ -127,7 +183,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
 
 
 const TabButton: React.FC<{ name: string, icon: React.ReactNode, isActive: boolean, onClick: () => void }> = ({ name, icon, isActive, onClick }) => (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg font-semibold transition-colors ${isActive ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg font-semibold transition-colors ${isActive ? 'bg-black/5 dark:bg-white/10 text-[var(--accent-color)]' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
         {icon}
         {name}
     </button>
@@ -149,7 +205,7 @@ const SettingGroupSwitch: React.FC<{ title: string; description: string; enabled
             </div>
             <button
                 type="button"
-                className={`${enabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-600'} relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+                className={`${enabled ? 'bg-[var(--accent-color)]' : 'bg-slate-200 dark:bg-slate-600'} relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] focus:ring-offset-2`}
                 role="switch"
                 aria-checked={enabled}
                 onClick={() => onChange(!enabled)}
@@ -159,5 +215,26 @@ const SettingGroupSwitch: React.FC<{ title: string; description: string; enabled
         </div>
     </div>
 );
+
+const SettingGroupSelect: React.FC<{
+  title: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: { value: string; label: string }[];
+}> = ({ title, value, onChange, options }) => (
+    <div>
+        <h3 className="text-lg font-bold mb-2">{title}</h3>
+        <select
+            value={value}
+            onChange={onChange}
+            className="w-full p-2.5 rounded-lg border-2 border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 focus:border-[var(--accent-color)] focus:ring-2 focus:ring-[var(--accent-color)]/50 transition"
+        >
+            {options.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+        </select>
+    </div>
+);
+
 
 export default SettingsModal;

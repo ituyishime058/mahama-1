@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import MenuIcon from './icons/MenuIcon';
@@ -10,6 +11,9 @@ interface HeaderProps {
   onLogoClick: () => void;
   categories: string[];
   onSelectCategory: (category: string) => void;
+  isAuthenticated: boolean;
+  onLoginClick: () => void;
+  onLogout: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -17,7 +21,10 @@ const Header: React.FC<HeaderProps> = ({
   onSettingsClick,
   onLogoClick,
   categories,
-  onSelectCategory
+  onSelectCategory,
+  isAuthenticated,
+  onLoginClick,
+  onLogout,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -53,9 +60,13 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={onSettingsClick} aria-label="Open settings" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SettingsIcon />
             </button>
-            <button aria-label="Login or sign up" className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors">
+            <button 
+              onClick={isAuthenticated ? onLogout : onLoginClick} 
+              aria-label={isAuthenticated ? "Logout" : "Login or sign up"} 
+              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
+            >
                 <UserIcon className="w-5 h-5" />
-                <span className="hidden md:inline">Login</span>
+                <span className="hidden md:inline">{isAuthenticated ? 'Logout' : 'Login'}</span>
             </button>
           </div>
         </div>

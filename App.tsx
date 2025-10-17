@@ -26,6 +26,7 @@ import ArticlePage from './components/ArticlePage';
 import SettingsModal from './components/SettingsModal';
 import PodcastPlayer from './components/PodcastPlayer';
 import ConfirmationModal from './components/ConfirmationModal';
+import LoginModal from './components/LoginModal';
 
 
 // Utils
@@ -37,6 +38,15 @@ const defaultSettings: Settings = {
     fontFamily: 'sans',
     fontSize: 'md',
     reduceMotion: false,
+    notifications: {
+      breakingNews: true,
+      newsletter: false,
+    },
+    ai: {
+      enabled: true,
+      summaryLength: 'medium',
+      ttsVoice: 'Zephyr',
+    },
 };
 
 const App: React.FC = () => {
@@ -54,8 +64,12 @@ const App: React.FC = () => {
     const [isOfflineOpen, setIsOfflineOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [confirmationProps, setConfirmationProps] = useState({ title: '', message: '', onConfirm: () => {} });
     
+    // User State
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
     // Bookmarks State
     const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
 
@@ -82,7 +96,7 @@ const App: React.FC = () => {
     // Effect for loading initial data from localStorage
     useEffect(() => {
         const storedSettings = localStorage.getItem('mnh-settings');
-        const initialSettings = storedSettings ? JSON.parse(storedSettings) : defaultSettings;
+        const initialSettings = storedSettings ? { ...defaultSettings, ...JSON.parse(storedSettings) } : defaultSettings;
         setSettings(initialSettings);
 
         const storedBookmarks = localStorage.getItem('bookmarkedArticles');
@@ -184,6 +198,7 @@ const App: React.FC = () => {
                 await clearAllOfflineArticles();
                 await fetchOfflineData();
                 setIsConfirmationOpen(false);
+                setIsSettingsOpen(false);
             }
         });
         setIsConfirmationOpen(true);
@@ -203,6 +218,15 @@ const App: React.FC = () => {
         setIsPodcastPlaying(false);
     };
 
+    const handleLogin = () => {
+        setIsAuthenticated(true);
+        setIsLoginModalOpen(false);
+    };
+
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+    };
+
     const bookmarkedArticles = allArticles.filter(article => bookmarkedArticleIds.includes(article.id));
     const filteredArticles = selectedCategory === 'All'
         ? initialArticles
@@ -218,6 +242,9 @@ const App: React.FC = () => {
                 onLogoClick={() => view === 'home' ? window.scrollTo({ top: 0, behavior: 'smooth' }) : handleCloseArticle()}
                 categories={categories}
                 onSelectCategory={handleSelectCategory}
+                isAuthenticated={isAuthenticated}
+                onLoginClick={() => setIsLoginModalOpen(true)}
+                onLogout={handleLogout}
             />
             {view === 'home' && <NewsTicker headlines={tickerHeadlines} />}
             
@@ -269,6 +296,11 @@ const App: React.FC = () => {
             <Footer />
 
             {/* Global Components / Modals */}
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                onLogin={handleLogin}
+            />
             <CategoryMenu 
                 isOpen={isMenuOpen}
                 onClose={() => setIsMenuOpen(false)}

@@ -1,3 +1,4 @@
+
 export interface Article {
   id: number;
   title: string;
@@ -24,4 +25,13 @@ export interface Settings {
   fontFamily: 'sans' | 'serif';
   fontSize: 'sm' | 'md' | 'lg';
   reduceMotion: boolean;
+  notifications: {
+    breakingNews: boolean;
+    newsletter: boolean;
+  };
+  ai: {
+    enabled: boolean;
+    summaryLength: 'short' | 'medium' | 'detailed';
+    ttsVoice: string;
+  };
 }
