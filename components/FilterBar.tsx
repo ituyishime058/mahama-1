@@ -13,6 +13,7 @@ import EntertainmentIcon from './icons/EntertainmentIcon';
 import InvestigatesIcon from './icons/InvestigatesIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
+import MoviesTVIcon from './icons/MoviesTVIcon';
 
 interface FilterBarProps {
   categories: string[];
@@ -31,6 +32,7 @@ const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } 
   "History": HistoryIcon,
   "Culture": CultureIcon,
   "Entertainment": EntertainmentIcon,
+  "Movies & TV": MoviesTVIcon,
   "Mahama Investigates": InvestigatesIcon,
 };
 

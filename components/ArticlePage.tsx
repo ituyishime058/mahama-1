@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import type { Article } from '../types';
+import type { Article, Comment } from '../types';
 import RightAside from './RightAside';
 import ArticleCard from './ArticleCard';
 import ArticleProgressBar from './ArticleProgressBar';
@@ -9,8 +9,9 @@ import CommentsSection from './CommentsSection';
 import ClockIcon from './icons/ClockIcon';
 import SentimentIndicator from './SentimentIndicator';
 import KeyTakeaways from './KeyTakeaways';
-import { generateTagsForArticle } from '../utils/ai';
+import { generateTagsForArticle, factCheckArticle } from '../utils/ai';
 import AITags from './AITags';
+import FactCheck from './FactCheck';
 
 interface ArticlePageProps {
   article: Article;
@@ -33,27 +34,43 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [isZenMode, setIsZenMode] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(true);
+  const [factCheckResult, setFactCheckResult] = useState<{ status: string; summary: string } | null>(null);
+  const [isLoadingFactCheck, setIsLoadingFactCheck] = useState(true);
 
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchAIData = async () => {
       if (!article.content) {
         setIsLoadingTags(false);
+        setIsLoadingFactCheck(false);
         return;
       }
+      
+      // Fetch Tags
       try {
         setIsLoadingTags(true);
         const generatedTags = await generateTagsForArticle(article.title, article.content);
         setTags(generatedTags);
       } catch (error) {
         console.error("Failed to generate AI tags:", error);
-        // Set empty or default tags on error
         setTags([]);
       } finally {
         setIsLoadingTags(false);
       }
+
+      // Fetch Fact-Check
+      try {
+        setIsLoadingFactCheck(true);
+        const checkResult = await factCheckArticle(article.title, article.content);
+        setFactCheckResult(checkResult);
+      } catch (error) {
+        console.error("Failed to generate AI fact-check:", error);
+        setFactCheckResult(null);
+      } finally {
+        setIsLoadingFactCheck(false);
+      }
     };
 
-    fetchTags();
+    fetchAIData();
   }, [article]);
 
   const relatedContent = allArticles
@@ -104,6 +121,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                     </div>
                     
                     <AITags tags={tags} isLoading={isLoadingTags} />
+                    
+                    <FactCheck result={factCheckResult} isLoading={isLoadingFactCheck} />
 
                     {article.keyTakeaways && <KeyTakeaways takeaways={article.keyTakeaways} />}
 
@@ -116,7 +135,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         "This is a pivotal moment that will define the next decade. The implications are staggering, and we are only beginning to scratch the surface."
                     </blockquote>
 
-                    <p>Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>
+                    <p>Duis semper. Duis arcu massa, scisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>
 
                      <figure>
                         <img src="https://picsum.photos/800/500?random=55" alt="In-article visual" className="rounded-lg shadow-lg" />
@@ -127,7 +146,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 </article>
              </div>
              <AuthorInfo article={article} />
-             <CommentsSection />
+             <CommentsSection initialComments={article.comments} />
           </div>
           <div className={`lg:col-span-4 transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
             <RightAside trendingArticles={trendingArticles} onArticleClick={onArticleClick} />

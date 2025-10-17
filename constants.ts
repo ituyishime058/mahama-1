@@ -1,4 +1,5 @@
-import type { Article, Podcast } from './types';
+
+import type { Article, Podcast, User } from './types';
 
 export const tickerHeadlines: string[] = [
   "Global markets react to new economic policies announced by the G7.",
@@ -19,8 +20,15 @@ export const stockData = [
 ];
 
 export const categories: string[] = [
-  "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Culture", "Entertainment", "Mahama Investigates"
+  "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Culture", "Entertainment", "Movies & TV", "Mahama Investigates"
 ];
+
+export const mockUsers: Record<string, User> = {
+    'user1': { name: 'Alex Johnson', avatar: 'https://i.pravatar.cc/150?u=alex' },
+    'user2': { name: 'Maria Garcia', avatar: 'https://i.pravatar.cc/150?u=maria' },
+    'user3': { name: 'Chen Wei', avatar: 'https://i.pravatar.cc/150?u=chen' },
+    'currentUser': { name: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=jane' },
+};
 
 export const featuredArticle: Article = {
     id: 100,
@@ -40,6 +48,12 @@ export const featuredArticle: Article = {
         "The pact aims for a 50% reduction in global carbon emissions by 2040.",
         "A multi-trillion dollar fund will support green infrastructure in developing nations.",
         "Implementation and transparency are now the key challenges ahead."
+    ],
+    comments: [
+        { id: 'c100-1', user: mockUsers.user1, text: "This is a huge step forward, but the 2040 goal feels a bit distant. We need more aggressive short-term targets.", timestamp: "2 hours ago", likes: 15, replies: [
+            { id: 'c100-1-1', user: mockUsers.user2, text: "I agree, Alex. It's a classic political compromise. Better than nothing, but not what the science demands.", timestamp: "1 hour ago", likes: 8, replies: [] }
+        ]},
+        { id: 'c100-2', user: mockUsers.user3, text: "The funding mechanism is the most critical part. Without proper financial support, these pledges are just empty promises.", timestamp: "3 hours ago", likes: 22, replies: [] }
     ]
 };
 
@@ -54,7 +68,8 @@ export const trendingArticles: Article[] = [
         date: "3 hours ago",
         region: "North America",
         readingTime: 3,
-        sentiment: "Positive"
+        sentiment: "Positive",
+        comments: []
     },
     {
         id: 202,
@@ -65,7 +80,8 @@ export const trendingArticles: Article[] = [
         author: "Sarah Jones",
         date: "5 hours ago",
         readingTime: 5,
-        sentiment: "Negative"
+        sentiment: "Negative",
+        comments: []
     },
     {
         id: 203,
@@ -77,6 +93,7 @@ export const trendingArticles: Article[] = [
         date: "1 day ago",
         region: "North America",
         readingTime: 6,
+        comments: []
     },
      {
         id: 204,
@@ -87,6 +104,7 @@ export const trendingArticles: Article[] = [
         author: "Maria Rodriguez",
         date: "2 days ago",
         readingTime: 4,
+        comments: []
     },
 ];
 
@@ -109,6 +127,9 @@ export const articles: Article[] = [
         "Fusion power is cleaner and safer than traditional nuclear fission.",
         "The breakthrough is a crucial step towards limitless clean energy.",
         "Commercial application is still likely decades away."
+    ],
+    comments: [
+       { id: 'c1-1', user: mockUsers.user2, text: "Finally, some good news on the energy front! This is incredible.", timestamp: "5 hours ago", likes: 34, replies: [] }
     ]
   },
   {
@@ -122,7 +143,8 @@ export const articles: Article[] = [
     date: "October 24, 2023",
     region: "Asia",
     readingTime: 6,
-    sentiment: 'Neutral'
+    sentiment: 'Neutral',
+    comments: []
   },
   {
     id: 3,
@@ -135,6 +157,7 @@ export const articles: Article[] = [
     date: "October 23, 2023",
     region: "Asia",
     readingTime: 5,
+    comments: []
   },
   {
     id: 4,
@@ -147,6 +170,7 @@ export const articles: Article[] = [
     date: "October 22, 2023",
     region: "Europe",
     readingTime: 4,
+    comments: []
   },
   {
     id: 5,
@@ -164,7 +188,8 @@ export const articles: Article[] = [
         "The industry is often linked to the exploitation of garment workers.",
         "Massive amounts of textile waste are generated and sent to landfills.",
         "A movement towards sustainable and ethical fashion is growing in response."
-    ]
+    ],
+    comments: []
   },
   {
     id: 6,
@@ -177,6 +202,32 @@ export const articles: Article[] = [
     date: "October 20, 2023",
     region: "Europe",
     readingTime: 5,
+    comments: []
+  },
+    {
+    id: 13,
+    title: "Box Office Shock: Indie Film 'Starlight' Outperforms Summer Blockbusters",
+    excerpt: "The small-budget sci-fi drama has become a surprise hit, sparking conversations about the future of cinema and audience tastes.",
+    content: "'Starlight', a character-driven science fiction film with no major stars, has defied all expectations by topping the domestic box office for a third consecutive week. It has surpassed several big-budget studio tentpoles, a rare feat in today's franchise-dominated landscape. Critics praise its originality and emotional depth, while audiences are responding to its thought-provoking themes. The film's success is being seen as a potential turning point, suggesting a growing appetite for original storytelling over spectacle.",
+    category: "Movies & TV",
+    imageUrl: "https://picsum.photos/600/400?random=26",
+    author: "Dana Schwartz",
+    date: "October 12, 2023",
+    readingTime: 4,
+    sentiment: 'Positive',
+    comments: []
+  },
+  {
+    id: 14,
+    title: "'Crown of Dragons' Prequel Series Sets New Streaming Records",
+    excerpt: "The highly anticipated fantasy series has shattered viewership records in its debut weekend, proving the franchise's enduring popularity.",
+    content: "The premiere of 'Age of the Dragonlords' drew massive numbers globally, becoming the most-watched series debut in the platform's history. The show, set 200 years before the events of 'Crown of Dragons', has been met with generally positive reviews, with many praising its lavish production design and strong performances. While some fans debate its faithfulness to the source material, the record-breaking viewership all but guarantees the fantasy world will continue to expand on screen for years to come.",
+    category: "Movies & TV",
+    imageUrl: "https://picsum.photos/600/400?random=27",
+    author: "Alex Abad-Santos",
+    date: "October 11, 2023",
+    readingTime: 3,
+    comments: []
   },
   {
     id: 7,
@@ -188,6 +239,7 @@ export const articles: Article[] = [
     author: "Dr. Ben Carter",
     date: "October 19, 2023",
     readingTime: 6,
+    comments: []
   },
   {
     id: 8,
@@ -199,6 +251,7 @@ export const articles: Article[] = [
     author: "Linda Hobbs",
     date: "October 18, 2023",
     readingTime: 5,
+    comments: []
   },
    {
     id: 9,
@@ -211,6 +264,7 @@ export const articles: Article[] = [
     date: "October 17, 2023",
     region: "Europe",
     readingTime: 7,
+    comments: []
   },
   {
     id: 10,
@@ -222,6 +276,7 @@ export const articles: Article[] = [
     date: "October 16, 2023",
     region: "South America",
     readingTime: 4,
+    comments: []
   },
   {
     id: 11,
@@ -233,6 +288,7 @@ export const articles: Article[] = [
     date: "October 15, 2023",
     region: "Oceania",
     readingTime: 3,
+    comments: []
   },
    {
     id: 12,
@@ -244,6 +300,7 @@ export const articles: Article[] = [
     date: "October 14, 2023",
     region: "Africa",
     readingTime: 4,
+    comments: []
   },
 ];
 
@@ -258,6 +315,7 @@ export const mahama360Articles: Article[] = [
         author: "MNH 360",
         date: "This Week",
         readingTime: 10,
+        comments: []
     },
     {
         id: 302,
@@ -268,6 +326,7 @@ export const mahama360Articles: Article[] = [
         author: "MNH 360",
         date: "Live Data",
         readingTime: 15,
+        comments: []
     },
     {
         id: 303,
@@ -278,6 +337,7 @@ export const mahama360Articles: Article[] = [
         author: "MNH 360",
         date: "Special Feature",
         readingTime: 12,
+        comments: []
     }
 ];
 
@@ -288,6 +348,8 @@ export const podcasts: Podcast[] = [
     excerpt: "Our experts break down the week's biggest economic news.",
     category: "Economy",
     imageUrl: "https://picsum.photos/600/400?random=31",
+    // FIX: Added missing 'author' property to conform to the Podcast type.
+    author: "Sarah Jones",
     date: "New Episode",
     episode: 132,
     duration: "45 min",
@@ -299,6 +361,8 @@ export const podcasts: Podcast[] = [
     excerpt: "A conversation with a leading AI researcher on ethics and innovation.",
     category: "Technology",
     imageUrl: "https://picsum.photos/600/400?random=32",
+    // FIX: Added missing 'author' property to conform to the Podcast type.
+    author: "Johnathan Lee",
     date: "Yesterday",
     episode: 89,
     duration: "62 min",
@@ -310,6 +374,8 @@ export const podcasts: Podcast[] = [
     excerpt: "Analyzing the polls and strategies as election day approaches.",
     category: "Politics",
     imageUrl: "https://picsum.photos/600/400?random=33",
+    // FIX: Added missing 'author' property to conform to the Podcast type.
+    author: "Elena Petrova",
     date: "This Week",
     episode: 205,
     duration: "55 min",

@@ -1,10 +1,12 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import type { Article } from '../types';
 import FacebookIcon from './icons/FacebookIcon';
 import TwitterIcon from './icons/TwitterIcon';
 import ShareIcon from './icons/ShareIcon';
 import BookmarkIcon from './icons/BookmarkIcon';
 import GlassesIcon from './icons/GlassesIcon';
+import CopyLinkIcon from './icons/CopyLinkIcon';
 
 interface SocialShareProps {
   article: Article;
@@ -15,6 +17,7 @@ interface SocialShareProps {
 }
 
 const SocialShare: React.FC<SocialShareProps> = ({ article, isBookmarked, onToggleBookmark, isZenMode, onToggleZenMode }) => {
+  const [isLinkCopied, setIsLinkCopied] = useState(false);
   const pageUrl = window.location.href;
 
   const shareActions = {
@@ -30,10 +33,17 @@ const SocialShare: React.FC<SocialShareProps> = ({ article, isBookmarked, onTogg
         url: pageUrl,
       }).catch(console.error);
     } else {
-      alert('Use the other icons to share on your favorite platform!');
+      handleCopyLink();
     }
   };
   
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(pageUrl).then(() => {
+        setIsLinkCopied(true);
+        setTimeout(() => setIsLinkCopied(false), 2000);
+    });
+  };
+
   const ActionButton: React.FC<{ href?: string; onClick?: () => void; title: string; children: React.ReactNode; isActive?: boolean; }> = ({ href, onClick, title, children, isActive = false }) => {
     const commonClasses = `group relative flex items-center justify-center w-12 h-12 rounded-full text-slate-600 dark:text-slate-300 hover:text-white transition-all duration-200 ${
       isActive
@@ -62,14 +72,20 @@ const SocialShare: React.FC<SocialShareProps> = ({ article, isBookmarked, onTogg
             <ActionButton onClick={onToggleZenMode} title={isZenMode ? 'Exit Zen Mode' : 'Enter Zen Mode'} isActive={isZenMode}>
                 <GlassesIcon className="w-5 h-5" />
             </ActionButton>
+            <ActionButton onClick={onToggleBookmark} title={isBookmarked ? 'Remove Bookmark' : 'Bookmark Article'} isActive={isBookmarked}>
+                <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 ${isBookmarked ? 'text-white' : ''}`} />
+            </ActionButton>
+             <ActionButton onClick={handleCopyLink} title="Copy Link">
+                <div className="relative w-5 h-5 flex items-center justify-center">
+                    <span className={`transition-opacity duration-300 ${isLinkCopied ? 'opacity-0' : 'opacity-100'}`}><CopyLinkIcon className="w-5 h-5"/></span>
+                    <span className={`absolute transition-opacity duration-300 font-bold text-xs ${isLinkCopied ? 'opacity-100' : 'opacity-0'}`}>Copied!</span>
+                </div>
+            </ActionButton>
             <ActionButton href={shareActions.twitter} title="Share on Twitter">
                 <TwitterIcon className="w-5 h-5" />
             </ActionButton>
             <ActionButton href={shareActions.facebook} title="Share on Facebook">
                 <FacebookIcon className="w-5 h-5" />
-            </ActionButton>
-            <ActionButton onClick={onToggleBookmark} title={isBookmarked ? 'Remove Bookmark' : 'Bookmark Article'} isActive={isBookmarked}>
-                <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 ${isBookmarked ? 'text-gold' : ''}`} />
             </ActionButton>
             {navigator.share && (
                 <ActionButton onClick={handleNativeShare} title="More Sharing Options">
