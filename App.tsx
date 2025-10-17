@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -33,6 +31,8 @@ import DataDrivenInsights from './components/DataDrivenInsights';
 import TrailerModal from './components/TrailerModal';
 import FilterBar from './components/FilterBar';
 import CounterpointModal from './components/CounterpointModal';
+import BehindTheNewsModal from './components/BehindTheNewsModal';
+import ExpertAnalysisModal from './components/ExpertAnalysisModal';
 
 
 import type { Article, Podcast, Settings } from './types';
@@ -51,6 +51,7 @@ const defaultSettings: Settings = {
     contentPreferences: [],
     preferredLanguage: 'English',
     showCounterpoint: true,
+    autoTranslate: false,
 };
 
 const App: React.FC = () => {
@@ -88,6 +89,8 @@ const App: React.FC = () => {
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
     const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
     const [isCounterpointOpen, setIsCounterpointOpen] = useState(false);
+    const [isBehindTheNewsOpen, setIsBehindTheNewsOpen] = useState(false);
+    const [isExpertAnalysisOpen, setIsExpertAnalysisOpen] = useState(false);
 
 
     // AI action states
@@ -170,7 +173,9 @@ const App: React.FC = () => {
     const handleQuiz = (article: Article) => { setArticleForAI(article); setIsQuizOpen(true); };
     const handleTextToSpeech = (article: Article) => { setTtsArticle(prev => prev?.id === article.id ? null : article); };
     const handleCounterpoint = (article: Article) => { setArticleForAI(article); setIsCounterpointOpen(true); };
-    
+    const handleBehindTheNews = (article: Article) => { setArticleForAI(article); setIsBehindTheNewsOpen(true); };
+    const handleExpertAnalysis = (article: Article) => { setArticleForAI(article); setIsExpertAnalysisOpen(true); };
+
     // Podcast Player Handlers
     const handlePlayPodcast = (podcast: Podcast) => {
         setActivePodcast(prev => prev?.id === podcast.id ? (setIsPodcastPlaying(!isPodcastPlaying), prev) : (setIsPodcastPlaying(true), podcast));
@@ -267,7 +272,7 @@ const App: React.FC = () => {
     };
 
     if (currentView === 'article' && activeArticle) {
-        return <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} settings={settings} />;
+        return <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} onReadMore={handleReadMore} onCounterpoint={handleCounterpoint} onBehindTheNews={handleBehindTheNews} onExpertAnalysis={handleExpertAnalysis} settings={settings} />;
     }
     
     if (currentView === 'settings') {
@@ -310,6 +315,8 @@ const App: React.FC = () => {
             <TranslationModal isOpen={isTranslationOpen} article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
             <QuizModal isOpen={isQuizOpen} article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
             <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
+            <BehindTheNewsModal isOpen={isBehindTheNewsOpen} article={articleForAI} onClose={() => {setIsBehindTheNewsOpen(false); setArticleForAI(null);}} />
+            <ExpertAnalysisModal isOpen={isExpertAnalysisOpen} article={articleForAI} onClose={() => {setIsExpertAnalysisOpen(false); setArticleForAI(null);}} />
             <TrailerModal isOpen={isTrailerOpen} onClose={() => { setIsTrailerOpen(false); setTrailerUrl(null); }} trailerUrl={trailerUrl} />
             <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />

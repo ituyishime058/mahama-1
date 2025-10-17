@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import MenuIcon from './icons/MenuIcon';
@@ -53,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({
                 <MenuIcon />
              </button>
              <a href="#" onClick={handleLogoClick} className="hidden sm:flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
-                <Logo className="h-8 w-8" />
+                <Logo className="h-10 w-10" />
                 <span>Mahama News Hub</span>
              </a>
           </div>

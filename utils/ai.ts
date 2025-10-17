@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice, TimelineEvent } from '../types';
+import type { Article, QuizQuestion, AiSummaryLength, AiTtsVoice, TimelineEvent, ExpertPersona } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -300,5 +300,49 @@ export const generateArticleTimeline = async (article: Article): Promise<Timelin
     } catch (error) {
         console.error("Error generating article timeline:", error);
         return [];
+    }
+};
+
+export async function* generateBehindTheNews(article: Article): AsyncGenerator<string, void, unknown> {
+    try {
+        const prompt = `For the following news article, provide a "Behind the News" briefing. The response should be in markdown format. Include the following sections with H2 headers (##):
+- ## Historical Context: Briefly explain the background and events leading up to this news.
+- ## Key Players: Identify and briefly describe the main individuals, organizations, or countries involved.
+- ## Broader Implications: Discuss the potential future impact or significance of this development.
+
+Article Title: ${article.title}
+Article Content: ${article.content}`;
+        const response = await ai.models.generateContentStream({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                systemInstruction: "You are an expert news analyst providing deep, concise context for complex topics.",
+            }
+        });
+        for await (const chunk of response) {
+            yield chunk.text;
+        }
+    } catch (error) {
+        console.error("Error generating 'Behind the News':", error);
+        throw new Error("Failed to generate contextual analysis. Please try again.");
+    }
+};
+
+export async function* generateExpertAnalysis(article: Article, persona: ExpertPersona): AsyncGenerator<string, void, unknown> {
+    try {
+        const prompt = `You are an expert ${persona}. Analyze the following news article from your specific field of expertise. Provide a concise but insightful analysis in markdown format, focusing on aspects relevant to your role.\n\nArticle Title: ${article.title}\nContent: ${article.content}\n\nYour analysis as an ${persona}:`;
+        const response = await ai.models.generateContentStream({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+                 systemInstruction: `You are a world-renowned ${persona}. Your analysis is sharp, insightful, and accessible to an intelligent layperson.`,
+            }
+        });
+        for await (const chunk of response) {
+            yield chunk.text;
+        }
+    } catch (error) {
+        console.error("Error generating expert analysis:", error);
+        throw new Error("Failed to generate expert analysis. Please try again.");
     }
 };

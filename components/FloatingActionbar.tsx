@@ -6,6 +6,8 @@ import ReadAloudIcon from './icons/ReadAloudIcon';
 import TranslateIcon from './icons/TranslateIcon';
 import QuizIcon from './icons/QuizIcon';
 import BalanceIcon from './icons/BalanceIcon';
+import InfoIcon from './icons/InfoIcon';
+import AnalysisIcon from './icons/AnalysisIcon';
 
 interface FloatingActionbarProps {
   article: Article;
@@ -15,6 +17,8 @@ interface FloatingActionbarProps {
   onTranslate: (article: Article) => void;
   onQuiz: (article: Article) => void;
   onCounterpoint: (article: Article) => void;
+  onBehindTheNews: (article: Article) => void;
+  onExpertAnalysis: (article: Article) => void;
   showCounterpoint: boolean;
 }
 
@@ -26,6 +30,8 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onTranslate,
   onQuiz,
   onCounterpoint,
+  onBehindTheNews,
+  onExpertAnalysis,
   showCounterpoint,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -62,9 +68,11 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'
       }`}
     >
-      <div className="bg-white/80 dark:bg-navy/80 backdrop-blur-md rounded-full shadow-2xl p-2 flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+      <div className="bg-white/80 dark:bg-navy/80 backdrop-blur-md rounded-full shadow-2xl p-2 flex items-center gap-1 border border-slate-200 dark:border-slate-700">
         <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
         <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
+        <ActionButton onClick={() => onBehindTheNews(article)} icon={<InfoIcon className="w-5 h-5" />} label="Context" />
+        <ActionButton onClick={() => onExpertAnalysis(article)} icon={<AnalysisIcon className="w-5 h-5" />} label="Analyze" />
         <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
         <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
         <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />

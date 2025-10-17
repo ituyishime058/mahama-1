@@ -1,3 +1,4 @@
+
 import React from 'react';
 import CloseIcon from './icons/CloseIcon';
 import Logo from './Logo';
@@ -33,7 +34,7 @@ const CategoryMenu: React.FC<CategoryMenuProps> = ({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col h-full">
         <div className="flex items-center justify-between h-20 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
             <a href="#" className="flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
-              <Logo className="h-8 w-8" />
+              <Logo className="h-10 w-10" />
               <span>Menu</span>
             </a>
           <button onClick={onClose} aria-label="Close menu" className="p-2">

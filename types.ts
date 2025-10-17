@@ -84,6 +84,7 @@ export interface Settings {
     contentPreferences: string[];
     preferredLanguage: string;
     showCounterpoint: boolean;
+    autoTranslate: boolean;
 }
 
 export interface StreamingContent {
@@ -92,3 +93,5 @@ export interface StreamingContent {
   posterUrl: string;
   trailerUrl: string; // e.g., YouTube embed URL
 }
+
+export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';

@@ -1,9 +1,7 @@
-
-
 import React, { useEffect, useState, useRef } from 'react';
 import type { Article, Settings, TimelineEvent } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline } from '../utils/ai';
+import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import SocialShare from './SocialShare';
@@ -15,6 +13,8 @@ import ArticleProgressBar from './ArticleProgressBar';
 import FloatingActionbar from './FloatingActionbar';
 import RelatedArticles from './RelatedArticles';
 import ArticleTimeline from './ArticleTimeline';
+import TranslateIcon from './icons/TranslateIcon';
+import LoadingSpinner from './icons/LoadingSpinner';
 
 interface ArticlePageProps {
   article: Article;
@@ -28,6 +28,8 @@ interface ArticlePageProps {
   onTranslate: (article: Article) => void;
   onQuiz: (article: Article) => void;
   onCounterpoint: (article: Article) => void;
+  onBehindTheNews: (article: Article) => void;
+  onExpertAnalysis: (article: Article) => void;
   settings: Settings;
 }
 
@@ -43,6 +45,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onTranslate,
     onQuiz,
     onCounterpoint,
+    onBehindTheNews,
+    onExpertAnalysis,
     settings,
 }) => {
   const [tags, setTags] = useState<string[]>([]);
@@ -55,6 +59,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [timelineLoading, setTimelineLoading] = useState(true);
   
+  // State for auto-translation
+  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(true);
+  
   const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,11 +73,32 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setFactCheckResult(null);
     setAiTakeaways([]);
     setTimelineEvents([]);
+    setTranslatedContent(null);
+    setShowOriginal(true);
+    setIsTranslating(false);
 
     setTagsLoading(true);
     setFactCheckLoading(true);
     setTakeawaysLoading(true);
     setTimelineLoading(true);
+
+    // Auto-translate if setting is enabled
+    if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
+        const doTranslate = async () => {
+            setIsTranslating(true);
+            setShowOriginal(false);
+            try {
+                const translation = await translateArticle(article.content, settings.preferredLanguage);
+                setTranslatedContent(translation);
+            } catch (e) {
+                console.error("Auto-translation failed:", e);
+                setShowOriginal(true); // Revert to original on error
+            } finally {
+                setIsTranslating(false);
+            }
+        };
+        doTranslate();
+    }
 
     const fetchAIData = async () => {
       const tagsPromise = generateTags(article);
@@ -96,7 +126,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     };
 
     fetchAIData();
-  }, [article]);
+  }, [article, settings.autoTranslate, settings.preferredLanguage]);
+  
+  const contentToDisplay = showOriginal || !translatedContent ? article.content : translatedContent;
   
   return (
     <div ref={articleRef} className={`transition-colors duration-300 ${isZenMode ? 'bg-slate-50 dark:bg-gray-900' : 'bg-white dark:bg-navy'}`}>
@@ -120,7 +152,22 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white my-4 !leading-tight">{article.title}</h1>
                         <p className="text-lg text-slate-600 dark:text-slate-400">{article.excerpt}</p>
                         
-                        <AuthorInfo author={article.author} date={article.date} />
+                        <AuthorInfo author={article.author} date={article.date} content={article.content} />
+
+                        {translatedContent && (
+                            <div className="my-4 p-3 bg-slate-100 dark:bg-slate-800/50 rounded-md flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                    {isTranslating ? <>
+                                        <LoadingSpinner/> Translating to {settings.preferredLanguage}...
+                                    </> : <>
+                                        <TranslateIcon className="w-5 h-5"/> Translated to {settings.preferredLanguage}
+                                    </>}
+                                </div>
+                                <button onClick={() => setShowOriginal(!showOriginal)} className="font-semibold text-sm text-deep-red dark:text-gold hover:underline">
+                                    {showOriginal ? 'Show Translation' : 'Show Original'}
+                                </button>
+                            </div>
+                        )}
 
                         <figure className="my-8">
                             <img src={article.imageUrl} alt={article.title} className="w-full h-auto rounded-lg shadow-lg"/>
@@ -130,7 +177,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                         <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
                         
-                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }} />
+                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: contentToDisplay.replace(/\n/g, '<br />') }} />
                         
                         {article.hasTimeline && <ArticleTimeline events={timelineEvents} isLoading={timelineLoading} />}
 
@@ -151,6 +198,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onTranslate={onTranslate}
             onQuiz={onQuiz}
             onCounterpoint={onCounterpoint}
+            onBehindTheNews={onBehindTheNews}
+            onExpertAnalysis={onExpertAnalysis}
             showCounterpoint={settings.showCounterpoint}
         />
     </div>

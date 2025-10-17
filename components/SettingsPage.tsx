@@ -13,6 +13,7 @@ import SerifFontIcon from './icons/SerifFontIcon';
 import TrashIcon from './icons/TrashIcon';
 import DataIcon from './icons/DataIcon';
 import ContentFilterIcon from './icons/ContentFilterIcon';
+import TranslateIcon from './icons/TranslateIcon';
 
 interface SettingsPageProps {
   onClose: () => void;
@@ -118,6 +119,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onClose, settings, onSettin
                         <button onClick={() => handleSettingChange('homepageLayout', 'Standard')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.homepageLayout === 'Standard' ? 'bg-white dark:bg-navy shadow' : ''}`}>Standard</button>
                         <button onClick={() => handleSettingChange('homepageLayout', 'Dashboard')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.homepageLayout === 'Dashboard' ? 'bg-white dark:bg-navy shadow' : ''}`}>Dashboard</button>
                     </div>
+                </div>
+                <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
+                    <label htmlFor="auto-translate" className="font-semibold flex items-center gap-2"><TranslateIcon/> Auto-translate articles</label>
+                    <input type="checkbox" id="auto-translate" checked={localSettings.autoTranslate} onChange={e => handleSettingChange('autoTranslate', e.target.checked)} className="h-6 w-6 rounded text-deep-red focus:ring-deep-red" />
                 </div>
                 <div className="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-4">
                     <label htmlFor="show-streaming" className="font-semibold">"Now Streaming" Carousel</label>

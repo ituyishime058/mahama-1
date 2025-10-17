@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import CloseIcon from './icons/CloseIcon';
 import Logo from './Logo';
@@ -53,7 +54,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
         <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-800"><CloseIcon /></button>
         
         <div className="text-center mb-8">
-            <Logo className="w-12 h-12 mx-auto text-deep-red" />
+            <Logo className="w-14 h-14 mx-auto text-deep-red" />
             <h2 className="text-2xl font-bold mt-4">Welcome to Mahama News</h2>
             <p className="text-slate-500">Your trusted source for global news.</p>
         </div>
