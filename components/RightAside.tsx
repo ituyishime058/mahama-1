@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Article, Settings } from '../types';
 import TrendingNews from './TrendingNews';

@@ -29,7 +29,8 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = ({ article, settings }
     if (!input.trim() || isLoading) return;
 
     const userMessage: ChatMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
     
@@ -37,7 +38,7 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = ({ article, settings }
     setMessages(prev => [...prev, modelResponse]);
 
     try {
-      const stream = await askAboutArticle(article, input, messages, settings);
+      const stream = await askAboutArticle(article, input, newMessages.slice(0, -1), settings);
       for await (const chunk of stream) {
         setMessages(prev => {
             const lastMessage = prev[prev.length - 1];

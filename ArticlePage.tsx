@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept } from '../types';
-import { mockComments, mockArticles, mockStreamingContent } from '../constants';
-import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts } from '../utils/ai';
+import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
+import { mockComments, mockArticles } from '../constants';
+import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts, summarizeComments } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import SocialShare from './SocialShare';
@@ -9,13 +9,13 @@ import KeyTakeaways from './KeyTakeaways';
 import AITags from './AITags';
 import FactCheck from './FactCheck';
 import CommentsSection from './CommentsSection';
-import ArticleProgressBar from './ArticleProgressBar';
 import FloatingActionbar from './FloatingActionbar';
 import RelatedArticles from './RelatedArticles';
 import ArticleTimeline from './ArticleTimeline';
 import TranslateIcon from './icons/TranslateIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
-import GlossaryPopup from './components/GlossaryPopup';
+import GlossaryPopup from './GlossaryPopup';
+import CommunityHighlights from './CommunityHighlights';
 
 interface ArticlePageProps {
   article: Article;
@@ -31,7 +31,10 @@ interface ArticlePageProps {
   onCounterpoint: (article: Article) => void;
   onBehindTheNews: (article: Article) => void;
   onExpertAnalysis: (article: Article) => void;
+  onAskAuthor: (article: Article) => void;
+  onFactCheckPage: (article: Article) => void;
   settings: Settings;
+  onPremiumClick: () => void;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ 
@@ -48,7 +51,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onCounterpoint,
     onBehindTheNews,
     onExpertAnalysis,
+    onAskAuthor,
+    onFactCheckPage,
     settings,
+    onPremiumClick,
 }) => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
@@ -60,24 +66,23 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [timelineLoading, setTimelineLoading] = useState(true);
   
-  // State for auto-translation
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [showOriginal, setShowOriginal] = useState(true);
 
-  // State for AI Reading Lens
   const [activeLens, setActiveLens] = useState<ReadingLens>('None');
   const [modifiedContent, setModifiedContent] = useState<string | null>(null);
   const [isModifyingContent, setIsModifyingContent] = useState(false);
 
-  // State for Interactive Glossary
   const [keyConcepts, setKeyConcepts] = useState<KeyConcept[]>([]);
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
+
+  const [communityHighlights, setCommunityHighlights] = useState<CommunityHighlight[]>([]);
+  const [highlightsLoading, setHighlightsLoading] = useState(true);
   
   const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Reset state and scroll to top when article changes
     window.scrollTo(0, 0);
     setTags([]);
     setFactCheckResult(null);
@@ -91,13 +96,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setActiveLens('None');
     setModifiedContent(null);
     setIsModifyingContent(false);
+    setCommunityHighlights([]);
 
     setTagsLoading(true);
     setFactCheckLoading(true);
     setTakeawaysLoading(true);
     setTimelineLoading(true);
+    setHighlightsLoading(true);
 
-    // Auto-translate if setting is enabled
     if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
         const doTranslate = async () => {
             setIsTranslating(true);
@@ -107,7 +113,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 setTranslatedContent(translation);
             } catch (e) {
                 console.error("Auto-translation failed:", e);
-                setShowOriginal(true); // Revert to original on error
+                setShowOriginal(true);
             } finally {
                 setIsTranslating(false);
             }
@@ -116,27 +122,29 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     }
 
     const fetchAIData = async () => {
-      const tagsPromise = generateTags(article, settings);
-      const factCheckPromise = factCheckArticle(article, settings);
-      const takeawaysPromise = generateKeyTakeaways(article, settings);
-      const conceptsPromise = extractKeyConcepts(article, settings);
+      const promises = [
+        generateTags(article, settings),
+        factCheckArticle(article, settings),
+        generateKeyTakeaways(article, settings),
+        extractKeyConcepts(article, settings),
+        summarizeComments(mockComments, settings)
+      ];
       
-      const [tagsResult, factCheckData, takeawaysResult, conceptsResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise, conceptsPromise]);
+      const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled(promises);
 
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value);
       if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value);
       if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value);
       if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value);
+      if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value);
       
       setTagsLoading(false);
       setFactCheckLoading(false);
       setTakeawaysLoading(false);
+      setHighlightsLoading(false);
 
       if (article.hasTimeline) {
-          const timelinePromise = generateArticleTimeline(article, settings);
-          const timelineResult = await Promise.resolve(timelinePromise);
-          setTimelineEvents(timelineResult);
-          setTimelineLoading(false);
+          generateArticleTimeline(article, settings).then(setTimelineEvents).finally(() => setTimelineLoading(false));
       } else {
           setTimelineLoading(false);
       }
@@ -146,11 +154,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   }, [article, settings]);
 
   useEffect(() => {
-    if (isZenMode) {
-        setActiveLens(settings.aiReadingLens);
-    } else {
-        setActiveLens('None');
-    }
+    setActiveLens(isZenMode ? settings.aiReadingLens : 'None');
   }, [isZenMode, settings.aiReadingLens]);
 
   useEffect(() => {
@@ -165,7 +169,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             setModifiedContent(result);
         } catch (e) {
             console.error("Failed to apply reading lens", e);
-            // Optionally show an error to the user
         } finally {
             setIsModifyingContent(false);
         }
@@ -227,8 +230,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             color: #d97706; /* gold */
             border-bottom-color: #b91c1c; /* deep-red */
           }
+          .density-compact .prose {
+            font-size: 0.9rem;
+            line-height: 1.5;
+          }
         `}</style>
-        <ArticleProgressBar targetRef={articleRef} />
         <button onClick={onClose} className="mb-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
             &larr; Back to Home
         </button>
@@ -253,7 +259,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         <div className="my-4 p-3 bg-slate-100 dark:bg-slate-800/50 rounded-md flex items-center justify-between">
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                 {isTranslating ? <>
-                                    <LoadingSpinner/> Translating to {settings.preferredLanguage}...
+                                    <LoadingSpinner/> Translating to ${settings.preferredLanguage}...
                                 </> : <>
                                     <TranslateIcon className="w-5 h-5"/> Translated to {settings.preferredLanguage}
                                 </>}
@@ -288,7 +294,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
                     <AITags tags={tags} isLoading={tagsLoading} />
                 </main>
-
+                
+                <CommunityHighlights highlights={communityHighlights} isLoading={highlightsLoading} />
                 <CommentsSection initialComments={mockComments} />
                 
                 <RelatedArticles currentArticle={article} allArticles={mockArticles} onArticleClick={onReadMore} settings={settings} />
@@ -312,10 +319,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onCounterpoint={onCounterpoint}
             onBehindTheNews={onBehindTheNews}
             onExpertAnalysis={onExpertAnalysis}
+            onAskAuthor={onAskAuthor}
+            onFactCheckPage={onFactCheckPage}
             showCounterpoint={settings.showCounterpoint}
             isZenMode={isZenMode}
             activeLens={activeLens}
             onSetLens={setActiveLens}
+            subscriptionTier={settings.subscriptionTier}
+            onPremiumClick={onPremiumClick}
         />
     </div>
   );

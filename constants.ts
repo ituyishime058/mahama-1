@@ -45,17 +45,17 @@ export const mockComments: Comment[] = [
 const newArticles: Article[] = [
     {
         id: 9,
-        title: 'Blockbuster Film "Galaxy Runners" Smashes Box Office Records',
-        excerpt: 'The sci-fi epic "Galaxy Runners" has taken the world by storm, grossing over $500 million globally in its opening weekend, setting a new record for the post-pandemic era.',
-        content: '"Galaxy Runners," the highly anticipated sci-fi adventure from director Lena Petrova, has exceeded all expectations. The film\'s stunning visuals, compelling storyline, and charismatic cast have resonated with audiences worldwide. Industry analysts are now predicting it could become one of the highest-grossing films of all time. The success of "Galaxy Runners" is seen as a major win for movie theaters, which have been struggling to attract audiences back since the pandemic. The film follows a group of renegade pilots on a mission to save the galaxy from an ancient threat, and its blend of action, humor, and heart has proven to be a winning formula.',
-        imageUrl: 'https://picsum.photos/seed/picsum9/1200/800',
+        title: 'Blockbuster Film "Dune: Part Two" Smashes Box Office Records',
+        excerpt: 'The sci-fi epic "Dune: Part Two" has taken the world by storm, grossing over $700 million globally, setting a new record for the post-pandemic era.',
+        content: '"Dune: Part Two," the highly anticipated sci-fi adventure from director Denis Villeneuve, has exceeded all expectations. The film\'s stunning visuals, compelling storyline, and charismatic cast have resonated with audiences worldwide. Industry analysts are now predicting it could become one of the highest-grossing films of all time. The success of "Dune" is seen as a major win for movie theaters, which have been struggling to attract audiences back. The film follows Paul Atreides as he unites with the Fremen people of the desert planet Arrakis to wage war against House Harkonnen.',
+        imageUrl: 'https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8soXRmfddl.jpg',
         author: 'Chloe Kim',
-        date: 'October 27, 2023',
+        date: 'March 1, 2024',
         category: 'Movies & TV',
         region: 'North America',
         sentiment: 'Positive',
         keyTakeaways: [
-            '"Galaxy Runners" grossed over $500 million in its opening weekend.',
+            '"Dune: Part Two" grossed over $700 million worldwide.',
             'The film has set a new post-pandemic box office record.',
             'Its success is a significant boost for the movie theater industry.',
             'The film is praised for its visuals, story, and cast performance.'
@@ -117,6 +117,7 @@ const newArticles: Article[] = [
     },
     {
         id: 13,
+// FIX: Added missing `title` property key.
         title: '"Ocean Sanctuaries": New Global Pact to Protect 30% of Oceans by 2030',
         excerpt: 'After years of negotiations, United Nations members have agreed on a historic treaty to protect international waters, a crucial step for marine biodiversity.',
         content: 'In a landmark decision, nations across the globe have finalized the High Seas Treaty, an agreement aimed at placing 30% of the world\'s oceans into protected areas by 2030. These "ocean sanctuaries" will restrict fishing, shipping routes, and deep-sea mining to allow marine ecosystems to recover. The treaty provides a legal framework for conservation efforts in international waters, which were previously largely unregulated. Environmental groups have hailed the agreement as a victory for ocean life, but stress that its success will depend on rapid ratification and effective enforcement by member states. The pact is seen as essential for mitigating the impacts of climate change, overfishing, and pollution on the world\'s oceans.',

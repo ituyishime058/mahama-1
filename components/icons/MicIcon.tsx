@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const MicIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (

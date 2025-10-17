@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import type { Article, Settings } from '../types';
 import { generateBehindTheNews } from '../utils/ai';

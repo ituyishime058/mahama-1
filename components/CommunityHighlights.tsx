@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { CommunityHighlight } from '../types';
 import SparklesIcon from './icons/SparklesIcon';

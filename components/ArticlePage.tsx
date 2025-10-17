@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
@@ -10,7 +9,6 @@ import KeyTakeaways from './KeyTakeaways';
 import AITags from './AITags';
 import FactCheck from './FactCheck';
 import CommentsSection from './CommentsSection';
-import ArticleProgressBar from './ArticleProgressBar';
 import FloatingActionbar from './FloatingActionbar';
 import RelatedArticles from './RelatedArticles';
 import ArticleTimeline from './ArticleTimeline';
@@ -237,7 +235,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             line-height: 1.5;
           }
         `}</style>
-        <ArticleProgressBar targetRef={articleRef} />
         <button onClick={onClose} className="mb-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
             &larr; Back to Home
         </button>

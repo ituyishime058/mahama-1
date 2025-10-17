@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Article, Settings } from '../types';
 import TrendingNews from './TrendingNews';
@@ -14,9 +13,10 @@ interface RightAsideProps {
   onArticleClick: (article: Article) => void;
   activeArticle: Article | null;
   settings: Settings;
+  onGoPremium: () => void;
 }
 
-const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle, settings }) => {
+const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle, settings, onGoPremium }) => {
   return (
     <div className="hidden lg:block lg:col-span-1">
       <div className="lg:sticky top-28 h-[calc(100vh-7rem)]">
@@ -28,11 +28,11 @@ const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClic
               </>
             ) : (
               <>
-                <SubscriptionCard />
+                {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
                 <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
                 <WeatherWidget />
                 <CommunityPoll />
-                <AdPlaceholder />
+                {settings.subscriptionTier === 'Free' && <AdPlaceholder />}
               </>
             )}
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { Article, AiTtsVoice, AudioPlayerState } from '../types';
 import { decode, decodeAudioData } from '../utils/audio';
@@ -104,9 +103,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
     source.start(0, offset);
     
     source.onended = () => {
-      // Check if it was supposed to be playing
       if (isPlaying && audioBufferRef.current && Math.abs(pausedAtRef.current - audioBufferRef.current.duration) > 0.1) {
-        // It ended naturally, go to next or close
         if (playlist && currentTrackIndex < playlist.length - 1) {
             handleNext();
         } else {
