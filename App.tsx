@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, Modality } from '@google/genai';
 
@@ -22,34 +21,44 @@ import Footer from './components/Footer';
 import AIModal from './components/AIModal';
 import SearchModal from './components/SearchModal';
 import CategoryMenu from './components/CategoryMenu';
-import ArticleModal from './components/ArticleModal';
 import BookmarksModal from './components/BookmarksModal';
 import OfflineModal from './components/OfflineModal';
 import ScrollProgressBar from './components/ScrollProgressBar';
+import ArticlePage from './components/ArticlePage';
+
 
 // Utils
 import { decode, decodeAudioData } from './utils/audio';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle } from './utils/db';
+
+type Sentiment = 'positive' | 'negative' | 'neutral';
 
 const App: React.FC = () => {
     // UI State
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('All');
     
+    // View State
+    const [view, setView] = useState<'home' | 'article'>('home');
+    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+
     // Modal States
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
     const [isOfflineOpen, setIsOfflineOpen] = useState(false);
-    const [selectedArticleForModal, setSelectedArticleForModal] = useState<Article | null>(null);
     const [aiModalState, setAIModalState] = useState<{ article: Article; mode: 'summary' | 'explanation' } | null>(null);
 
     // Data & Loading States
     const [summary, setSummary] = useState('');
     const [explanation, setExplanation] = useState('');
-    const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
+    const [relatedArticleHeadlines, setRelatedArticleHeadlines] = useState<string[]>([]);
+    const [keyTakeaways, setKeyTakeaways] = useState<string[]>([]);
+    const [articleSentiment, setArticleSentiment] = useState<Sentiment | null>(null);
     const [isAILoading, setIsAILoading] = useState(false);
     const [isFetchingRelated, setIsFetchingRelated] = useState(false);
+    const [isFetchingTakeaways, setIsFetchingTakeaways] = useState(false);
+    const [isFetchingSentiment, setIsFetchingSentiment] = useState(false);
     const [aiError, setAIError] = useState('');
     
     const [searchResults, setSearchResults] = useState<{ text: string; sources: any[] } | null>(null);
@@ -122,6 +131,7 @@ const App: React.FC = () => {
     const handleSelectCategory = (category: string) => {
         setSelectedCategory(category);
         setIsMenuOpen(false);
+        setView('home');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -142,7 +152,7 @@ const App: React.FC = () => {
         setIsAILoading(true);
         setSummary('');
         setExplanation('');
-        setRelatedArticles([]);
+        setRelatedArticleHeadlines([]);
         setAIError('');
 
         try {
@@ -156,7 +166,7 @@ const App: React.FC = () => {
             setIsFetchingRelated(true);
             const relatedPrompt = `Based on the article "${article.title}", suggest 3 related news headlines.`;
             const relatedResponse = await ai.current.models.generateContent({ model: 'gemini-2.5-flash', contents: relatedPrompt });
-            setRelatedArticles(relatedResponse.text.split('\n').map(s => s.replace(/^- /, '')).filter(Boolean));
+            setRelatedArticleHeadlines(relatedResponse.text.split('\n').map(s => s.replace(/^- /, '')).filter(Boolean));
         } catch (e) {
             console.error(e);
             setAIError('Failed to generate response. Please try again.');
@@ -164,6 +174,44 @@ const App: React.FC = () => {
             setIsAILoading(false);
             setIsFetchingRelated(false);
         }
+    };
+
+    const handleOpenArticle = async (article: Article) => {
+        setSelectedArticle(article);
+        setView('article');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Reset states
+        setKeyTakeaways([]);
+        setArticleSentiment(null);
+
+        if (!ai.current) return;
+
+        // Fetch Key Takeaways
+        setIsFetchingTakeaways(true);
+        try {
+            const takeawaysPrompt = `Extract the 3 most important key takeaways from this article as a bulleted list. Each takeaway should be a concise sentence. Article: "${article.title}: ${article.content}"`;
+            const takeawaysResponse = await ai.current.models.generateContent({ model: 'gemini-2.5-flash', contents: takeawaysPrompt });
+            setKeyTakeaways(takeawaysResponse.text.split('\n').map(s => s.replace(/^- |\* /g, '')).filter(Boolean));
+        } catch (e) { console.error("Failed to fetch key takeaways", e); } 
+        finally { setIsFetchingTakeaways(false); }
+
+        // Fetch Sentiment
+        setIsFetchingSentiment(true);
+        try {
+            const sentimentPrompt = `Analyze the sentiment of this article and respond with only one word: positive, negative, or neutral. Article: "${article.title}: ${article.content}"`;
+            const sentimentResponse = await ai.current.models.generateContent({ model: 'gemini-2.5-flash', contents: sentimentPrompt });
+            const sentiment = sentimentResponse.text.trim().toLowerCase() as Sentiment;
+            if (['positive', 'negative', 'neutral'].includes(sentiment)) {
+                setArticleSentiment(sentiment);
+            }
+        } catch (e) { console.error("Failed to fetch sentiment", e); } 
+        finally { setIsFetchingSentiment(false); }
+    };
+
+    const handleCloseArticle = () => {
+      setView('home');
+      setSelectedArticle(null);
     };
     
     const handleTextToSpeech = useCallback(async (article: Article) => {
@@ -195,7 +243,6 @@ const App: React.FC = () => {
             const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
             if (base64Audio) {
                 if (!audioContextRef.current) {
-                    // FIX: Cast window to any to allow access to webkitAudioContext for cross-browser compatibility.
                     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
                 }
                 const audioBuffer = await decodeAudioData(decode(base64Audio), audioContextRef.current, 24000, 1);
@@ -283,38 +330,63 @@ const App: React.FC = () => {
                 isDarkMode={isDarkMode}
                 onSearchClick={() => setIsSearchOpen(true)}
                 onMenuClick={() => setIsMenuOpen(true)}
-                onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onLogoClick={() => view === 'home' ? window.scrollTo({ top: 0, behavior: 'smooth' }) : handleCloseArticle()}
+                categories={categories}
+                onSelectCategory={handleSelectCategory}
             />
             <NewsTicker headlines={tickerHeadlines} />
             
             <main className="pt-[120px]">
-                <Hero article={featuredArticle} onReadMore={() => setSelectedArticleForModal(featuredArticle)} />
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <FilterBar categories={categories} selectedCategory={selectedCategory} onSelectCategory={handleSelectCategory} />
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 space-y-16">
-                            <GlobalHighlights 
-                                articles={filteredArticles}
-                                onSummarize={(article) => handleAIFeature(article, 'summary')}
-                                onExplainSimply={(article) => handleAIFeature(article, 'explanation')}
-                                onTextToSpeech={handleTextToSpeech}
-                                onReadMore={setSelectedArticleForModal}
-                                audioState={audioState}
-                                bookmarkedArticleIds={bookmarkedArticleIds}
-                                onToggleBookmark={handleToggleBookmark}
-                                offlineArticleIds={offlineArticleIds}
-                                downloadingArticleId={downloadingArticleId}
-                                onDownloadArticle={handleDownloadArticle}
-                            />
-                            <LiveStream />
-                            <Mahama360 articles={mahama360Articles} />
-                            <NewsMap articles={allArticles} onArticleClick={setSelectedArticleForModal} />
-                            <DataViz />
-                            <PodcastHub podcasts={podcasts} playingPodcastId={playingPodcastId} onPlay={setPlayingPodcastId}/>
-                        </div>
-                        <RightAside trendingArticles={trendingArticles} onArticleClick={setSelectedArticleForModal} />
-                    </div>
-                </div>
+              {view === 'home' && (
+                <>
+                  <Hero article={featuredArticle} onReadMore={() => handleOpenArticle(featuredArticle)} />
+                  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                      <FilterBar categories={categories} selectedCategory={selectedCategory} onSelectCategory={handleSelectCategory} />
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                          <div className="lg:col-span-2 space-y-16">
+                              <GlobalHighlights 
+                                  articles={filteredArticles}
+                                  onSummarize={(article) => handleAIFeature(article, 'summary')}
+                                  onExplainSimply={(article) => handleAIFeature(article, 'explanation')}
+                                  onTextToSpeech={handleTextToSpeech}
+                                  onReadMore={handleOpenArticle}
+                                  audioState={audioState}
+                                  bookmarkedArticleIds={bookmarkedArticleIds}
+                                  onToggleBookmark={handleToggleBookmark}
+                                  offlineArticleIds={offlineArticleIds}
+                                  downloadingArticleId={downloadingArticleId}
+                                  onDownloadArticle={handleDownloadArticle}
+                              />
+                              <LiveStream />
+                              <Mahama360 articles={mahama360Articles} />
+                              <NewsMap articles={allArticles} onArticleClick={handleOpenArticle} />
+                              <DataViz />
+                              <PodcastHub podcasts={podcasts} playingPodcastId={playingPodcastId} onPlay={setPlayingPodcastId}/>
+                          </div>
+                          <RightAside trendingArticles={trendingArticles} onArticleClick={handleOpenArticle} />
+                      </div>
+                  </div>
+                </>
+              )}
+              {view === 'article' && selectedArticle && (
+                  <ArticlePage
+                    article={selectedArticle}
+                    allArticles={allArticles}
+                    trendingArticles={trendingArticles}
+                    onClose={handleCloseArticle}
+                    onArticleClick={handleOpenArticle}
+                    onSummarize={handleAIFeature}
+                    onExplainSimply={handleAIFeature}
+                    onTextToSpeech={handleTextToSpeech}
+                    audioState={audioState}
+                    isBookmarked={bookmarkedArticleIds.includes(selectedArticle.id)}
+                    onToggleBookmark={() => handleToggleBookmark(selectedArticle.id)}
+                    keyTakeaways={keyTakeaways}
+                    isFetchingTakeaways={isFetchingTakeaways}
+                    sentiment={articleSentiment}
+                    isFetchingSentiment={isFetchingSentiment}
+                  />
+              )}
             </main>
 
             <Footer />
@@ -345,19 +417,9 @@ const App: React.FC = () => {
                 explanation={explanation}
                 isLoading={isAILoading}
                 error={aiError}
-                relatedArticles={relatedArticles}
+                relatedArticles={relatedArticleHeadlines}
                 isFetchingRelated={isFetchingRelated}
                 onClose={() => setAIModalState(null)}
-            />
-            <ArticleModal 
-                article={selectedArticleForModal}
-                onClose={() => setSelectedArticleForModal(null)}
-                onSummarize={(article) => handleAIFeature(article, 'summary')}
-                onExplainSimply={(article) => handleAIFeature(article, 'explanation')}
-                onTextToSpeech={handleTextToSpeech}
-                audioState={audioState}
-                isBookmarked={selectedArticleForModal ? bookmarkedArticleIds.includes(selectedArticleForModal.id) : false}
-                onToggleBookmark={() => selectedArticleForModal && handleToggleBookmark(selectedArticleForModal.id)}
             />
             <BookmarksModal
                 isOpen={isBookmarksOpen}
@@ -370,7 +432,7 @@ const App: React.FC = () => {
                 onClose={() => setIsOfflineOpen(false)}
                 offlineArticles={offlineArticles}
                 onDeleteArticle={handleDeleteOfflineArticle}
-                onReadArticle={setSelectedArticleForModal}
+                onReadArticle={handleOpenArticle}
             />
         </div>
     );

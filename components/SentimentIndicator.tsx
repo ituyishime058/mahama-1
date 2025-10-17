@@ -1,4 +1,3 @@
-
 import React from 'react';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import TrendingDownIcon from './icons/TrendingDownIcon';

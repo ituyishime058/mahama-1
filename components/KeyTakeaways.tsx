@@ -10,7 +10,7 @@ interface KeyTakeawaysProps {
 const KeyTakeaways: React.FC<KeyTakeawaysProps> = ({ takeaways, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="my-8 p-6 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+      <div className="my-8 p-6 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/50">
         <div className="flex items-center text-slate-600 dark:text-slate-400">
           <LoadingSpinner className="mr-3" />
           <span className="font-semibold">Generating Key Takeaways...</span>
@@ -20,7 +20,7 @@ const KeyTakeaways: React.FC<KeyTakeawaysProps> = ({ takeaways, isLoading }) => 
   }
 
   if (takeaways.length === 0) {
-    return null; // Don't render anything if there are no takeaways after loading
+    return null;
   }
   
   return (
