@@ -25,7 +25,9 @@ function getDB(): Promise<IDBDatabase> {
 }
 
 async function imageToDataURL(url: string): Promise<string> {
-    const response = await fetch(url);
+    // Add a cache-busting query parameter to avoid CORS issues with cached images
+    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+    const response = await fetch(proxyUrl);
     if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
     }
@@ -41,8 +43,7 @@ async function imageToDataURL(url: string): Promise<string> {
 export function saveArticleForOffline(article: Article): Promise<void> {
   return new Promise(async (resolve, reject) => {
     try {
-      const imageBase64 = await imageToDataURL(article.imageUrl);
-      // FIX: Correctly map the `imageBase64` variable to the `imageUrlBase64` property.
+      const imageBase64 = article.imageUrl.startsWith('data:') ? article.imageUrl : await imageToDataURL(article.imageUrl);
       const articleToSave: Article = { ...article, imageUrlBase64: imageBase64 };
       const db = await getDB();
       const transaction = db.transaction(STORE_NAME, 'readwrite');
@@ -77,6 +78,17 @@ export function deleteOfflineArticle(id: number): Promise<void> {
     request.onsuccess = () => resolve();
     request.onerror = () => reject(new Error("Failed to delete article."));
   });
+}
+
+export function clearAllOfflineArticles(): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+        const db = await getDB();
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.clear();
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(new Error("Failed to clear articles."));
+    });
 }
 
 export function getOfflineArticleIds(): Promise<number[]> {

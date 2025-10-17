@@ -10,9 +10,18 @@ export interface Article {
   date: string;
   live?: boolean;
   region?: 'North America' | 'South America' | 'Europe' | 'Africa' | 'Asia' | 'Oceania';
+  readingTime: number; // in minutes
 }
 
 export interface Podcast extends Omit<Article, 'live' | 'author' | 'content'> {
   episode: number;
   duration: string;
+}
+
+export interface Settings {
+  theme: 'light' | 'dark';
+  accentColor: 'gold' | 'deep-red';
+  fontFamily: 'sans' | 'serif';
+  fontSize: 'sm' | 'md' | 'lg';
+  reduceMotion: boolean;
 }

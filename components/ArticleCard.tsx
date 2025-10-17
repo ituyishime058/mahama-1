@@ -4,6 +4,7 @@ import LoadingSpinner from './icons/LoadingSpinner';
 import BookmarkIcon from './icons/BookmarkIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import CheckIcon from './icons/CheckIcon';
+import ClockIcon from './icons/ClockIcon';
 
 interface ArticleCardProps {
   article: Article;
@@ -44,10 +45,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     <>
       <div className="relative overflow-hidden rounded-t-lg md:rounded-lg">
         <img src={article.imageUrl} alt={article.title} className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${featured ? 'aspect-video' : 'h-48'}`} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+         <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+            <ClockIcon className="w-3 h-3" />
+            <span>{article.readingTime} min read</span>
+        </div>
       </div>
       <div className={`p-5 flex flex-col flex-grow ${featured ? 'md:col-span-2' : ''}`}>
-        <p className="text-xs font-semibold uppercase text-deep-red">{article.category}</p>
+        <p className="text-xs font-semibold uppercase text-deep-red dark:text-gold">{article.category}</p>
         <h3 className={`font-bold my-1 leading-tight flex-grow group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-200 ${featured ? 'text-2xl lg:text-3xl' : 'text-lg'}`}>
           {article.title}
         </h3>

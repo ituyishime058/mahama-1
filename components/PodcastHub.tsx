@@ -2,16 +2,18 @@ import React from 'react';
 import type { Podcast } from '../types';
 import PlayIcon from './icons/PlayIcon';
 import EqualizerIcon from './icons/EqualizerIcon';
+import PauseIcon from './icons/PauseIcon';
 
 interface PodcastHubProps {
   podcasts: Podcast[];
-  playingPodcastId: number | null;
-  onPlay: (podcastId: number) => void;
+  activePodcast: Podcast | null;
+  isPodcastPlaying: boolean;
+  onPlay: (podcast: Podcast) => void;
 }
 
-const PodcastCard: React.FC<{ podcast: Podcast, isPlaying: boolean, onPlay: () => void }> = ({ podcast, isPlaying, onPlay }) => (
-  <div className={`group bg-slate-200/50 dark:bg-slate-800/50 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col md:flex-row items-center gap-5 p-5 relative ${isPlaying ? 'ring-2 ring-gold' : ''}`}>
-    {isPlaying && <div className="absolute inset-0 bg-gold/10 animate-pulse rounded-lg"></div>}
+const PodcastCard: React.FC<{ podcast: Podcast, isActive: boolean, isPlaying: boolean, onPlay: () => void }> = ({ podcast, isActive, isPlaying, onPlay }) => (
+  <div className={`group bg-slate-200/50 dark:bg-slate-800/50 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col md:flex-row items-center gap-5 p-5 relative ${isActive ? 'ring-2 ring-gold' : ''}`}>
+    {isActive && <div className="absolute inset-0 bg-gold/10 animate-pulse rounded-lg"></div>}
     <img src={podcast.imageUrl} alt={podcast.title} className="w-full md:w-32 h-32 object-cover rounded-md" />
     <div className="flex-1">
       <p className="text-xs font-semibold uppercase text-gold">{`Ep. ${podcast.episode} | ${podcast.duration}`}</p>
@@ -23,12 +25,12 @@ const PodcastCard: React.FC<{ podcast: Podcast, isPlaying: boolean, onPlay: () =
       </p>
     </div>
     <button onClick={onPlay} className="bg-deep-red text-white p-4 rounded-full transition-transform transform group-hover:scale-110 z-10 w-16 h-16 flex items-center justify-center">
-      {isPlaying ? <EqualizerIcon /> : <PlayIcon className="w-6 h-6" />}
+      {isActive && isPlaying ? <EqualizerIcon /> : <PlayIcon className="w-6 h-6" />}
     </button>
   </div>
 )
 
-const PodcastHub: React.FC<PodcastHubProps> = ({ podcasts, playingPodcastId, onPlay }) => {
+const PodcastHub: React.FC<PodcastHubProps> = ({ podcasts, activePodcast, isPodcastPlaying, onPlay }) => {
   return (
     <section className="my-16">
       <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
@@ -39,8 +41,9 @@ const PodcastHub: React.FC<PodcastHubProps> = ({ podcasts, playingPodcastId, onP
           <PodcastCard 
             key={podcast.id} 
             podcast={podcast}
-            isPlaying={playingPodcastId === podcast.id}
-            onPlay={() => onPlay(podcast.id)}
+            isActive={activePodcast?.id === podcast.id}
+            isPlaying={activePodcast?.id === podcast.id && isPodcastPlaying}
+            onPlay={() => onPlay(podcast)}
           />
         ))}
       </div>

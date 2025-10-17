@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+
+import React, { useRef, useState } from 'react';
 import type { Article } from '../types';
 import RightAside from './RightAside';
 import ArticleCard from './ArticleCard';
@@ -6,14 +7,15 @@ import ArticleProgressBar from './ArticleProgressBar';
 import SocialShare from './SocialShare';
 import AuthorInfo from './AuthorInfo';
 import CommentsSection from './CommentsSection';
+import ClockIcon from './icons/ClockIcon';
 
 interface ArticlePageProps {
   article: Article;
   allArticles: Article[];
   trendingArticles: Article[];
   onArticleClick: (article: Article) => void;
-  isBookmarked: boolean;
-  onToggleBookmark: () => void;
+  bookmarkedArticleIds: number[];
+  onToggleBookmark: (articleId: number) => void;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({
@@ -21,20 +23,23 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   allArticles,
   trendingArticles,
   onArticleClick,
-  isBookmarked,
+  bookmarkedArticleIds,
   onToggleBookmark,
 }) => {
   const articleContentRef = useRef<HTMLDivElement>(null);
+  const [isZenMode, setIsZenMode] = useState(false);
 
   const relatedContent = allArticles
     .filter(a => a.category === article.category && a.id !== article.id)
     .slice(0, 3);
+  
+  const isBookmarked = bookmarkedArticleIds.includes(article.id);
 
   return (
-    <div className="bg-white dark:bg-navy animate-fade-in">
+    <div className={`bg-white dark:bg-navy animate-fade-in ${isZenMode ? 'zen-mode' : ''}`}>
       <ArticleProgressBar targetRef={articleContentRef} />
       
-      <header className="relative h-80 md:h-[500px] w-full">
+      <header className={`relative h-80 md:h-[500px] w-full transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
         <img src={article.imageUrl} alt={article.title} className="absolute inset-0 w-full h-full object-cover"/>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-end pb-12 text-white">
@@ -46,15 +51,25 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       </header>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          <div className="lg:col-span-8">
              <div className="relative">
-                <SocialShare article={article} isBookmarked={isBookmarked} onToggleBookmark={onToggleBookmark} />
+                <SocialShare 
+                    article={article} 
+                    isBookmarked={isBookmarked} 
+                    onToggleBookmark={() => onToggleBookmark(article.id)} 
+                    isZenMode={isZenMode}
+                    onToggleZenMode={() => setIsZenMode(!isZenMode)}
+                />
                 <article ref={articleContentRef} className="prose prose-lg prose-slate dark:prose-invert max-w-none lg:pl-24">
-                    <div className="flex items-center gap-4 mb-8 text-sm border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <div className="flex items-center justify-between gap-4 mb-8 text-sm border-b border-slate-200 dark:border-slate-700 pb-4">
                         <div>
                             <p className="font-bold">By {article.author}</p>
                             <p className="text-slate-500 dark:text-slate-400">{article.date}</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                           <ClockIcon className="w-4 h-4"/>
+                           <span>{article.readingTime} minute read</span>
                         </div>
                     </div>
 
@@ -80,12 +95,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
              <AuthorInfo article={article} />
              <CommentsSection />
           </div>
-          <RightAside trendingArticles={trendingArticles} onArticleClick={onArticleClick} />
+          <div className={`lg:col-span-4 transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+            <RightAside trendingArticles={trendingArticles} onArticleClick={onArticleClick} />
+          </div>
         </div>
       </div>
       
       {relatedContent.length > 0 && (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 my-16">
+        <div className={`container mx-auto px-4 sm:px-6 lg:px-8 my-16 transition-opacity duration-300 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
            <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
                 Related Stories
             </h2>
@@ -95,9 +112,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         key={related.id}
                         article={related}
                         onReadMore={onArticleClick}
-                        // Dummy props for features not needed in this context
-                        isBookmarked={false}
-                        onToggleBookmark={() => {}}
+                        isBookmarked={bookmarkedArticleIds.includes(related.id)}
+                        onToggleBookmark={onToggleBookmark}
                         offlineArticleIds={[]}
                         downloadingArticleId={null}
                         onDownloadArticle={() => {}}
@@ -113,12 +129,22 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             to { opacity: 1; }
           }
           .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
-          .prose { --tw-prose-body: #334155; --tw-prose-invert-body: #cbd5e1; --tw-prose-lead: #1e293b; --tw-prose-invert-lead: #e2e8f0; --tw-prose-bullets: #b91c1c; --tw-prose-invert-bullets: #d97706; --tw-prose-quotes: #1e293b; --tw-prose-invert-quotes: #e2e8f0; }
+          .prose { --tw-prose-body: #334155; --tw-prose-invert-body: #cbd5e1; --tw-prose-lead: #1e293b; --tw-prose-invert-lead: #e2e8f0; --tw-prose-bullets: var(--accent-color); --tw-prose-invert-bullets: var(--accent-color); --tw-prose-quotes: #1e293b; --tw-prose-invert-quotes: #e2e8f0; }
           .prose .lead { font-size: 1.25em; line-height: 1.6; font-weight: 400; }
-          .prose blockquote { border-left-color: #b91c1c; font-style: italic; font-weight: 600; font-size: 1.2em; }
-          .dark .prose blockquote { border-left-color: #d97706; }
+          .prose blockquote { border-left-color: var(--accent-color); font-style: italic; font-weight: 600; font-size: 1.2em; }
           .prose figcaption { text-align: center; font-size: 0.9em; color: #64748b; margin-top: 0.75rem; }
           .dark .prose figcaption { color: #94a3b8; }
+          
+          .zen-mode .lg\\:grid-cols-12 .lg\\:col-span-8 {
+             grid-column: span 12 / span 12;
+          }
+           .zen-mode .prose {
+             max-width: 80ch;
+             margin: 0 auto;
+          }
+           .zen-mode .lg\\:pl-24 {
+             padding-left: 0;
+          }
         `}</style>
     </div>
   );

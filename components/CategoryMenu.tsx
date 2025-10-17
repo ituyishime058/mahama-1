@@ -1,22 +1,18 @@
 import React from 'react';
 import CloseIcon from './icons/CloseIcon';
 import Logo from './Logo';
-import SunIcon from './icons/SunIcon';
-import MoonIcon from './icons/MoonIcon';
-import FontSizeIcon from './icons/FontSizeIcon';
 import BookmarkIcon from './icons/BookmarkIcon';
 import OfflineIcon from './icons/OfflineIcon';
+import SettingsIcon from './icons/SettingsIcon';
 
 interface CategoryMenuProps {
   isOpen: boolean;
   onClose: () => void;
   categories: string[];
   onCategorySelect: (category: string) => void;
-  isDarkMode: boolean;
-  toggleDarkMode: () => void;
-  onFontSizeChange: (size: 'sm' | 'md' | 'lg') => void;
   onBookmarksClick: () => void;
   onOfflineClick: () => void;
+  onSettingsClick: () => void;
 }
 
 const CategoryMenu: React.FC<CategoryMenuProps> = ({ 
@@ -24,11 +20,9 @@ const CategoryMenu: React.FC<CategoryMenuProps> = ({
   onClose, 
   categories, 
   onCategorySelect,
-  isDarkMode,
-  toggleDarkMode,
-  onFontSizeChange,
   onBookmarksClick,
   onOfflineClick,
+  onSettingsClick,
 }) => {
   return (
     <div
@@ -58,15 +52,10 @@ const CategoryMenu: React.FC<CategoryMenuProps> = ({
                 <OfflineIcon className="w-6 h-6 mb-1" />
                 Offline
               </button>
-              <button onClick={toggleDarkMode} className="flex flex-col items-center justify-center p-3 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm font-semibold">
-                {isDarkMode ? <SunIcon className="w-6 h-6 mb-1" /> : <MoonIcon className="w-6 h-6 mb-1" />}
-                {isDarkMode ? 'Light' : 'Dark'}
+              <button onClick={onSettingsClick} className="flex flex-col items-center justify-center p-3 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm font-semibold">
+                <SettingsIcon className="w-6 h-6 mb-1" />
+                Settings
               </button>
-               <div className="col-span-3 grid grid-cols-3 gap-2">
-                 <button onClick={() => onFontSizeChange('sm')} className="p-3 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm font-semibold">A-</button>
-                 <button onClick={() => onFontSizeChange('md')} className="p-3 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm font-semibold">A</button>
-                 <button onClick={() => onFontSizeChange('lg')} className="p-3 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm font-semibold">A+</button>
-               </div>
           </div>
         </div>
         

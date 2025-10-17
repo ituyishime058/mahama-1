@@ -8,9 +8,10 @@ interface BookmarksModalProps {
   onClose: () => void;
   bookmarkedArticles: Article[];
   onToggleBookmark: (articleId: number) => void;
+  onReadArticle: (article: Article) => void;
 }
 
-const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose, bookmarkedArticles, onToggleBookmark }) => {
+const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose, bookmarkedArticles, onToggleBookmark, onReadArticle }) => {
   const [isRendered, setIsRendered] = useState(false);
 
   useEffect(() => {
@@ -28,6 +29,12 @@ const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose, bookma
   if (!isRendered) {
     return null;
   }
+  
+  const handleReadClick = (e: React.MouseEvent, article: Article) => {
+    e.preventDefault();
+    onReadArticle(article);
+    onClose();
+  };
   
   return (
     <div 
@@ -56,7 +63,7 @@ const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose, bookma
                   <div className="flex-grow">
                     <p className="text-xs font-semibold uppercase text-deep-red">{article.category}</p>
                     <h3 className="font-semibold leading-tight hover:underline">
-                      <a href="#">{article.title}</a>
+                       <a href="#" onClick={(e) => handleReadClick(e, article)}>{article.title}</a>
                     </h3>
                     <p className="text-xs text-slate-500 mt-1">{article.author} &bull; {article.date}</p>
                   </div>

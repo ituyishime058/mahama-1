@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // Constants and Types
 import { articles as initialArticles, featuredArticle, tickerHeadlines, categories, trendingArticles, mahama360Articles, podcasts } from './constants';
-import type { Article } from './types';
+import type { Article, Podcast, Settings } from './types';
 
 // Components
 import Header from './components/Header';
@@ -22,15 +23,25 @@ import BookmarksModal from './components/BookmarksModal';
 import OfflineModal from './components/OfflineModal';
 import ScrollProgressBar from './components/ScrollProgressBar';
 import ArticlePage from './components/ArticlePage';
+import SettingsModal from './components/SettingsModal';
+import PodcastPlayer from './components/PodcastPlayer';
+import ConfirmationModal from './components/ConfirmationModal';
 
 
 // Utils
-import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle } from './utils/db';
+import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 
+const defaultSettings: Settings = {
+    theme: 'dark',
+    accentColor: 'gold',
+    fontFamily: 'sans',
+    fontSize: 'md',
+    reduceMotion: false,
+};
 
 const App: React.FC = () => {
     // UI State
-    const [isDarkMode, setIsDarkMode] = useState(true);
+    const [settings, setSettings] = useState<Settings>(defaultSettings);
     const [selectedCategory, setSelectedCategory] = useState('All');
     
     // View State
@@ -41,6 +52,9 @@ const App: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
     const [isOfflineOpen, setIsOfflineOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const [confirmationProps, setConfirmationProps] = useState({ title: '', message: '', onConfirm: () => {} });
     
     // Bookmarks State
     const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
@@ -51,7 +65,8 @@ const App: React.FC = () => {
     const [downloadingArticleId, setDownloadingArticleId] = useState<number | null>(null);
 
     // Podcast State
-    const [playingPodcastId, setPlayingPodcastId] = useState<number | null>(null);
+    const [activePodcast, setActivePodcast] = useState<Podcast | null>(null);
+    const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
 
     const allArticles = useMemo(() => [featuredArticle, ...initialArticles, ...trendingArticles, ...mahama360Articles], []);
     
@@ -64,14 +79,11 @@ const App: React.FC = () => {
         }
     }, [isOfflineOpen]);
 
+    // Effect for loading initial data from localStorage
     useEffect(() => {
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            setIsDarkMode(true);
-        } else {
-            document.documentElement.classList.remove('dark');
-            setIsDarkMode(false);
-        }
+        const storedSettings = localStorage.getItem('mnh-settings');
+        const initialSettings = storedSettings ? JSON.parse(storedSettings) : defaultSettings;
+        setSettings(initialSettings);
 
         const storedBookmarks = localStorage.getItem('bookmarkedArticles');
         if (storedBookmarks) {
@@ -81,31 +93,50 @@ const App: React.FC = () => {
         fetchOfflineData();
     }, [fetchOfflineData]);
 
+    // Effect for applying settings to the document
     useEffect(() => {
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.theme = 'dark';
+        const root = document.documentElement;
+        // Theme
+        if (settings.theme === 'dark') {
+            root.classList.add('dark');
         } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.theme = 'light';
+            root.classList.remove('dark');
         }
-    }, [isDarkMode]);
+        // Font Size
+        root.classList.remove('text-sm', 'text-base', 'text-lg');
+        if(settings.fontSize === 'sm') root.classList.add('text-sm');
+        else if(settings.fontSize === 'lg') root.classList.add('text-lg');
+        else root.classList.add('text-base');
+        // Font Family
+        if (settings.fontFamily === 'serif') {
+            root.classList.remove('font-sans');
+            root.classList.add('font-serif');
+        } else {
+            root.classList.remove('font-serif');
+            root.classList.add('font-sans');
+        }
+        // Accent Color
+        root.classList.remove('accent-gold', 'accent-deep-red');
+        root.classList.add(`accent-${settings.accentColor}`);
+        // Reduce motion
+        if(settings.reduceMotion) {
+            root.classList.add('reduce-motion');
+        } else {
+            root.classList.remove('reduce-motion');
+        }
+        
+        localStorage.setItem('mnh-settings', JSON.stringify(settings));
+    }, [settings]);
 
-    const handleToggleDarkMode = () => setIsDarkMode(!isDarkMode);
-    
+    const handleUpdateSettings = (newSettings: Partial<Settings>) => {
+        setSettings(prev => ({ ...prev, ...newSettings }));
+    };
+
     const handleSelectCategory = (category: string) => {
         setSelectedCategory(category);
         setIsMenuOpen(false);
         setView('home');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleFontSizeChange = (size: 'sm' | 'md' | 'lg') => {
-        const root = document.documentElement;
-        root.classList.remove('text-sm', 'text-base', 'text-lg');
-        if(size === 'sm') root.classList.add('text-sm');
-        else if(size === 'lg') root.classList.add('text-lg');
-        else root.classList.add('text-base');
     };
 
     const handleOpenArticle = async (article: Article) => {
@@ -144,6 +175,33 @@ const App: React.FC = () => {
         await deleteOfflineArticle(articleId);
         await fetchOfflineData();
     };
+    
+    const handleClearOfflineData = () => {
+        setConfirmationProps({
+            title: 'Clear All Offline Articles',
+            message: 'Are you sure you want to delete all saved articles? This action cannot be undone.',
+            onConfirm: async () => {
+                await clearAllOfflineArticles();
+                await fetchOfflineData();
+                setIsConfirmationOpen(false);
+            }
+        });
+        setIsConfirmationOpen(true);
+    };
+
+    const handlePlayPodcast = (podcast: Podcast) => {
+        if (activePodcast?.id === podcast.id) {
+            setIsPodcastPlaying(prev => !prev);
+        } else {
+            setActivePodcast(podcast);
+            setIsPodcastPlaying(true);
+        }
+    };
+
+    const handleClosePodcastPlayer = () => {
+        setActivePodcast(null);
+        setIsPodcastPlaying(false);
+    };
 
     const bookmarkedArticles = allArticles.filter(article => bookmarkedArticleIds.includes(article.id));
     const filteredArticles = selectedCategory === 'All'
@@ -151,11 +209,12 @@ const App: React.FC = () => {
         : initialArticles.filter(article => article.category === selectedCategory);
     
     return (
-        <div className="bg-slate-100 dark:bg-navy text-slate-900 dark:text-white font-sans selection:bg-gold/30">
+        <div className={`bg-slate-100 dark:bg-navy text-slate-900 dark:text-white selection:bg-gold/30`}>
+             <style>{`:root { --accent-color: ${settings.accentColor === 'gold' ? '#d97706' : '#b91c1c'}; } .reduce-motion * { transition: none !important; animation: none !important; }`}</style>
             {view === 'home' && <ScrollProgressBar />}
             <Header
-                isDarkMode={isDarkMode}
                 onMenuClick={() => setIsMenuOpen(true)}
+                onSettingsClick={() => setIsSettingsOpen(true)}
                 onLogoClick={() => view === 'home' ? window.scrollTo({ top: 0, behavior: 'smooth' }) : handleCloseArticle()}
                 categories={categories}
                 onSelectCategory={handleSelectCategory}
@@ -183,7 +242,12 @@ const App: React.FC = () => {
                               <Mahama360 articles={mahama360Articles} />
                               <NewsMap articles={allArticles} onArticleClick={handleOpenArticle} />
                               <DataViz />
-                              <PodcastHub podcasts={podcasts} playingPodcastId={playingPodcastId} onPlay={setPlayingPodcastId}/>
+                              <PodcastHub 
+                                  podcasts={podcasts} 
+                                  activePodcast={activePodcast}
+                                  isPodcastPlaying={isPodcastPlaying}
+                                  onPlay={handlePlayPodcast}
+                              />
                           </div>
                           <RightAside trendingArticles={trendingArticles} onArticleClick={handleOpenArticle} />
                       </div>
@@ -196,31 +260,30 @@ const App: React.FC = () => {
                     allArticles={allArticles}
                     trendingArticles={trendingArticles}
                     onArticleClick={handleOpenArticle}
-                    isBookmarked={bookmarkedArticleIds.includes(selectedArticle.id)}
-                    onToggleBookmark={() => handleToggleBookmark(selectedArticle.id)}
+                    bookmarkedArticleIds={bookmarkedArticleIds}
+                    onToggleBookmark={handleToggleBookmark}
                   />
               )}
             </main>
 
             <Footer />
 
-            {/* Modals */}
+            {/* Global Components / Modals */}
             <CategoryMenu 
                 isOpen={isMenuOpen}
                 onClose={() => setIsMenuOpen(false)}
                 categories={categories}
                 onCategorySelect={handleSelectCategory}
-                isDarkMode={isDarkMode}
-                toggleDarkMode={handleToggleDarkMode}
-                onFontSizeChange={handleFontSizeChange}
                 onBookmarksClick={() => { setIsMenuOpen(false); setIsBookmarksOpen(true); }}
                 onOfflineClick={() => { setIsMenuOpen(false); setIsOfflineOpen(true); fetchOfflineData(); }}
+                onSettingsClick={() => { setIsMenuOpen(false); setIsSettingsOpen(true); }}
             />
             <BookmarksModal
                 isOpen={isBookmarksOpen}
                 onClose={() => setIsBookmarksOpen(false)}
                 bookmarkedArticles={bookmarkedArticles}
                 onToggleBookmark={handleToggleBookmark}
+                onReadArticle={handleOpenArticle}
             />
             <OfflineModal
                 isOpen={isOfflineOpen}
@@ -229,6 +292,26 @@ const App: React.FC = () => {
                 onDeleteArticle={handleDeleteOfflineArticle}
                 onReadArticle={handleOpenArticle}
             />
+            <SettingsModal 
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                settings={settings}
+                onUpdateSettings={handleUpdateSettings}
+                onClearOffline={handleClearOfflineData}
+            />
+            <ConfirmationModal
+                isOpen={isConfirmationOpen}
+                onClose={() => setIsConfirmationOpen(false)}
+                {...confirmationProps}
+            />
+            {activePodcast && (
+                <PodcastPlayer 
+                    podcast={activePodcast}
+                    isPlaying={isPodcastPlaying}
+                    onPlayPause={() => setIsPodcastPlaying(p => !p)}
+                    onClose={handleClosePodcastPlayer}
+                />
+            )}
         </div>
     );
 };

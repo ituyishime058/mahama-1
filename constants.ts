@@ -33,6 +33,7 @@ export const featuredArticle: Article = {
     date: "October 26, 2023",
     live: true,
     region: "Europe",
+    readingTime: 4,
 };
 
 export const trendingArticles: Article[] = [
@@ -45,6 +46,7 @@ export const trendingArticles: Article[] = [
         author: "Johnathan Lee",
         date: "3 hours ago",
         region: "North America",
+        readingTime: 3,
     },
     {
         id: 202,
@@ -54,6 +56,7 @@ export const trendingArticles: Article[] = [
         imageUrl: "https://picsum.photos/400/300?random=2",
         author: "Sarah Jones",
         date: "5 hours ago",
+        readingTime: 5,
     },
     {
         id: 203,
@@ -64,6 +67,7 @@ export const trendingArticles: Article[] = [
         author: "David Chen",
         date: "1 day ago",
         region: "North America",
+        readingTime: 6,
     },
      {
         id: 204,
@@ -73,6 +77,7 @@ export const trendingArticles: Article[] = [
         imageUrl: "https://picsum.photos/400/300?random=4",
         author: "Maria Rodriguez",
         date: "2 days ago",
+        readingTime: 4,
     },
 ];
 
@@ -88,6 +93,7 @@ export const articles: Article[] = [
     author: "Dr. Evelyn Reed",
     date: "October 25, 2023",
     region: "North America",
+    readingTime: 5,
   },
   {
     id: 2,
@@ -99,6 +105,7 @@ export const articles: Article[] = [
     author: "Kenji Tanaka",
     date: "October 24, 2023",
     region: "Asia",
+    readingTime: 6,
   },
   {
     id: 3,
@@ -110,6 +117,7 @@ export const articles: Article[] = [
     author: "Chloe Dubois",
     date: "October 23, 2023",
     region: "Asia",
+    readingTime: 5,
   },
   {
     id: 4,
@@ -121,6 +129,7 @@ export const articles: Article[] = [
     author: "Marcus Aurelius",
     date: "October 22, 2023",
     region: "Europe",
+    readingTime: 4,
   },
   {
     id: 5,
@@ -131,6 +140,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=15",
     author: "Aisha Khan",
     date: "October 21, 2023",
+    readingTime: 7,
   },
   {
     id: 6,
@@ -142,6 +152,7 @@ export const articles: Article[] = [
     author: "Javier Morales",
     date: "October 20, 2023",
     region: "Europe",
+    readingTime: 5,
   },
   {
     id: 7,
@@ -152,6 +163,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=17",
     author: "Dr. Ben Carter",
     date: "October 19, 2023",
+    readingTime: 6,
   },
   {
     id: 8,
@@ -162,6 +174,7 @@ export const articles: Article[] = [
     imageUrl: "https://picsum.photos/600/400?random=18",
     author: "Linda Hobbs",
     date: "October 18, 2023",
+    readingTime: 5,
   },
    {
     id: 9,
@@ -173,6 +186,7 @@ export const articles: Article[] = [
     author: "Dr. Alistair Finch",
     date: "October 17, 2023",
     region: "Europe",
+    readingTime: 7,
   },
   {
     id: 10,
@@ -183,6 +197,7 @@ export const articles: Article[] = [
     author: "Isabela Costa",
     date: "October 16, 2023",
     region: "South America",
+    readingTime: 4,
   },
   {
     id: 11,
@@ -193,6 +208,7 @@ export const articles: Article[] = [
     author: "Liam Hemsworth",
     date: "October 15, 2023",
     region: "Oceania",
+    readingTime: 3,
   },
    {
     id: 12,
@@ -203,6 +219,7 @@ export const articles: Article[] = [
     author: "Femi Adebayo",
     date: "October 14, 2023",
     region: "Africa",
+    readingTime: 4,
   },
 ];
 
@@ -215,7 +232,8 @@ export const mahama360Articles: Article[] = [
         category: "360° Feature",
         imageUrl: "https://picsum.photos/800/600?random=21",
         author: "MNH 360",
-        date: "This Week"
+        date: "This Week",
+        readingTime: 10,
     },
     {
         id: 302,
@@ -224,7 +242,8 @@ export const mahama360Articles: Article[] = [
         category: "360° Feature",
         imageUrl: "https://picsum.photos/800/600?random=22",
         author: "MNH 360",
-        date: "Live Data"
+        date: "Live Data",
+        readingTime: 15,
     },
     {
         id: 303,
@@ -233,7 +252,8 @@ export const mahama360Articles: Article[] = [
         category: "360° Feature",
         imageUrl: "https://picsum.photos/800/600?random=23",
         author: "MNH 360",
-        date: "Special Feature"
+        date: "Special Feature",
+        readingTime: 12,
     }
 ];
 
@@ -246,7 +266,8 @@ export const podcasts: Podcast[] = [
     imageUrl: "https://picsum.photos/600/400?random=31",
     date: "New Episode",
     episode: 132,
-    duration: "45 min"
+    duration: "45 min",
+    readingTime: 45,
   },
   {
     id: 402,
@@ -256,7 +277,8 @@ export const podcasts: Podcast[] = [
     imageUrl: "https://picsum.photos/600/400?random=32",
     date: "Yesterday",
     episode: 89,
-    duration: "62 min"
+    duration: "62 min",
+    readingTime: 62,
   },
   {
     id: 403,
@@ -266,6 +288,7 @@ export const podcasts: Podcast[] = [
     imageUrl: "https://picsum.photos/600/400?random=33",
     date: "This Week",
     episode: 205,
-    duration: "55 min"
+    duration: "55 min",
+    readingTime: 55,
   }
-]
+];
