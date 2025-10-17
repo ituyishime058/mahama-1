@@ -86,6 +86,7 @@ const App: React.FC = () => {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+    const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
     const [isCounterpointOpen, setIsCounterpointOpen] = useState(false);
 
 
@@ -173,6 +174,11 @@ const App: React.FC = () => {
     // Podcast Player Handlers
     const handlePlayPodcast = (podcast: Podcast) => {
         setActivePodcast(prev => prev?.id === podcast.id ? (setIsPodcastPlaying(!isPodcastPlaying), prev) : (setIsPodcastPlaying(true), podcast));
+    };
+    
+    const handleWatchTrailer = (url: string) => {
+        setTrailerUrl(url);
+        setIsTrailerOpen(true);
     };
 
     // Bookmarking
@@ -277,7 +283,7 @@ const App: React.FC = () => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
                     <FilterBar categories={categories} currentCategory={currentCategory} onSelectCategory={handleSelectCategory} />
                     
-                    {settings.showNowStreaming && currentCategory === 'Movies & TV' && <NowStreaming onWatchTrailer={() => setIsTrailerOpen(true)} />}
+                    {settings.showNowStreaming && currentCategory === 'Movies & TV' && <NowStreaming onWatchTrailer={handleWatchTrailer} />}
                     {settings.showInnovationTimelines && currentCategory === 'Technology' && <InnovationTimeline />}
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
@@ -304,7 +310,7 @@ const App: React.FC = () => {
             <TranslationModal isOpen={isTranslationOpen} article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
             <QuizModal isOpen={isQuizOpen} article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
             <CounterpointModal isOpen={isCounterpointOpen} article={articleForAI} onClose={() => {setIsCounterpointOpen(false); setArticleForAI(null);}} />
-            <TrailerModal isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
+            <TrailerModal isOpen={isTrailerOpen} onClose={() => { setIsTrailerOpen(false); setTrailerUrl(null); }} trailerUrl={trailerUrl} />
             <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
             <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />

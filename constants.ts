@@ -412,9 +412,9 @@ export const innovations: Innovation[] = [
 ];
 
 export const mockStreamingContent: StreamingContent[] = [
-  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'dummy_url' },
-  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'dummy_url' },
-  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'dummy_url' },
-  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'dummy_url' },
-  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'dummy_url' },
+  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
 ];

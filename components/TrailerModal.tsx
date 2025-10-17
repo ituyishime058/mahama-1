@@ -4,11 +4,11 @@ import CloseIcon from './icons/CloseIcon';
 interface TrailerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // trailerUrl would be passed in a real app, e.g., a YouTube embed link
+  trailerUrl: string | null;
 }
 
-const TrailerModal: React.FC<TrailerModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+const TrailerModal: React.FC<TrailerModalProps> = ({ isOpen, onClose, trailerUrl }) => {
+  if (!isOpen || !trailerUrl) return null;
 
   return (
     <div
@@ -21,9 +21,15 @@ const TrailerModal: React.FC<TrailerModalProps> = ({ isOpen, onClose }) => {
       >
         <button onClick={onClose} className="absolute -top-3 -right-3 z-10 text-white bg-slate-800 rounded-full p-2 hover:bg-deep-red"><CloseIcon /></button>
         
-        {/* Placeholder for a video player */}
-        <div className="w-full h-full flex items-center justify-center">
-            <p className="text-white text-xl">Trailer video would play here.</p>
+        <div className="w-full h-full rounded-lg overflow-hidden">
+          <iframe
+            src={trailerUrl}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="w-full h-full"
+          ></iframe>
         </div>
       </div>
     </div>
