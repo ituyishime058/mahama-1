@@ -1,12 +1,15 @@
+
 import React from 'react';
 import { mockStreamingContent } from '../constants';
 import PlayCircleIcon from './icons/PlayCircleIcon';
+import { StreamingContent } from '../types';
 
 interface NowStreamingProps {
+    onWatchMovie: (movie: StreamingContent) => void;
     onWatchTrailer: (url: string) => void;
 }
 
-const NowStreaming: React.FC<NowStreamingProps> = ({ onWatchTrailer }) => {
+const NowStreaming: React.FC<NowStreamingProps> = ({ onWatchMovie, onWatchTrailer }) => {
   return (
     <section className="my-12">
       <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
@@ -19,7 +22,13 @@ const NowStreaming: React.FC<NowStreamingProps> = ({ onWatchTrailer }) => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
               <h3 className="text-white font-bold text-lg leading-tight">{item.title}</h3>
               <button 
-                onClick={() => onWatchTrailer(item.trailerUrl)}
+                onClick={() => {
+                    if (item.isNew) {
+                        onWatchTrailer(item.trailerUrl);
+                    } else {
+                        onWatchMovie(item);
+                    }
+                }}
                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50"
               >
                 <PlayCircleIcon className="w-16 h-16 text-white/80" />

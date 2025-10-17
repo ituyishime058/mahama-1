@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { StreamingContent } from '../types';
 import { mockStreamingContent } from '../constants';
@@ -20,7 +21,7 @@ const MoviePlayerPage: React.FC<MoviePlayerPageProps> = ({ movie, onClose, onWat
       <div className="bg-white dark:bg-slate-800/50 rounded-lg shadow-xl overflow-hidden">
         <div className="aspect-video bg-navy">
           <iframe
-            src={movie.trailerUrl.replace('watch?v=', 'embed/')}
+            src={movie.trailerUrl}
             title={movie.title}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const AuthorIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (

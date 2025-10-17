@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-// FIX: Import Settings type
 import type { Article, Settings } from '../types';
 import { generateCounterpoint } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
@@ -10,12 +9,10 @@ import BalanceIcon from './icons/BalanceIcon';
 interface CounterpointModalProps {
   isOpen: boolean;
   article: Article | null;
-  // FIX: Add settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
 const CounterpointModal: React.FC<CounterpointModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [counterpoint, setCounterpoint] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +25,6 @@ const CounterpointModal: React.FC<CounterpointModalProps> = ({ isOpen, article, 
         setError('');
         setCounterpoint('');
         try {
-          // FIX: Pass settings to generateCounterpoint
           const stream = await generateCounterpoint(article, settings);
           for await (const chunk of stream) {
             setCounterpoint(prev => prev + chunk);
@@ -41,7 +37,6 @@ const CounterpointModal: React.FC<CounterpointModalProps> = ({ isOpen, article, 
       };
       getCounterpoint();
     }
-    // FIX: Add settings to dependency array
   }, [article, isOpen, settings]);
 
   if (!isOpen || !article) return null;

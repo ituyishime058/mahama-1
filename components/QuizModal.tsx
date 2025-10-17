@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, QuizQuestion, Settings } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
@@ -10,14 +9,13 @@ import BackwardIcon from './icons/BackwardIcon';
 import { generateQuiz } from '../utils/ai';
 
 interface QuizModalProps {
+  isOpen: boolean;
   article: Article | null;
-  // FIX: Add settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
-const QuizModal: React.FC<QuizModalProps> = ({ article, settings, onClose }) => {
+const QuizModal: React.FC<QuizModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -27,12 +25,16 @@ const QuizModal: React.FC<QuizModalProps> = ({ article, settings, onClose }) => 
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (article) {
+    if (isOpen && article) {
       const fetchQuiz = async () => {
         setIsLoading(true);
         setError('');
+        setQuestions([]);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setSelectedAnswer(null);
+        setShowResult(false);
         try {
-          // FIX: Pass settings to generateQuiz
           const quizData = await generateQuiz(article, settings);
           if (quizData && quizData.length > 0) {
             setQuestions(quizData);
@@ -47,10 +49,9 @@ const QuizModal: React.FC<QuizModalProps> = ({ article, settings, onClose }) => 
       };
       fetchQuiz();
     }
-    // FIX: Add settings to dependency array
-  }, [article, settings]);
+  }, [isOpen, article, settings]);
 
-  if (!article) return null;
+  if (!isOpen || !article) return null;
 
   const handleAnswerSelect = (option: string) => {
     if (showResult) return;

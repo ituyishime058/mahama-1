@@ -29,7 +29,7 @@ const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClic
               </>
             ) : (
               <>
-                <SubscriptionCard onClick={onGoPremium} />
+                {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
                 <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
                 <WeatherWidget />
                 <CommunityPoll />

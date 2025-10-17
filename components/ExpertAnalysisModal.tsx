@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-// FIX: Import Settings type
 import type { Article, ExpertPersona, Settings } from '../types';
 import { generateExpertAnalysis } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
@@ -9,7 +8,6 @@ import AnalysisIcon from './icons/AnalysisIcon';
 interface ExpertAnalysisModalProps {
   isOpen: boolean;
   article: Article | null;
-  // FIX: Add settings prop
   settings: Settings;
   onClose: () => void;
 }
@@ -22,7 +20,6 @@ const expertPersonas: ExpertPersona[] = [
     'Environmental Scientist'
 ];
 
-// FIX: Correct component name and destructure settings prop
 const ExpertAnalysisModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +33,6 @@ const ExpertAnalysisModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, artic
         setError('');
         setContent('');
         try {
-          // FIX: Pass settings to generateExpertAnalysis
           const stream = await generateExpertAnalysis(article, selectedPersona, settings);
           for await (const chunk of stream) {
             setContent(prev => prev + chunk);
@@ -49,7 +45,6 @@ const ExpertAnalysisModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, artic
       };
       getAnalysis();
     }
-    // FIX: Add settings to dependency array
   }, [article, isOpen, selectedPersona, settings]);
   
   const formattedContent = useMemo(() => content
@@ -96,5 +91,4 @@ const ExpertAnalysisModal: React.FC<ExpertAnalysisModalProps> = ({ isOpen, artic
   );
 };
 
-// FIX: Export with the correct component name
 export default ExpertAnalysisModal;

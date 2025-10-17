@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Article, AiTtsVoice, AudioPlayerState } from '../types';
 import { decode, decodeAudioData } from '../utils/audio';
@@ -35,7 +36,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
 
   // Initialize AudioContext
   useEffect(() => {
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     return () => {
       sourceRef.current?.stop();
     };
@@ -104,7 +105,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
     
     source.onended = () => {
       // Check if it was supposed to be playing
-      if (Math.abs(pausedAtRef.current - audioBufferRef.current!.duration) > 0.1 && isPlaying) {
+      if (isPlaying && audioBufferRef.current && Math.abs(pausedAtRef.current - audioBufferRef.current.duration) > 0.1) {
         // It ended naturally, go to next or close
         if (playlist && currentTrackIndex < playlist.length - 1) {
             handleNext();
@@ -143,7 +144,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
         }
     }, 100);
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, playbackRate]);
 
   if (!article) return null;
 

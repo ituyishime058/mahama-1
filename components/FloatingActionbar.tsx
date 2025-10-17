@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Article, ReadingLens, SubscriptionTier } from '../types';
 import SummarizeIcon from './icons/SummarizeIcon';
@@ -9,8 +10,9 @@ import BalanceIcon from './icons/BalanceIcon';
 import InfoIcon from './icons/InfoIcon';
 import AnalysisIcon from './icons/AnalysisIcon';
 import MagicWandIcon from './icons/MagicWandIcon';
-import CrownIcon from './icons/CrownIcon'; // Premium feature icon
+import CrownIcon from './icons/CrownIcon';
 import AuthorIcon from './icons/AuthorIcon';
+import ShieldCheckIcon from './icons/ShieldCheckIcon';
 
 interface FloatingActionbarProps {
   article: Article;
@@ -23,6 +25,7 @@ interface FloatingActionbarProps {
   onBehindTheNews: (article: Article) => void;
   onExpertAnalysis: (article: Article) => void;
   onAskAuthor: (article: Article) => void;
+  onFactCheckPage: (article: Article) => void;
   showCounterpoint: boolean;
   isZenMode: boolean;
   activeLens: ReadingLens;
@@ -42,6 +45,7 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onBehindTheNews,
   onExpertAnalysis,
   onAskAuthor,
+  onFactCheckPage,
   showCounterpoint,
   isZenMode,
   activeLens,
@@ -53,8 +57,7 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 200) setIsVisible(true);
-      else setIsVisible(false);
+      setIsVisible(window.scrollY > 200);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -116,12 +119,12 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
           <>
             <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
             <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-            <ActionButton onClick={() => handlePremiumFeature(onBehindTheNews)} icon={<InfoIcon className="w-5 h-5" />} label="Context" isPremiumFeature={true}/>
-            <ActionButton onClick={() => handlePremiumFeature(onExpertAnalysis)} icon={<AnalysisIcon className="w-5 h-5" />} label="Analyze" isPremiumFeature={true}/>
             <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
             <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
             <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
-            {showCounterpoint && <ActionButton onClick={() => onCounterpoint(article)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" />}
+            <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
+            <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
+            {showCounterpoint && <ActionButton onClick={() => handlePremiumFeature(onCounterpoint)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" isPremiumFeature={true} />}
           </>
         )}
       </div>

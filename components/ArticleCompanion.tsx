@@ -1,6 +1,5 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, ChatMessage, Settings } from '../types';
 import { askAboutArticle } from '../utils/ai';
 import SendIcon from './icons/SendIcon';
@@ -8,11 +7,9 @@ import ChatBubbleIcon from './icons/ChatBubbleIcon';
 
 interface ArticleCompanionProps {
   article: Article;
-  // FIX: Add settings prop
   settings: Settings;
 }
 
-// FIX: Destructure settings from props
 const ArticleCompanion: React.FC<ArticleCompanionProps> = ({ article, settings }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -33,7 +30,8 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = ({ article, settings }
     if (!input.trim() || isLoading) return;
 
     const userMessage: ChatMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
     
@@ -41,8 +39,7 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = ({ article, settings }
     setMessages(prev => [...prev, modelResponse]);
 
     try {
-      // FIX: Pass settings to askAboutArticle
-      const stream = await askAboutArticle(article, input, messages, settings);
+      const stream = await askAboutArticle(article, input, newMessages.slice(0, -1), settings);
       for await (const chunk of stream) {
         setMessages(prev => {
             const lastMessage = prev[prev.length - 1];

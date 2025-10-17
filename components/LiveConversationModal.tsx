@@ -53,13 +53,11 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
         scriptProcessorRef.current.disconnect();
         scriptProcessorRef.current = undefined;
     }
-    // FIX: Removing audio context close calls as they can be a source of errors in some browser environments
-    // and are not strictly necessary for stopping the conversation flow.
     if(inputAudioContextRef.current && inputAudioContextRef.current.state !== 'closed') {
-        // inputAudioContextRef.current.close();
+        // Not closing context to avoid browser issues
     }
     if(outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
-        // outputAudioContextRef.current.close();
+        // Not closing context to avoid browser issues
     }
     
     setIsListening(false);
@@ -73,7 +71,6 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
   };
 
   useEffect(() => {
-    // Cleanup on unmount
     return () => {
         stopSession();
     };
@@ -91,9 +88,6 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaStreamRef.current = stream;
 
-        // FIX: The `webkitAudioContext` constructor (used as a fallback in older browsers) does not accept arguments. 
-        // By providing the sample rate as per the Gemini API guide, we ensure modern browsers work as expected.
-        // Older browsers might not support this, but this aligns with the provided guidelines.
         inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         
@@ -109,7 +103,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                 systemInstruction: 'You are a helpful and friendly news assistant for Mahama News Hub. Keep your answers concise and informative.',
             },
             callbacks: {
-                onopen: () => { // The `s: LiveSession` parameter is implicitly available from the promise resolution
+                onopen: () => {
                     sessionPromiseRef.current?.then(s => setSession(s));
                     setIsConnecting(false);
                     setIsListening(true);
@@ -129,17 +123,14 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                             mimeType: 'audio/pcm;rate=16000',
                         };
                         
-                        if (sessionPromiseRef.current) {
-                           sessionPromiseRef.current.then((activeSession) => {
-                                activeSession.sendRealtimeInput({ media: pcmBlob });
-                            });
-                        }
+                        sessionPromiseRef.current?.then((activeSession) => {
+                            activeSession.sendRealtimeInput({ media: pcmBlob });
+                        });
                     };
                     source.connect(scriptProcessorRef.current);
                     scriptProcessorRef.current.connect(inputAudioContextRef.current!.destination);
                 },
                 onmessage: async (message: LiveServerMessage) => {
-                    // Handle Transcription
                     if (message.serverContent?.inputTranscription) {
                         const newText = currentInputTranscription.current + message.serverContent.inputTranscription.text;
                         currentInputTranscription.current = newText;
@@ -152,16 +143,19 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                         const userInput = currentInputTranscription.current.trim();
                         const modelOutput = currentOutputTranscription.current.trim();
                         setInterimUserTranscript('');
-                        if (userInput) setTranscription(prev => [...prev, { speaker: 'user', text: userInput }]);
-                        if (modelOutput) setTranscription(prev => [...prev, { speaker: 'model', text: modelOutput }]);
+                        setTranscription(prev => {
+                            const newHistory = [...prev];
+                            if (userInput) newHistory.push({ speaker: 'user', text: userInput });
+                            if (modelOutput) newHistory.push({ speaker: 'model', text: modelOutput });
+                            return newHistory;
+                        });
                         currentInputTranscription.current = '';
                         currentOutputTranscription.current = '';
                     }
 
-                    // Handle Audio
                     const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
-                    if (base64Audio) {
-                        const outputContext = outputAudioContextRef.current!;
+                    if (base64Audio && outputAudioContextRef.current) {
+                        const outputContext = outputAudioContextRef.current;
                         nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputContext.currentTime);
                         
                         const audioBuffer = await decodeAudioData(decode(base64Audio), outputContext, 24000, 1);
@@ -192,7 +186,6 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                 },
             },
         });
-        sessionPromiseRef.current.then(s => setSession(s));
 
     } catch (err) {
         console.error('Failed to start session:', err);

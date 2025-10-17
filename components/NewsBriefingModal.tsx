@@ -64,7 +64,6 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
           excerpt: "A summary of today's top stories, generated just for you.",
           imageUrl: 'https://picsum.photos/seed/briefing/400/400',
           keyTakeaways: [],
-          // FIX: Added missing properties to conform to the Article type.
           region: 'Global',
           sentiment: 'Neutral',
       };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Article, Settings } from '../types';
 import { findRelatedArticles } from '../utils/ai';

@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, Settings } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
@@ -9,52 +8,46 @@ import { translateArticle } from '../utils/ai';
 import { LANGUAGES } from '../constants';
 
 interface TranslationModalProps {
+  isOpen: boolean;
   article: Article | null;
-  // FIX: Replace defaultLanguage with the more general settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
-const TranslationModal: React.FC<TranslationModalProps> = ({ article, settings, onClose }) => {
-  // FIX: Use settings.preferredLanguage for initial state
+const TranslationModal: React.FC<TranslationModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [targetLanguage, setTargetLanguage] = useState(settings.preferredLanguage);
   const [translatedText, setTranslatedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Trigger translation when the modal opens or the language changes
   useEffect(() => {
-    const handleTranslate = async () => {
-      if (!article) return;
-      setIsLoading(true);
-      setError('');
-      setTranslatedText('');
-      try {
-        const textToTranslate = `Title: ${article.title}\n\n${article.content}`;
-        // FIX: Pass settings to translateArticle
-        const result = await translateArticle(textToTranslate, targetLanguage, settings);
-        setTranslatedText(result);
-      } catch (err: any) {
-        setError(err.message || 'Failed to translate.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    handleTranslate();
-    // FIX: Add settings to dependency array
-  }, [article, targetLanguage, settings]);
+    if (isOpen) {
+        setTargetLanguage(settings.preferredLanguage);
+    }
+  }, [isOpen, settings.preferredLanguage]);
+
+  useEffect(() => {
+    if (isOpen && article) {
+        const handleTranslate = async () => {
+        if (!article) return;
+        setIsLoading(true);
+        setError('');
+        setTranslatedText('');
+        try {
+            const textToTranslate = `Title: ${article.title}\n\n${article.content}`;
+            const result = await translateArticle(textToTranslate, targetLanguage, settings);
+            setTranslatedText(result);
+        } catch (err: any) {
+            setError(err.message || 'Failed to translate.');
+        } finally {
+            setIsLoading(false);
+        }
+        };
+        handleTranslate();
+    }
+  }, [article, targetLanguage, isOpen, settings]);
   
-  // Reset language to default when the modal is reopened for a new article
-  useEffect(() => {
-    // FIX: Use settings.preferredLanguage
-    setTargetLanguage(settings.preferredLanguage)
-    // FIX: Use settings.preferredLanguage in dependency array
-  },[article, settings.preferredLanguage]);
-
-
-  if (!article) return null;
+  if (!isOpen || !article) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>

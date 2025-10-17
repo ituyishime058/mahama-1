@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-// FIX: Import Settings type
 import type { Article, Settings } from '../types';
 import { generateBehindTheNews } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
@@ -9,12 +8,10 @@ import InfoIcon from './icons/InfoIcon';
 interface BehindTheNewsModalProps {
   isOpen: boolean;
   article: Article | null;
-  // FIX: Add settings prop
   settings: Settings;
   onClose: () => void;
 }
 
-// FIX: Destructure settings from props
 const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article, settings, onClose }) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +24,6 @@ const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article
         setError('');
         setContent('');
         try {
-          // FIX: Pass settings to generateBehindTheNews
           const stream = await generateBehindTheNews(article, settings);
           for await (const chunk of stream) {
             setContent(prev => prev + chunk);
@@ -40,7 +36,6 @@ const BehindTheNewsModal: React.FC<BehindTheNewsModalProps> = ({ isOpen, article
       };
       getContext();
     }
-    // FIX: Add settings to dependency array
   }, [article, isOpen, settings]);
   
   const formattedContent = content

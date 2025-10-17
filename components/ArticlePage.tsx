@@ -34,6 +34,7 @@ interface ArticlePageProps {
   onBehindTheNews: (article: Article) => void;
   onExpertAnalysis: (article: Article) => void;
   onAskAuthor: (article: Article) => void;
+  onFactCheckPage: (article: Article) => void;
   settings: Settings;
   onPremiumClick: () => void;
 }
@@ -53,6 +54,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onBehindTheNews,
     onExpertAnalysis,
     onAskAuthor,
+    onFactCheckPage,
     settings,
     onPremiumClick,
 }) => {
@@ -66,28 +68,23 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [timelineLoading, setTimelineLoading] = useState(true);
   
-  // State for auto-translation
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [showOriginal, setShowOriginal] = useState(true);
 
-  // State for AI Reading Lens
   const [activeLens, setActiveLens] = useState<ReadingLens>('None');
   const [modifiedContent, setModifiedContent] = useState<string | null>(null);
   const [isModifyingContent, setIsModifyingContent] = useState(false);
 
-  // State for Interactive Glossary
   const [keyConcepts, setKeyConcepts] = useState<KeyConcept[]>([]);
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
 
-  // State for Community Highlights
   const [communityHighlights, setCommunityHighlights] = useState<CommunityHighlight[]>([]);
   const [highlightsLoading, setHighlightsLoading] = useState(true);
   
   const articleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Reset state and scroll to top when article changes
     window.scrollTo(0, 0);
     setTags([]);
     setFactCheckResult(null);
@@ -109,7 +106,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setTimelineLoading(true);
     setHighlightsLoading(true);
 
-    // Auto-translate if setting is enabled
     if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
         const doTranslate = async () => {
             setIsTranslating(true);
@@ -119,7 +115,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 setTranslatedContent(translation);
             } catch (e) {
                 console.error("Auto-translation failed:", e);
-                setShowOriginal(true); // Revert to original on error
+                setShowOriginal(true);
             } finally {
                 setIsTranslating(false);
             }
@@ -128,13 +124,15 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     }
 
     const fetchAIData = async () => {
-      const tagsPromise = generateTags(article, settings);
-      const factCheckPromise = factCheckArticle(article, settings);
-      const takeawaysPromise = generateKeyTakeaways(article, settings);
-      const conceptsPromise = extractKeyConcepts(article, settings);
-      const commentsPromise = summarizeComments(mockComments, settings);
+      const promises = [
+        generateTags(article, settings),
+        factCheckArticle(article, settings),
+        generateKeyTakeaways(article, settings),
+        extractKeyConcepts(article, settings),
+        summarizeComments(mockComments, settings)
+      ];
       
-      const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled([tagsPromise, factCheckPromise, takeawaysPromise, conceptsPromise, commentsPromise]);
+      const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled(promises);
 
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value);
       if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value);
@@ -148,10 +146,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       setHighlightsLoading(false);
 
       if (article.hasTimeline) {
-          const timelinePromise = generateArticleTimeline(article, settings);
-          const timelineResult = await Promise.resolve(timelinePromise);
-          setTimelineEvents(timelineResult);
-          setTimelineLoading(false);
+          generateArticleTimeline(article, settings).then(setTimelineEvents).finally(() => setTimelineLoading(false));
       } else {
           setTimelineLoading(false);
       }
@@ -161,11 +156,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   }, [article, settings]);
 
   useEffect(() => {
-    if (isZenMode) {
-        setActiveLens(settings.aiReadingLens);
-    } else {
-        setActiveLens('None');
-    }
+    setActiveLens(isZenMode ? settings.aiReadingLens : 'None');
   }, [isZenMode, settings.aiReadingLens]);
 
   useEffect(() => {
@@ -180,7 +171,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             setModifiedContent(result);
         } catch (e) {
             console.error("Failed to apply reading lens", e);
-            // Optionally show an error to the user
         } finally {
             setIsModifyingContent(false);
         }
@@ -274,7 +264,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                                 {isTranslating ? <>
                                     <LoadingSpinner/> Translating to ${settings.preferredLanguage}...
                                 </> : <>
-                                    <TranslateIcon className="w-5 h-5"/> Translated to ${settings.preferredLanguage}
+                                    <TranslateIcon className="w-5 h-5"/> Translated to {settings.preferredLanguage}
                                 </>}
                             </div>
                             <button onClick={() => setShowOriginal(!showOriginal)} className="font-semibold text-sm text-deep-red dark:text-gold hover:underline">
@@ -333,6 +323,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onBehindTheNews={onBehindTheNews}
             onExpertAnalysis={onExpertAnalysis}
             onAskAuthor={onAskAuthor}
+            onFactCheckPage={onFactCheckPage}
             showCounterpoint={settings.showCounterpoint}
             isZenMode={isZenMode}
             activeLens={activeLens}
