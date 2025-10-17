@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 // FIX: Add Settings to type imports
-import type { Article, AiSummaryLength, Settings } from '../types';
+import type { Article, Settings } from '../types';
 import { summarizeArticle } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 

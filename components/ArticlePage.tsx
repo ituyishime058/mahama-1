@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
@@ -271,9 +272,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         <div className="my-4 p-3 bg-slate-100 dark:bg-slate-800/50 rounded-md flex items-center justify-between">
                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                 {isTranslating ? <>
-                                    <LoadingSpinner/> Translating to {settings.preferredLanguage}...
+                                    <LoadingSpinner/> Translating to ${settings.preferredLanguage}...
                                 </> : <>
-                                    <TranslateIcon className="w-5 h-5"/> Translated to {settings.preferredLanguage}
+                                    <TranslateIcon className="w-5 h-5"/> Translated to ${settings.preferredLanguage}
                                 </>}
                             </div>
                             <button onClick={() => setShowOriginal(!showOriginal)} className="font-semibold text-sm text-deep-red dark:text-gold hover:underline">

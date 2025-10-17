@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
@@ -93,11 +92,10 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
         mediaStreamRef.current = stream;
 
         // FIX: The `webkitAudioContext` constructor (used as a fallback in older browsers) does not accept arguments. 
-        // This was likely causing the "Expected 1 arguments, but got 0" error due to a misleading error message.
-        // The sample rate is critical for input, so this may affect older browsers, but it fixes the crash.
-        // Modern browsers supporting `AudioContext` with options will work as expected.
-        inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // By providing the sample rate as per the Gemini API guide, we ensure modern browsers work as expected.
+        // Older browsers might not support this, but this aligns with the provided guidelines.
+        inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
         

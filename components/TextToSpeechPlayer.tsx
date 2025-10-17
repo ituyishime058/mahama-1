@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useRef, useState } from 'react';
 import { decode, decodeAudioData } from '../utils/audio';
 import { textToSpeech } from '../utils/ai';
@@ -28,7 +27,9 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
             setIsGenerating(true);
             setError('');
             try {
-                const b64 = await textToSpeech(article, voice);
+                // FIX: Corrected textToSpeech call to pass article content, not the whole object.
+                const text = `Title: ${article.title}. By ${article.author}. ${article.excerpt}`;
+                const b64 = await textToSpeech(text, voice);
                 setAudioBase64(b64);
             } catch(e: any) {
                 setError('Failed to generate audio.');
@@ -43,10 +44,9 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
 
   useEffect(() => {
     // FIX: The webkitAudioContext constructor (a fallback for older browsers) does not accept arguments.
-    // The error "Expected 1 arguments, but got 0" is likely a symptom of this incompatibility.
-    // By removing the arguments, we ensure compatibility, and modern browsers will still use their default (often higher quality) sample rate.
-    // The decoded audio buffer's sample rate will be resampled by the browser automatically during playback.
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // However, the guide for Text-to-Speech specifies a sample rate of 24000. 
+    // We provide this option for modern browsers that support it.
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     
     return () => {
       if (sourceRef.current) {

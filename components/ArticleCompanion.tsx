@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 // FIX: Import Settings type
 import type { Article, ChatMessage, Settings } from '../types';

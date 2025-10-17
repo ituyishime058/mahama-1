@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 // FIX: Import Settings type
 import type { Article, Settings } from '../types';
