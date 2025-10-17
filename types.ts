@@ -65,3 +65,20 @@ export interface Innovation {
   description: string;
   icon: string;
 }
+
+export interface Settings {
+    theme: 'light' | 'dark' | 'system';
+    fontFamily: 'sans' | 'serif';
+    fontSize: number;
+    showInnovationTimelines: boolean;
+    showNowStreaming: boolean;
+    homepageLayout: 'Standard' | 'Dashboard';
+    // Add other settings as needed
+}
+
+export interface StreamingContent {
+  id: number;
+  title: string;
+  posterUrl: string;
+  trailerUrl: string; // e.g., YouTube embed URL
+}

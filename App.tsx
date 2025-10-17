@@ -25,34 +25,48 @@ import LiveConversationModal from './components/LiveConversationModal';
 import ConfirmationModal from './components/ConfirmationModal';
 import NewsMap from './components/NewsMap';
 import PodcastHub from './components/PodcastHub';
+import NowStreaming from './components/NowStreaming';
+import InnovationTimeline from './components/InnovationTimeline';
+import DataDrivenInsights from './components/DataDrivenInsights';
+import TrailerModal from './components/TrailerModal';
+import FilterBar from './components/FilterBar';
 
 
-import type { Article, Podcast, AiSummaryLength, AiTtsVoice } from './types';
+import type { Article, Podcast, Settings } from './types';
 import { mockArticles, mockPodcasts, categories } from './constants';
-import { saveArticleForOffline, getOfflineArticleIds, getOfflineArticles, deleteOfflineArticle } from './utils/db';
+import { saveArticleForOffline, getOfflineArticleIds, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
+
+const defaultSettings: Settings = {
+    theme: 'system',
+    fontFamily: 'sans',
+    fontSize: 16,
+    showInnovationTimelines: true,
+    showNowStreaming: true,
+    homepageLayout: 'Standard',
+};
 
 const App: React.FC = () => {
-    // State management
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-        if (typeof window !== 'undefined' && window.localStorage) {
-            const storedTheme = window.localStorage.getItem('theme');
-            if (storedTheme === 'dark' || storedTheme === 'light') {
-                return storedTheme;
-            }
+    const [settings, setSettings] = useState<Settings>(() => {
+        try {
+            const storedSettings = window.localStorage.getItem('mahama-settings');
+            return storedSettings ? JSON.parse(storedSettings) : defaultSettings;
+        } catch {
+            return defaultSettings;
         }
-        return 'dark'; // Default theme
     });
-    
+
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [articles, setArticles] = useState<Article[]>(mockArticles);
     const [filteredArticles, setFilteredArticles] = useState<Article[]>(mockArticles);
     const [currentCategory, setCurrentCategory] = useState<string>('All');
     const [activeArticle, setActiveArticle] = useState<Article | null>(null);
 
+    // View state
+    const [currentView, setCurrentView] = useState<'home' | 'article' | 'settings'>('home');
+    
     // Modal states
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isSummarizerOpen, setIsSummarizerOpen] = useState(false);
     const [isExplainSimplyOpen, setIsExplainSimplyOpen] = useState(false);
     const [isTranslationOpen, setIsTranslationOpen] = useState(false);
@@ -61,121 +75,99 @@ const App: React.FC = () => {
     const [isOfflineOpen, setIsOfflineOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isLiveConvoOpen, setIsLiveConvoOpen] = useState(false);
-    const [isConfirmLogoutOpen, setIsConfirmLogoutOpen] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{title: string, message: string, onConfirm: () => void} | null>(null);
+    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
 
     // AI action states
     const [articleForAI, setArticleForAI] = useState<Article | null>(null);
-    const [summaryLength, setSummaryLength] = useState<AiSummaryLength>('Medium');
     const [ttsArticle, setTtsArticle] = useState<Article | null>(null);
     
-    // Settings state
-    const [aiSettings, setAiSettings] = useState({
-        summaryLength: 'Medium' as AiSummaryLength,
-        ttsVoice: 'Zephyr' as AiTtsVoice,
-        defaultLanguage: 'Spanish',
-    });
-
     // Audio/Podcast states
     const [activePodcast, setActivePodcast] = useState<Podcast | null>(null);
     const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
     
     // Bookmarks and Offline states
-    const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
-    const [offlineArticleIds, setOfflineArticleIds] = useState<number[]>([]);
+    const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<Set<number>>(() => {
+        const stored = localStorage.getItem('bookmarkedArticleIds');
+        return stored ? new Set(JSON.parse(stored)) : new Set();
+    });
+    const [offlineArticleIds, setOfflineArticleIds] = useState<Set<number>>(new Set());
     const [offlineArticles, setOfflineArticles] = useState<Article[]>([]);
     const [downloadingArticleId, setDownloadingArticleId] = useState<number | null>(null);
 
-    // Effects
+    // Effects for settings
     useEffect(() => {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+        const root = window.document.documentElement;
+        const isDark =
+          settings.theme === 'dark' ||
+          (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        root.classList.toggle('dark', isDark);
+        root.classList.toggle('font-sans', settings.fontFamily === 'sans');
+        root.classList.toggle('font-serif', settings.fontFamily === 'serif');
+        root.style.fontSize = `${settings.fontSize}px`;
+        localStorage.setItem('mahama-settings', JSON.stringify(settings));
+    }, [settings]);
 
+    // Effects for data fetching
     useEffect(() => {
-        const storedBookmarks = localStorage.getItem('bookmarkedArticleIds');
-        if (storedBookmarks) {
-            setBookmarkedArticleIds(JSON.parse(storedBookmarks));
-        }
-        
         const fetchOfflineData = async () => {
             const ids = await getOfflineArticleIds();
-            setOfflineArticleIds(ids);
-            if (isOfflineOpen) { // Refresh full articles if modal is open
-                const fullArticles = await getOfflineArticles();
-                setOfflineArticles(fullArticles);
-            }
+            setOfflineArticleIds(new Set(ids));
         };
         fetchOfflineData();
-    }, [isOfflineOpen]);
+    }, []);
 
+    // Effect for filtering articles
     useEffect(() => {
-        if (currentCategory === 'All') {
-            setFilteredArticles(articles);
-        } else {
-            setFilteredArticles(articles.filter(a => a.category === currentCategory));
+        let articlesToFilter = mockArticles;
+        if (currentCategory !== 'All') {
+            articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
         }
+        setFilteredArticles(articlesToFilter);
         window.scrollTo(0, 0);
-    }, [currentCategory, articles]);
-
+    }, [currentCategory]);
+    
     // Handlers
-    const handleToggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-
     const handleSelectCategory = (category: string) => {
         setCurrentCategory(category);
+        setCurrentView('home');
         setIsMenuOpen(false);
-        setActiveArticle(null);
     };
 
     const handleReadMore = (article: Article) => {
         setActiveArticle(article);
+        setCurrentView('article');
         window.scrollTo(0, 0);
     };
 
+    const handleGoHome = () => {
+        setCurrentView('home');
+        setActiveArticle(null);
+        setCurrentCategory('All');
+    };
+
     // AI Action Handlers
-    const handleSummarize = (article: Article) => {
-        setArticleForAI(article);
-        setSummaryLength(aiSettings.summaryLength);
-        setIsSummarizerOpen(true);
-    };
-
-    const handleExplainSimply = (article: Article) => {
-        setArticleForAI(article);
-        setIsExplainSimplyOpen(true);
-    };
-    
-    const handleTranslate = (article: Article) => {
-        setArticleForAI(article);
-        setIsTranslationOpen(true);
-    }
-    
-    const handleQuiz = (article: Article) => {
-        setArticleForAI(article);
-        setIsQuizOpen(true);
-    }
-
-    const handleTextToSpeech = (article: Article) => {
-        setTtsArticle(prev => prev?.id === article.id ? null : article);
-    };
+    const handleSummarize = (article: Article) => { setArticleForAI(article); setIsSummarizerOpen(true); };
+    const handleExplainSimply = (article: Article) => { setArticleForAI(article); setIsExplainSimplyOpen(true); };
+    const handleTranslate = (article: Article) => { setArticleForAI(article); setIsTranslationOpen(true); };
+    const handleQuiz = (article: Article) => { setArticleForAI(article); setIsQuizOpen(true); };
+    const handleTextToSpeech = (article: Article) => { setTtsArticle(prev => prev?.id === article.id ? null : article); };
     
     // Podcast Player Handlers
     const handlePlayPodcast = (podcast: Podcast) => {
-        if (activePodcast?.id === podcast.id) {
-            setIsPodcastPlaying(!isPodcastPlaying);
-        } else {
-            setActivePodcast(podcast);
-            setIsPodcastPlaying(true);
-        }
+        setActivePodcast(prev => prev?.id === podcast.id ? (setIsPodcastPlaying(!isPodcastPlaying), prev) : (setIsPodcastPlaying(true), podcast));
     };
 
     // Bookmarking
     const handleToggleBookmark = (articleId: number) => {
         setBookmarkedArticleIds(prev => {
-            const newBookmarks = prev.includes(articleId)
-                ? prev.filter(id => id !== articleId)
-                : [...prev, articleId];
-            localStorage.setItem('bookmarkedArticleIds', JSON.stringify(newBookmarks));
-            return newBookmarks;
+            const newSet = new Set(prev);
+            if (newSet.has(articleId)) newSet.delete(articleId);
+            else newSet.add(articleId);
+            localStorage.setItem('bookmarkedArticleIds', JSON.stringify(Array.from(newSet)));
+            return newSet;
         });
     };
     
@@ -184,35 +176,61 @@ const App: React.FC = () => {
         setDownloadingArticleId(article.id);
         try {
             await saveArticleForOffline(article);
-            setOfflineArticleIds(prev => [...prev, article.id]);
-        } catch (error) {
-            console.error("Failed to download article:", error);
-            // You might want to show a toast notification here
-        } finally {
-            setDownloadingArticleId(null);
-        }
+            setOfflineArticleIds(prev => new Set(prev).add(article.id));
+        } catch (error) { console.error("Failed to download article:", error); } 
+        finally { setDownloadingArticleId(null); }
     };
     
     const handleDeleteOfflineArticle = async (articleId: number) => {
         await deleteOfflineArticle(articleId);
-        setOfflineArticleIds(prev => prev.filter(id => id !== articleId));
+        setOfflineArticleIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(articleId);
+            return newSet;
+        });
         setOfflineArticles(prev => prev.filter(a => a.id !== articleId));
+    };
+
+    const handleClearBookmarks = () => {
+        setConfirmAction({
+            title: 'Clear All Bookmarks',
+            message: 'Are you sure you want to remove all your bookmarks? This action cannot be undone.',
+            onConfirm: () => {
+                setBookmarkedArticleIds(new Set());
+                localStorage.removeItem('bookmarkedArticleIds');
+                setIsConfirmOpen(false);
+            }
+        });
+        setIsConfirmOpen(true);
+    };
+    
+    const handleClearOffline = () => {
+        setConfirmAction({
+            title: 'Clear Offline Articles',
+            message: 'Are you sure you want to delete all saved articles? This action cannot be undone.',
+            onConfirm: async () => {
+                await clearAllOfflineArticles();
+                setOfflineArticleIds(new Set());
+                setOfflineArticles([]);
+                setIsConfirmOpen(false);
+            }
+        });
+        setIsConfirmOpen(true);
     };
     
     // Auth Handlers
-    const handleLogin = () => {
-        setIsAuthenticated(true);
-        setIsLoginOpen(false);
+    const handleLogin = () => { setIsAuthenticated(true); setIsLoginOpen(false); };
+    const handleLogout = () => { setIsAuthenticated(false); setIsConfirmOpen(false); };
+    const handleConfirmLogout = () => {
+        setConfirmAction({
+            title: 'Confirm Logout',
+            message: 'Are you sure you want to log out?',
+            onConfirm: handleLogout
+        });
+        setIsConfirmOpen(true);
     };
     
-    const handleLogout = () => {
-        setIsAuthenticated(false);
-        setIsConfirmLogoutOpen(false);
-    };
-    
-    const openBookmarks = async () => {
-        setIsBookmarksOpen(true);
-    };
+    const openBookmarks = () => { setIsBookmarksOpen(true); };
     
     const openOffline = async () => {
         const fullArticles = await getOfflineArticles();
@@ -220,142 +238,64 @@ const App: React.FC = () => {
         setIsOfflineOpen(true);
     };
 
-    const bookmarkedArticles = articles.filter(article => bookmarkedArticleIds.includes(article.id));
-    
-    const closeAllModals = () => {
-      setIsMenuOpen(false);
-      setIsSearchOpen(false);
-      setIsSummarizerOpen(false);
-      setIsExplainSimplyOpen(false);
-      setIsTranslationOpen(false);
-      setIsQuizOpen(false);
-      setIsBookmarksOpen(false);
-      setIsOfflineOpen(false);
-      setIsLoginOpen(false);
-      setIsLiveConvoOpen(false);
-      setArticleForAI(null);
-      // Don't close settings or article page
-    };
+    const bookmarkedArticles = mockArticles.filter(article => bookmarkedArticleIds.has(article.id));
 
     const handleSelectArticleFromSearch = (article: Article) => {
       setIsSearchOpen(false);
-      setTimeout(() => handleReadMore(article), 300); // delay to allow modal to close
+      setTimeout(() => handleReadMore(article), 300);
     };
 
-    const handleLogoClick = () => {
-        setActiveArticle(null);
-        setCurrentCategory('All');
-        closeAllModals();
-    };
-
-    if (activeArticle) {
-        return (
-            <div className={`font-sans antialiased text-slate-800 dark:text-slate-200 bg-white dark:bg-navy`}>
-                <button onClick={() => setActiveArticle(null)} className="fixed top-4 left-4 z-[60] bg-white/50 dark:bg-navy/50 backdrop-blur-sm p-2 rounded-full shadow-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-navy transition-colors">
-                    &larr; Back to Home
-                </button>
-                <ArticlePage
-                    article={activeArticle}
-                    onClose={() => setActiveArticle(null)}
-                    isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
-                    onToggleBookmark={handleToggleBookmark}
-                    onSummarize={handleSummarize}
-                    onExplainSimply={handleExplainSimply}
-                    onTextToSpeech={handleTextToSpeech}
-                    onTranslate={handleTranslate}
-                    onQuiz={handleQuiz}
-                />
-            </div>
-        );
+    if (currentView === 'article' && activeArticle) {
+        return <ArticlePage article={activeArticle} onClose={handleGoHome} isBookmarked={bookmarkedArticleIds.has(activeArticle.id)} onToggleBookmark={handleToggleBookmark} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} onQuiz={handleQuiz} />;
     }
     
-    if (isSettingsOpen) {
-        return (
-             <SettingsPage
-                onClose={() => setIsSettingsOpen(false)}
-                currentSettings={aiSettings}
-                onSave={setAiSettings}
-                theme={theme}
-                onToggleTheme={handleToggleTheme}
-            />
-        )
+    if (currentView === 'settings') {
+        return <SettingsPage onClose={() => setCurrentView('home')} settings={settings} onSettingsChange={setSettings} onClearBookmarks={handleClearBookmarks} onClearOffline={handleClearOffline} />;
     }
 
     return (
-        <div className={`font-sans antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-navy`}>
-            <Header 
-                onMenuClick={() => setIsMenuOpen(true)}
-                onSearchClick={() => setIsSearchOpen(true)}
-                onSettingsClick={() => setIsSettingsOpen(true)}
-                onLogoClick={handleLogoClick}
-                categories={categories}
-                onSelectCategory={handleSelectCategory}
-                isAuthenticated={isAuthenticated}
-                onLoginClick={() => setIsLoginOpen(true)}
-                onLogout={() => setIsConfirmLogoutOpen(true)}
-            />
+        <div className="font-sans antialiased text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-navy">
+            <Header onMenuClick={() => setIsMenuOpen(true)} onSearchClick={() => setIsSearchOpen(true)} onSettingsClick={() => setCurrentView('settings')} onLogoClick={handleGoHome} categories={categories} onSelectCategory={handleSelectCategory} isAuthenticated={isAuthenticated} onLoginClick={() => setIsLoginOpen(true)} onLogout={handleConfirmLogout} />
             <NewsTicker headlines={articles.slice(0, 5).map(a => a.title)} />
             <main className="pt-28">
-                <Hero article={articles[0]} onReadMore={() => handleReadMore(articles[0])} />
+                {currentCategory === 'All' && <Hero article={articles[0]} onReadMore={() => handleReadMore(articles[0])} />}
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        <div className="lg:col-span-2">
-                           <GlobalHighlights 
-                                articles={filteredArticles} 
-                                onSummarize={handleSummarize}
-                                onExplainSimply={handleExplainSimply}
-                                onTextToSpeech={handleTextToSpeech}
-                                onTranslate={handleTranslate}
-                                onReadMore={handleReadMore}
-                                audioState={{ playingArticleId: null, isGenerating: false }} 
-                                bookmarkedArticleIds={bookmarkedArticleIds}
-                                onToggleBookmark={handleToggleBookmark}
-                                offlineArticleIds={offlineArticleIds}
-                                downloadingArticleId={downloadingArticleId}
-                                onDownloadArticle={handleDownloadArticle}
-                           />
+                    <FilterBar categories={categories} currentCategory={currentCategory} onSelectCategory={handleSelectCategory} />
+                    
+                    {settings.showNowStreaming && currentCategory === 'Movies & TV' && <NowStreaming onWatchTrailer={() => setIsTrailerOpen(true)} />}
+                    {settings.showInnovationTimelines && currentCategory === 'Technology' && <InnovationTimeline />}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-8">
+                        <div className="lg:col-span-2 space-y-8">
+                           <GlobalHighlights articles={filteredArticles} onReadMore={handleReadMore} onSummarize={handleSummarize} onExplainSimply={handleExplainSimply} onTextToSpeech={handleTextToSpeech} onTranslate={handleTranslate} audioState={{ playingArticleId: null, isGenerating: false }} bookmarkedArticleIds={Array.from(bookmarkedArticleIds)} onToggleBookmark={handleToggleBookmark} offlineArticleIds={Array.from(offlineArticleIds)} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            {settings.homepageLayout === 'Dashboard' && currentCategory === 'All' && <DataDrivenInsights />}
                         </div>
-                       <RightAside 
-                           trendingArticles={articles.slice(1, 6)}
-                           onArticleClick={handleReadMore}
-                       />
+                       <RightAside trendingArticles={articles.slice(1, 6)} onArticleClick={handleReadMore} />
                     </div>
-                     <LiveStream />
-                     <NewsMap articles={articles} onArticleClick={handleReadMore} />
+                     {currentCategory === 'All' && <>
+                        <LiveStream />
+                        <NewsMap articles={articles} onArticleClick={handleReadMore} />
+                     </>}
                      <PodcastHub podcasts={mockPodcasts} activePodcast={activePodcast} isPodcastPlaying={isPodcastPlaying} onPlay={handlePlayPodcast} />
                      <Mahama360 articles={articles.slice(5, 8)} />
                 </div>
             </main>
             <Footer />
 
-            {/* Modals & Players */}
-            <CategoryMenu 
-                isOpen={isMenuOpen} 
-                onClose={() => setIsMenuOpen(false)}
-                categories={categories}
-                onCategorySelect={handleSelectCategory}
-                onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }}
-                onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }}
-                onSettingsClick={() => { setIsMenuOpen(false); setIsSettingsOpen(true); }}
-            />
+            <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
             <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
-            <SummarizerModal article={articleForAI} summaryLength={summaryLength} onClose={() => setIsSummarizerOpen(false)} />
+            <SummarizerModal article={articleForAI} summaryLength={settings.summaryLength} onClose={() => setIsSummarizerOpen(false)} />
             <ExplainSimplyModal article={articleForAI} onClose={() => setIsExplainSimplyOpen(false)} />
-            <TranslationModal article={articleForAI} defaultLanguage={aiSettings.defaultLanguage} onClose={() => setIsTranslationOpen(false)} />
+            <TranslationModal article={articleForAI} defaultLanguage={'Spanish'} onClose={() => setIsTranslationOpen(false)} />
             <QuizModal article={articleForAI} onClose={() => setIsQuizOpen(false)} />
-            <TextToSpeechPlayer article={ttsArticle} voice={aiSettings.ttsVoice} onClose={() => setTtsArticle(null)} />
-            <PodcastPlayer 
-                activePodcast={activePodcast} 
-                isPlaying={isPodcastPlaying} 
-                onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)}
-                onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }}
-            />
+            <TrailerModal isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
+            <TextToSpeechPlayer article={ttsArticle} voice={'Zephyr'} onClose={() => setTtsArticle(null)} />
+            <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
             <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={isOfflineOpen} onClose={() => setIsOfflineOpen(false)} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />
             <LiveConversationModal isOpen={isLiveConvoOpen} onClose={() => setIsLiveConvoOpen(false)} />
-            <ConfirmationModal isOpen={isConfirmLogoutOpen} onClose={() => setIsConfirmLogoutOpen(false)} title="Confirm Logout" message="Are you sure you want to log out?" onConfirm={handleLogout} />
-
+            {confirmAction && <ConfirmationModal isOpen={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} title={confirmAction.title} message={confirmAction.message} onConfirm={confirmAction.onConfirm} />}
             <FloatingActionButton onClick={() => setIsLiveConvoOpen(true)} />
         </div>
     );

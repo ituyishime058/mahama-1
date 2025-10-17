@@ -12,6 +12,7 @@ import HistoryIcon from './icons/HistoryIcon';
 import CultureIcon from './icons/CultureIcon';
 import EntertainmentIcon from './icons/EntertainmentIcon';
 import InvestigatesIcon from './icons/InvestigatesIcon';
+import MoviesTVIcon from './icons/MoviesTVIcon'; // Added
 
 interface FilterBarProps {
   categories: string[];
@@ -28,6 +29,7 @@ const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } 
   "Sports": SportsIcon,
   "Health": HealthIcon,
   "History": HistoryIcon,
+  "Movies & TV": MoviesTVIcon, // Added
   "Culture": CultureIcon,
   "Entertainment": EntertainmentIcon,
   "Mahama Investigates": InvestigatesIcon,
@@ -71,7 +73,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSe
                 }`}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
-                <span>{category}</span>
+                <span className="hidden sm:inline">{category}</span>
               </button>
             );
           })}

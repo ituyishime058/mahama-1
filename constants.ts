@@ -1,4 +1,4 @@
-import type { Article, Podcast, User, Comment, Stock, Innovation } from './types';
+import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent } from './types';
 
 export const mockUsers: { currentUser: User; otherUsers: User[] } = {
   currentUser: {
@@ -41,6 +41,63 @@ export const mockComments: Comment[] = [
   },
 ];
 
+const newArticles: Article[] = [
+    {
+        id: 9,
+        title: 'Blockbuster Film "Galaxy Runners" Smashes Box Office Records',
+        excerpt: 'The sci-fi epic "Galaxy Runners" has taken the world by storm, grossing over $500 million globally in its opening weekend, setting a new record for the post-pandemic era.',
+        content: '"Galaxy Runners," the highly anticipated sci-fi adventure from director Lena Petrova, has exceeded all expectations. The film\'s stunning visuals, compelling storyline, and charismatic cast have resonated with audiences worldwide. Industry analysts are now predicting it could become one of the highest-grossing films of all time. The success of "Galaxy Runners" is seen as a major win for movie theaters, which have been struggling to attract audiences back since the pandemic. The film follows a group of renegade pilots on a mission to save the galaxy from an ancient threat, and its blend of action, humor, and heart has proven to be a winning formula.',
+        imageUrl: 'https://picsum.photos/seed/picsum9/1200/800',
+        author: 'Chloe Kim',
+        date: 'October 27, 2023',
+        category: 'Movies & TV',
+        region: 'North America',
+        sentiment: 'Positive',
+        keyTakeaways: [
+            '"Galaxy Runners" grossed over $500 million in its opening weekend.',
+            'The film has set a new post-pandemic box office record.',
+            'Its success is a significant boost for the movie theater industry.',
+            'The film is praised for its visuals, story, and cast performance.'
+        ]
+    },
+    {
+        id: 10,
+        title: 'The Lost Symphony: Rediscovered Manuscript of a Classical Masterpiece',
+        excerpt: 'A previously unknown symphony by 18th-century composer Amadeus Richter has been discovered in a dusty attic in Vienna, stunning the classical music world.',
+        content: 'Musicologists are in a state of euphoria after the discovery of a complete, handwritten manuscript for a symphony by Amadeus Richter, a contemporary of Mozart whose work was thought to be largely lost. The manuscript, found by a family while renovating their ancestral home, has been authenticated by experts and is being hailed as a monumental find. The "Vienna" symphony, as it is being called, is a powerful four-movement work that showcases Richter\'s genius for melody and orchestration. The discovery sheds new light on the musical landscape of the classical period and adds a major new work to the orchestral repertoire. A world premiere performance is already being planned by the Vienna Philharmonic for later this year.',
+        imageUrl: 'https://picsum.photos/seed/picsum10/1200/800',
+        author: 'Klaus Mueller',
+        date: 'October 28, 2023',
+        category: 'Culture',
+        region: 'Europe',
+        sentiment: 'Positive',
+        keyTakeaways: [
+            'A lost symphony by 18th-century composer Amadeus Richter has been found.',
+            'The manuscript was discovered in an attic in Vienna.',
+            'The work is considered a major addition to the classical repertoire.',
+            'The Vienna Philharmonic is planning a world premiere performance.'
+        ]
+    },
+    {
+        id: 11,
+        title: 'Virtual Reality Concerts: The Future of Live Entertainment?',
+        excerpt: 'Pop superstar Aura held a groundbreaking concert entirely within a virtual reality metaverse, drawing millions of fans from around the globe. Is this the new normal for live music?',
+        content: 'Last night, pop sensation Aura made history by hosting a full-length concert in the "Oasis" metaverse. Fans, represented by their custom avatars, were able to fly through fantastical landscapes, interact with each other, and experience the music in a way that would be impossible in a physical venue. The event was a massive technical undertaking, featuring real-time motion capture of Aura and her dancers, and stunning, interactive visual effects that were synchronized with the music. While some critics argue that it can never replace the energy of a live, in-person show, the concert\'s massive success and positive fan reception suggest that virtual reality is poised to become a major platform for entertainment. Promoters are already looking at this as a new, highly lucrative revenue stream.',
+        imageUrl: 'https://picsum.photos/seed/picsum11/1200/800',
+        author: 'Madison Chen',
+        date: 'October 29, 2023',
+        category: 'Entertainment',
+        region: 'Asia',
+        sentiment: 'Neutral',
+        keyTakeaways: [
+            'Pop star Aura held a successful concert in a VR metaverse.',
+            'Millions of fans attended the event as virtual avatars.',
+            'The concert featured advanced motion capture and interactive visuals.',
+            'The event highlights the growing potential of VR in the entertainment industry.'
+        ]
+    }
+];
+
 export const mockArticles: Article[] = [
     {
         id: 1,
@@ -53,7 +110,6 @@ export const mockArticles: Article[] = [
         category: 'Economy',
         live: true,
         region: 'North America',
-        // FIX: Changed "Mixed" to "Neutral" to match the Sentiment type. The article describes a mixed reaction, which is best represented as Neutral.
         sentiment: 'Neutral',
         keyTakeaways: [
             'G7 nations announce new AI-driven economic framework.',
@@ -126,7 +182,6 @@ export const mockArticles: Article[] = [
         date: 'October 22, 2023',
         category: 'Health',
         region: 'Asia',
-        // FIX: Changed "Mixed" to "Neutral" to match the Sentiment type. The article discusses both positive and negative aspects, making Neutral the best fit.
         sentiment: 'Neutral',
         keyTakeaways: [
             'The neuro-wellness industry is a rapidly growing sector in mental health.',
@@ -188,7 +243,8 @@ export const mockArticles: Article[] = [
           'This is leading to increased human-wildlife conflict.',
           'Conservationists are using technology to track and study these changes.'
         ]
-    }
+    },
+    ...newArticles
 ];
 
 export const mockPodcasts: Podcast[] = [
@@ -234,14 +290,23 @@ export const stockData: Stock[] = [
 ];
 
 export const LANGUAGES: string[] = [
-    "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese",
+    "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", "Kinyarwanda", "Kiswahili", "Lingala"
 ];
 
-export const categories = ["All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Culture", "Entertainment", "Mahama Investigates"];
+export const categories = ["All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Mahama Investigates"];
 
 export const innovations: Innovation[] = [
-    { year: 2023, title: "AI Integration", description: "AI-powered summaries, translations, and fact-checking.", icon: 'SparklesIcon' },
-    { year: 2024, title: "Hyper-Personalization", description: "Content feed dynamically adjusts to user reading habits.", icon: 'UserIcon' },
-    { year: 2025, title: "AR News Stories", description: "Experience news stories in augmented reality.", icon: 'GlobeIcon' },
-    { year: 2026, title: "Decentralized News", description: "Verifying news sources on the blockchain.", icon: 'DataIcon' }
+    { year: 1989, title: "World Wide Web Invented", description: "Tim Berners-Lee invents the Web, changing how information is shared globally.", icon: 'GlobeIcon' },
+    { year: 1998, title: "Google Founded", description: "The launch of the search engine that would go on to organize the world's information.", icon: 'SearchIcon' },
+    { year: 2007, title: "First iPhone Released", description: "Apple launches the first iPhone, kicking off the modern smartphone era.", icon: 'UserIcon' },
+    { year: 2012, title: "Deep Learning Breakthrough", description: "AlexNet wins the ImageNet competition, showcasing the power of deep neural networks.", icon: 'SparklesIcon' },
+    { year: 2022, title: "Generative AI Goes Mainstream", description: "Models like DALL-E 2 and ChatGPT capture public imagination, democratizing AI creation.", icon: 'DataIcon' }
+];
+
+export const mockStreamingContent: StreamingContent[] = [
+  { id: 1, title: 'Cosmic Wanderers', posterUrl: 'https://picsum.photos/seed/movie1/400/600', trailerUrl: 'dummy_url' },
+  { id: 2, title: 'The Last Kingdom: Echoes', posterUrl: 'https://picsum.photos/seed/movie2/400/600', trailerUrl: 'dummy_url' },
+  { id: 3, title: 'Cyber City Blues', posterUrl: 'https://picsum.photos/seed/movie3/400/600', trailerUrl: 'dummy_url' },
+  { id: 4, title: 'Ocean\'s Whisper', posterUrl: 'https://picsum.photos/seed/movie4/400/600', trailerUrl: 'dummy_url' },
+  { id: 5, title: 'Mountain of Secrets', posterUrl: 'https://picsum.photos/seed/movie5/400/600', trailerUrl: 'dummy_url' },
 ];
