@@ -95,6 +95,42 @@ const newArticles: Article[] = [
             'The concert featured advanced motion capture and interactive visuals.',
             'The event highlights the growing potential of VR in the entertainment industry.'
         ]
+    },
+    {
+        id: 12,
+        title: 'CRISPR Gene Editing Shows Promise in Curing Genetic Blindness',
+        excerpt: 'A landmark clinical trial has successfully used CRISPR-Cas9 technology to restore vision in patients with a rare form of hereditary blindness.',
+        content: 'In a significant step forward for genetic medicine, researchers have reported positive results from the first human trial using CRISPR gene editing to treat a genetic disorder directly inside the body. The trial focused on Leber congenital amaurosis, a rare disease that causes blindness in childhood. Patients who received the treatment showed marked improvements in their ability to perceive light and navigate obstacles. The therapy works by delivering the CRISPR tool via a harmless virus to edit a faulty gene in the retina. While the long-term effects are still being studied, this breakthrough opens the door for in-vivo gene editing to treat a wide range of other genetic diseases.',
+        imageUrl: 'https://picsum.photos/seed/picsum12/1200/800',
+        author: 'Dr. Kenji Tanaka',
+        date: 'November 1, 2023',
+        category: 'Science',
+        region: 'North America',
+        sentiment: 'Positive',
+        keyTakeaways: [
+            'CRISPR gene editing successfully used to treat hereditary blindness in a human trial.',
+            'Patients showed significant improvement in vision.',
+            'This marks a milestone for in-vivo (inside the body) gene editing.',
+            'The technology holds promise for treating other genetic disorders.'
+        ]
+    },
+    {
+        id: 13,
+        title: '"Ocean Sanctuaries": New Global Pact to Protect 30% of Oceans by 2030',
+        excerpt: 'After years of negotiations, United Nations members have agreed on a historic treaty to protect international waters, a crucial step for marine biodiversity.',
+        content: 'In a landmark decision, nations across the globe have finalized the High Seas Treaty, an agreement aimed at placing 30% of the world\'s oceans into protected areas by 2030. These "ocean sanctuaries" will restrict fishing, shipping routes, and deep-sea mining to allow marine ecosystems to recover. The treaty provides a legal framework for conservation efforts in international waters, which were previously largely unregulated. Environmental groups have hailed the agreement as a victory for ocean life, but stress that its success will depend on rapid ratification and effective enforcement by member states. The pact is seen as essential for mitigating the impacts of climate change, overfishing, and pollution on the world\'s oceans.',
+        imageUrl: 'https://picsum.photos/seed/picsum13/1200/800',
+        author: 'Maria Santos',
+        date: 'November 2, 2023',
+        category: 'Environment',
+        region: 'Europe',
+        sentiment: 'Positive',
+        keyTakeaways: [
+            'A historic High Seas Treaty has been agreed upon at the UN.',
+            'The goal is to protect 30% of the world\'s oceans by 2030.',
+            'The treaty establishes a framework for creating "ocean sanctuaries" in international waters.',
+            'Success depends on rapid ratification and enforcement.'
+        ]
     }
 ];
 
@@ -293,7 +329,7 @@ export const LANGUAGES: string[] = [
     "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", "Kinyarwanda", "Kiswahili", "Lingala"
 ];
 
-export const categories = ["All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Mahama Investigates"];
+export const categories = ["All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Science", "Environment", "Mahama Investigates"];
 
 export const innovations: Innovation[] = [
     { year: 1989, title: "World Wide Web Invented", description: "Tim Berners-Lee invents the Web, changing how information is shared globally.", icon: 'GlobeIcon' },

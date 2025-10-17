@@ -73,7 +73,10 @@ export interface Settings {
     showInnovationTimelines: boolean;
     showNowStreaming: boolean;
     homepageLayout: 'Standard' | 'Dashboard';
-    // Add other settings as needed
+    summaryLength: AiSummaryLength;
+    ttsVoice: AiTtsVoice;
+    contentPreferences: string[];
+    preferredLanguage: string;
 }
 
 export interface StreamingContent {

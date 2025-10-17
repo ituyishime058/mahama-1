@@ -43,13 +43,17 @@ const defaultSettings: Settings = {
     showInnovationTimelines: true,
     showNowStreaming: true,
     homepageLayout: 'Standard',
+    summaryLength: 'Medium',
+    ttsVoice: 'Zephyr',
+    contentPreferences: [],
+    preferredLanguage: 'English'
 };
 
 const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
             const storedSettings = window.localStorage.getItem('mahama-settings');
-            return storedSettings ? JSON.parse(storedSettings) : defaultSettings;
+            return storedSettings ? { ...defaultSettings, ...JSON.parse(storedSettings) } : defaultSettings;
         } catch {
             return defaultSettings;
         }
@@ -122,9 +126,11 @@ const App: React.FC = () => {
     // Effect for filtering articles
     useEffect(() => {
         let articlesToFilter = mockArticles;
+        
         if (currentCategory !== 'All') {
             articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
         }
+        
         setFilteredArticles(articlesToFilter);
         window.scrollTo(0, 0);
     }, [currentCategory]);
@@ -145,7 +151,6 @@ const App: React.FC = () => {
     const handleGoHome = () => {
         setCurrentView('home');
         setActiveArticle(null);
-        setCurrentCategory('All');
     };
 
     // AI Action Handlers
@@ -284,12 +289,12 @@ const App: React.FC = () => {
 
             <CategoryMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} categories={categories} onCategorySelect={handleSelectCategory} onBookmarksClick={() => { setIsMenuOpen(false); openBookmarks(); }} onOfflineClick={() => { setIsMenuOpen(false); openOffline(); }} onSettingsClick={() => { setIsMenuOpen(false); setCurrentView('settings'); }} />
             <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} articles={articles} onArticleSelect={handleSelectArticleFromSearch} />
-            <SummarizerModal article={articleForAI} summaryLength={settings.summaryLength} onClose={() => setIsSummarizerOpen(false)} />
-            <ExplainSimplyModal article={articleForAI} onClose={() => setIsExplainSimplyOpen(false)} />
-            <TranslationModal article={articleForAI} defaultLanguage={'Spanish'} onClose={() => setIsTranslationOpen(false)} />
-            <QuizModal article={articleForAI} onClose={() => setIsQuizOpen(false)} />
+            <SummarizerModal article={articleForAI} summaryLength={settings.summaryLength || 'Medium'} onClose={() => {setIsSummarizerOpen(false); setArticleForAI(null);}} isOpen={isSummarizerOpen} />
+            <ExplainSimplyModal article={articleForAI} onClose={() => {setIsExplainSimplyOpen(false); setArticleForAI(null);}} />
+            <TranslationModal article={articleForAI} defaultLanguage={settings.preferredLanguage || 'English'} onClose={() => {setIsTranslationOpen(false); setArticleForAI(null);}} />
+            <QuizModal article={articleForAI} onClose={() => {setIsQuizOpen(false); setArticleForAI(null);}} />
             <TrailerModal isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
-            <TextToSpeechPlayer article={ttsArticle} voice={'Zephyr'} onClose={() => setTtsArticle(null)} />
+            <TextToSpeechPlayer article={ttsArticle} voice={settings.ttsVoice || 'Zephyr'} onClose={() => setTtsArticle(null)} />
             <PodcastPlayer activePodcast={activePodcast} isPlaying={isPodcastPlaying} onPlayPause={() => setIsPodcastPlaying(!isPodcastPlaying)} onClose={() => { setActivePodcast(null); setIsPodcastPlaying(false); }} />
             <BookmarksModal isOpen={isBookmarksOpen} onClose={() => setIsBookmarksOpen(false)} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={handleToggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={isOfflineOpen} onClose={() => setIsOfflineOpen(false)} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />

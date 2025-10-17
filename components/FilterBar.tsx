@@ -12,7 +12,9 @@ import HistoryIcon from './icons/HistoryIcon';
 import CultureIcon from './icons/CultureIcon';
 import EntertainmentIcon from './icons/EntertainmentIcon';
 import InvestigatesIcon from './icons/InvestigatesIcon';
-import MoviesTVIcon from './icons/MoviesTVIcon'; // Added
+import MoviesTVIcon from './icons/MoviesTVIcon';
+import ScienceIcon from './icons/ScienceIcon';
+import EnvironmentIcon from './icons/EnvironmentIcon';
 
 interface FilterBarProps {
   categories: string[];
@@ -29,9 +31,11 @@ const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } 
   "Sports": SportsIcon,
   "Health": HealthIcon,
   "History": HistoryIcon,
-  "Movies & TV": MoviesTVIcon, // Added
+  "Movies & TV": MoviesTVIcon,
   "Culture": CultureIcon,
   "Entertainment": EntertainmentIcon,
+  "Science": ScienceIcon,
+  "Environment": EnvironmentIcon,
   "Mahama Investigates": InvestigatesIcon,
 };
 
@@ -44,24 +48,6 @@ const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSe
             const Icon = categoryIcons[category];
             const isActive = category === currentCategory;
 
-            // This provides a fallback just in case an icon is missing.
-            if (!Icon) {
-              console.warn(`No icon found for category: ${category}`);
-              return (
-                 <button
-                    key={category}
-                    onClick={() => onSelectCategory(category)}
-                    className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
-                    isActive
-                        ? 'bg-deep-red text-white shadow-md'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                >
-                    <span>{category}</span>
-                </button>
-              );
-            }
-
             return (
               <button
                 key={category}
@@ -72,7 +58,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSe
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
-                <Icon className="w-5 h-5 flex-shrink-0" />
+                {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
                 <span className="hidden sm:inline">{category}</span>
               </button>
             );
