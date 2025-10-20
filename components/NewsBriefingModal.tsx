@@ -18,43 +18,47 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
   const [briefingScript, setBriefingScript] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [localSettings, setLocalSettings] = useState(settings);
 
   useEffect(() => {
     if (isOpen) {
-      const generateBriefing = async () => {
-        setIsLoading(true);
-        setError('');
-        setBriefingScript('');
-
-        // Filter top 5 articles based on user preferences or just top articles
-        const preferredArticles = articles
-            .filter(a => settings.contentPreferences.length > 0 ? settings.contentPreferences.includes(a.category) : true)
-            .slice(0, 5);
-
-        if (preferredArticles.length === 0) {
-            setError("No articles found for your preferred topics to generate a briefing.");
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-          const script = await generateNewsBriefing(preferredArticles, settings);
-          setBriefingScript(script);
-        } catch (err: any) {
-          setError(err.message || 'Failed to generate briefing.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      generateBriefing();
+        setLocalSettings(settings); // Sync with global settings on open
     }
-  }, [isOpen, articles, settings]);
+  }, [isOpen, settings]);
+
+  const handleGenerate = () => {
+    const generateBriefing = async () => {
+      setIsLoading(true);
+      setError('');
+      setBriefingScript('');
+
+      const preferredArticles = articles
+          .filter(a => localSettings.contentPreferences.length > 0 ? localSettings.contentPreferences.includes(a.category) : true)
+          .slice(0, 5);
+
+      if (preferredArticles.length === 0) {
+          setError("No articles found for your preferred topics to generate a briefing.");
+          setIsLoading(false);
+          return;
+      }
+
+      try {
+        const script = await generateNewsBriefing(preferredArticles, localSettings);
+        setBriefingScript(script);
+      } catch (err: any) {
+        setError(err.message || 'Failed to generate briefing.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    generateBriefing();
+  };
 
   const handlePlay = () => {
       if (!briefingScript) return;
       
       const briefingArticle: Article = {
-          id: -1, // Special ID for the briefing
+          id: -1, 
           title: "Your Daily News Briefing",
           author: "Mahama News AI",
           content: briefingScript,
@@ -89,21 +93,42 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
             </div>
         </div>
         <div className="p-6 flex-grow flex flex-col items-center justify-center">
-            {isLoading && (
+            {isLoading ? (
                 <>
                     <LoadingSpinner className="w-12 h-12 text-deep-red"/>
                     <p className="mt-4 text-lg font-semibold">Generating your personalized briefing...</p>
                     <p className="text-slate-500">This may take a moment.</p>
                 </>
-            )}
-            {error && <p className="text-red-500 text-center">{error}</p>}
-            {!isLoading && !error && briefingScript && (
+            ) : error ? (
+                <p className="text-red-500 text-center">{error}</p>
+            ) : briefingScript ? (
                 <div className="text-center">
                     <h4 className="text-xl font-bold">Your Briefing is Ready!</h4>
                     <p className="text-slate-600 dark:text-slate-400 my-4">Listen to a summary of today's top stories based on your interests.</p>
                     <button onClick={handlePlay} className="flex items-center gap-3 mx-auto px-6 py-3 bg-deep-red text-white font-bold rounded-full text-lg transform hover:scale-105 transition-transform">
                         <PlayCircleIcon className="w-8 h-8"/>
                         Play Now
+                    </button>
+                </div>
+            ) : (
+                <div className="text-center w-full max-w-sm">
+                    <h4 className="text-xl font-bold">Personalize Your Briefing</h4>
+                    <p className="text-slate-600 dark:text-slate-400 my-4">Choose a tone for your AI news anchor.</p>
+                    <div className="mb-4">
+                        <label htmlFor="persona-select" className="sr-only">AI Voice Personality</label>
+                        <select
+                            id="persona-select"
+                            value={localSettings.aiVoicePersonality}
+                            onChange={(e) => setLocalSettings(prev => ({...prev, aiVoicePersonality: e.target.value as Settings['aiVoicePersonality']}))}
+                            className="w-full p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold"
+                        >
+                            <option value="Friendly">Friendly & Casual</option>
+                            <option value="Professional">Professional & Formal</option>
+                            <option value="Witty">Witty & Engaging</option>
+                        </select>
+                    </div>
+                     <button onClick={handleGenerate} className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-deep-red text-white font-bold rounded-lg text-lg transform hover:scale-105 transition-transform">
+                        Generate Briefing
                     </button>
                 </div>
             )}

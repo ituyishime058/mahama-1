@@ -1,9 +1,9 @@
 
+
 import React, { useState } from 'react';
 import type { Settings } from '../types';
-import { categories, TTS_VOICES } from '../constants';
+import { TTS_VOICES } from '../constants';
 
-import CloseIcon from './icons/CloseIcon';
 import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
 import SparklesIcon from './icons/SparklesIcon';
@@ -13,47 +13,35 @@ import SansFontIcon from './icons/SansFontIcon';
 import SerifFontIcon from './icons/SerifFontIcon';
 import TrashIcon from './icons/TrashIcon';
 import DataIcon from './icons/DataIcon';
-import ContentFilterIcon from './icons/ContentFilterIcon';
-import TranslateIcon from './icons/TranslateIcon';
-import BellIcon from './icons/BellIcon';
-import MicIcon from './icons/MicIcon';
-import MagicWandIcon from './icons/MagicWandIcon';
 import TextToSpeechIcon from './icons/TextToSpeechIcon';
-import GlossaryIcon from './icons/GlossaryIcon';
 import CrownIcon from './icons/CrownIcon';
 import ProfileIcon from './icons/ProfileIcon';
 import DensityIcon from './icons/DensityIcon';
+import LayoutStandardIcon from './icons/LayoutStandardIcon';
+import LayoutDashboardIcon from './icons/LayoutDashboardIcon';
+import ShieldCheckIcon from './icons/ShieldCheckIcon';
 
 interface SettingsPageProps {
-  isOpen: boolean;
-  onClose: () => void;
   settings: Settings;
   onSettingsChange: (newSettings: Settings) => void;
+  onClose: () => void;
   onClearBookmarks: () => void;
   onClearOffline: () => void;
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ isOpen, onClose, settings, onSettingsChange, onClearBookmarks, onClearOffline }) => {
-  const [localSettings, setLocalSettings] = useState(settings);
+const settingsNav = [
+  { name: 'Appearance', icon: PaletteIcon },
+  { name: 'AI & Reading', icon: SparklesIcon },
+  { name: 'Account', icon: ProfileIcon },
+  { name: 'Data & Privacy', icon: ShieldCheckIcon },
+];
 
+const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onClose, onClearBookmarks, onClearOffline }) => {
+  const [localSettings, setLocalSettings] = useState(settings);
+  const [activeTab, setActiveTab] = useState('Appearance');
+  
   const handleSettingChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleNotificationChange = (key: keyof Settings['notificationPreferences']) => {
-    handleSettingChange('notificationPreferences', {
-      ...localSettings.notificationPreferences,
-      [key]: !localSettings.notificationPreferences[key],
-    });
-  };
-  
-  const handleTogglePreference = (category: string) => {
-    if (category === 'All' || category === 'For You') return;
-    const currentPrefs = localSettings.contentPreferences || [];
-    const newPrefs = currentPrefs.includes(category)
-        ? currentPrefs.filter(p => p !== category)
-        : [...currentPrefs, category];
-    handleSettingChange('contentPreferences', newPrefs);
   };
 
   const handleSave = () => {
@@ -63,33 +51,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ isOpen, onClose, settings, 
   
   const isPremium = localSettings.subscriptionTier === 'Premium';
 
-  return (
-    <div className={`fixed inset-0 z-[60] bg-slate-100 dark:bg-navy text-slate-800 dark:text-slate-200 ${isOpen ? 'animate-fade-in' : 'animate-fade-out pointer-events-none'}`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl h-screen flex flex-col">
-        <header className="flex items-center justify-between h-20 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <button onClick={handleSave} className="px-4 py-2 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save & Close</button>
-        </header>
-
-        <main className="py-8 flex-grow overflow-y-auto">
-          <div className="space-y-12">
-            
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CrownIcon className="text-gold"/> Subscription</h2>
-              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
-                <p>You are on the <span className={`font-bold ${isPremium ? 'text-gold' : ''}`}>{localSettings.subscriptionTier}</span> plan.</p>
-              </div>
-            </section>
-            
-            {/* Appearance Section */}
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><PaletteIcon /> Appearance</h2>
-              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-6">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'Appearance':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-2xl font-bold">Appearance</h3>
+            <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-6">
                 <div className="flex justify-between items-center">
                   <label className="font-semibold">Theme</label>
                   <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
-                    <button onClick={() => handleSettingChange('theme', 'light')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.theme === 'light' ? 'bg-white shadow' : ''}`}><SunIcon className="w-5 h-5 inline-block mr-1"/>Light</button>
-                    <button onClick={() => handleSettingChange('theme', 'dark')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.theme === 'dark' ? 'bg-navy shadow text-white' : ''}`}><MoonIcon className="w-5 h-5 inline-block mr-1"/>Dark</button>
+                    <button onClick={() => handleSettingChange('theme', 'light')} className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 ${localSettings.theme === 'light' ? 'bg-white shadow' : ''}`}><SunIcon className="w-5 h-5"/>Light</button>
+                    <button onClick={() => handleSettingChange('theme', 'dark')} className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 ${localSettings.theme === 'dark' ? 'bg-navy shadow text-white' : ''}`}><MoonIcon className="w-5 h-5"/>Dark</button>
                     <button onClick={() => handleSettingChange('theme', 'system')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.theme === 'system' ? 'bg-white dark:bg-navy shadow' : ''}`}>System</button>
                   </div>
                 </div>
@@ -107,76 +80,116 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ isOpen, onClose, settings, 
                     <button onClick={() => handleSettingChange('fontFamily', 'serif')} className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold ${localSettings.fontFamily === 'serif' ? 'bg-white dark:bg-navy shadow' : ''}`}><SerifFontIcon /> Serif</button>
                   </div>
                 </div>
-              </div>
-            </section>
-            
-             {/* Personalization Section */}
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ProfileIcon /> Personalization</h2>
-              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-6">
-                 <div className="flex justify-between items-center">
-                    <label className="font-semibold flex items-center gap-2"><ProfileIcon /> Reader Profile</label>
-                    <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
-                        <button onClick={() => {}} className={`px-3 py-1 rounded-full text-sm font-semibold bg-white dark:bg-navy shadow`}>Casual</button>
-                        <button onClick={() => {}} className={`px-3 py-1 rounded-full text-sm font-semibold`}>Student</button>
-                        <button onClick={() => {}} className={`px-3 py-1 rounded-full text-sm font-semibold`}>Expert</button>
-                    </div>
-                </div>
-                 <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center">
                     <label className="font-semibold flex items-center gap-2"><DensityIcon /> Visual Density</label>
                     <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                         <button onClick={() => handleSettingChange('informationDensity', 'Comfortable')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.informationDensity === 'Comfortable' ? 'bg-white dark:bg-navy shadow' : ''}`}>Comfortable</button>
                         <button onClick={() => handleSettingChange('informationDensity', 'Compact')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.informationDensity === 'Compact' ? 'bg-white dark:bg-navy shadow' : ''}`}>Compact</button>
                     </div>
                 </div>
-              </div>
-            </section>
-
-            {/* AI & Reading Experience Section */}
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><SparklesIcon className="text-gold" /> AI & Reading Experience</h2>
-              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
-                <div className="flex justify-between items-center pt-4 first:pt-0">
-                    <label className="font-semibold flex items-center gap-2"><SparklesIcon/> AI Model Preference</label>
-                    <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
-                        <button onClick={() => handleSettingChange('aiModelPreference', 'Speed')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Speed' ? 'bg-white dark:bg-navy shadow' : ''}`}>Speed</button>
-                        <button onClick={() => { if (isPremium) handleSettingChange('aiModelPreference', 'Quality')}} className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold transition-colors ${localSettings.aiModelPreference === 'Quality' ? 'bg-white dark:bg-navy shadow' : ''} ${!isPremium ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={!isPremium}>
-                            Quality
-                            {!isPremium && <CrownIcon className="w-4 h-4 text-gold"/>}
-                        </button>
+            </div>
+          </div>
+        );
+      case 'AI & Reading':
+        return (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-bold">AI & Reading Experience</h3>
+                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
+                    <div className="flex justify-between items-center pt-4 first:pt-0">
+                        <label className="font-semibold flex items-center gap-2"><SparklesIcon/> AI Model Preference</label>
+                        <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
+                            <button onClick={() => handleSettingChange('aiModelPreference', 'Speed')} className={`px-3 py-1 rounded-full text-sm font-semibold ${localSettings.aiModelPreference === 'Speed' ? 'bg-white dark:bg-navy shadow' : ''}`}>Speed</button>
+                            <button onClick={() => { if (isPremium) handleSettingChange('aiModelPreference', 'Quality')}} className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold transition-colors ${localSettings.aiModelPreference === 'Quality' ? 'bg-white dark:bg-navy shadow' : ''} ${!isPremium ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={!isPremium}>
+                                Quality {!isPremium && <CrownIcon className="w-4 h-4 text-gold"/>}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-4">
+                        <label className="font-semibold flex items-center gap-2"><TextToSpeechIcon className="w-5 h-5"/> Text-to-Speech Voice</label>
+                        <select
+                            value={localSettings.ttsVoice}
+                            onChange={(e) => handleSettingChange('ttsVoice', e.target.value as Settings['ttsVoice'])}
+                            className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold max-w-[50%]"
+                        >
+                            {TTS_VOICES.map(voice => (<option key={voice.value} value={voice.value}>{voice.name}</option>))}
+                        </select>
+                    </div>
+                     <div className="flex justify-between items-center pt-4">
+                        <label className="font-semibold flex items-center gap-2">AI Voice Personality</label>
+                         <select
+                            value={localSettings.aiVoicePersonality}
+                            onChange={(e) => handleSettingChange('aiVoicePersonality', e.target.value as Settings['aiVoicePersonality'])}
+                            className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold"
+                        >
+                            <option value="Friendly">Friendly</option>
+                            <option value="Professional">Professional</option>
+                            <option value="Witty">Witty</option>
+                        </select>
                     </div>
                 </div>
-                
-                 <div className="flex justify-between items-center pt-4">
-                  <label className="font-semibold flex items-center gap-2"><TextToSpeechIcon className="w-5 h-5"/> Text-to-Speech Voice</label>
-                  <select
-                      value={localSettings.ttsVoice}
-                      onChange={(e) => handleSettingChange('ttsVoice', e.target.value as Settings['ttsVoice'])}
-                      className="p-2 bg-slate-100 dark:bg-slate-700 rounded-md border-slate-300 dark:border-slate-600 font-semibold max-w-[50%]"
-                  >
-                     {TTS_VOICES.map(voice => (
-                         <option key={voice.value} value={voice.value}>{voice.name}</option>
-                     ))}
-                  </select>
+            </div>
+        );
+      case 'Account':
+        return (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-bold">Account</h3>
+                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
+                    <p>You are on the <span className={`font-bold ${isPremium ? 'text-gold' : ''}`}>{localSettings.subscriptionTier}</span> plan.</p>
                 </div>
-              </div>
-            </section>
-            
-            {/* Data Management Section */}
-            <section>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><DataIcon /> Data Management</h2>
-              <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4">
-                 <button onClick={onClearBookmarks} className="w-full flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
-                    <span className="font-semibold">Clear All Bookmarks</span>
-                    <TrashIcon className="w-5 h-5 text-red-500" />
-                 </button>
-                 <button onClick={onClearOffline} className="w-full flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
-                    <span className="font-semibold">Clear All Offline Articles</span>
-                    <TrashIcon className="w-5 h-5 text-red-500" />
-                 </button>
-              </div>
-            </section>
-          </div>
+            </div>
+        );
+      case 'Data & Privacy':
+        return (
+            <div className="space-y-6">
+                <h3 className="text-2xl font-bold">Data & Privacy</h3>
+                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4">
+                    <button onClick={onClearBookmarks} className="w-full flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
+                        <span className="font-semibold">Clear All Bookmarks</span>
+                        <TrashIcon className="w-5 h-5 text-red-500" />
+                    </button>
+                    <button onClick={onClearOffline} className="w-full flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
+                        <span className="font-semibold">Clear All Offline Articles</span>
+                        <TrashIcon className="w-5 h-5 text-red-500" />
+                    </button>
+                </div>
+            </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="container mx-auto max-w-6xl py-8">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-4xl font-extrabold">Settings</h1>
+        <button onClick={handleSave} className="px-6 py-3 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save & Close</button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <aside className="md:col-span-1">
+          <nav className="space-y-2 sticky top-28">
+            {settingsNav.map(item => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.name;
+              return (
+                <button 
+                  key={item.name} 
+                  onClick={() => setActiveTab(item.name)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left font-semibold transition-colors ${
+                    isActive 
+                      ? 'bg-deep-red/10 text-deep-red dark:bg-gold/20 dark:text-gold' 
+                      : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Icon className="w-6 h-6" />
+                  <span>{item.name}</span>
+                </button>
+              )
+            })}
+          </nav>
+        </aside>
+        <main className="md:col-span-3">
+          {renderContent()}
         </main>
       </div>
     </div>

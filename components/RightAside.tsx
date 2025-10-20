@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Article, Settings } from '../types';
 import TrendingNews from './TrendingNews';
-import AdPlaceholder from './AdPlaceholder';
+import InteractiveAd from './InteractiveAd';
 import CommunityPoll from './CommunityPoll';
 import WeatherWidget from './WeatherWidget';
 import SubscriptionCard from './SubscriptionCard';
@@ -18,9 +18,8 @@ interface RightAsideProps {
 
 const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle, settings, onGoPremium }) => {
   return (
-    <div className="hidden lg:block lg:col-span-1">
-      <div className="lg:sticky top-28 h-[calc(100vh-7rem)]">
-        <div className="h-full overflow-y-auto space-y-8 pr-2 scrollbar-thin">
+    <div className="lg:col-span-1">
+      <div className="lg:sticky top-28 space-y-8">
             {activeArticle ? (
               <>
                 <ArticleCompanion article={activeArticle} settings={settings} />
@@ -32,22 +31,9 @@ const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClic
                 <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
                 <WeatherWidget />
                 <CommunityPoll />
-                {settings.subscriptionTier === 'Free' && <AdPlaceholder />}
+                {settings.subscriptionTier === 'Free' && <InteractiveAd />}
               </>
             )}
-        </div>
-         <style>{`
-            .scrollbar-thin::-webkit-scrollbar {
-              width: 5px;
-            }
-            .scrollbar-thin::-webkit-scrollbar-thumb {
-              background-color: #9ca3af;
-              border-radius: 10px;
-            }
-            .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-              background-color: #4b5563;
-            }
-        `}</style>
       </div>
     </div>
   );

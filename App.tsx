@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 // FIX: Import `stockData` from './constants'.
 import { mockArticles, mockPodcasts, categories, stockData } from './constants';
@@ -93,6 +94,7 @@ const App: React.FC = () => {
     const [activeMovie, setActiveMovie] = useState<StreamingContent | null>(null);
     const [currentCategory, setCurrentCategory] = useState('For You');
     const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Modal states
     const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -191,17 +193,20 @@ const App: React.FC = () => {
         setActiveArticle(article);
         setActiveMovie(null);
         setActiveModal(null);
+        setIsSettingsOpen(false);
     };
     
     const handleWatchMovie = (movie: StreamingContent) => {
         setActiveMovie(movie);
         setActiveArticle(null);
         setActiveModal(null);
+        setIsSettingsOpen(false);
     };
 
     const handleCloseArticle = () => {
         setActiveArticle(null);
         setActiveMovie(null);
+        setIsSettingsOpen(false);
     };
 
     const toggleBookmark = (id: number) => {
@@ -284,119 +289,106 @@ const App: React.FC = () => {
     
     const isDashboard = settings.homepageLayout === 'Dashboard';
 
-    const pageContent = (
+    const renderHomePage = () => (
         <>
-            {!activeArticle && !activeMovie && activeModal !== 'settings' && (
-                <>
-                    {!isDashboard && <Hero article={mockArticles[0]} onReadMore={() => handleReadMore(mockArticles[0])} />}
-                    <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
-                    
-                    <div className={isDashboard ? "mt-4" : "mt-8"}>
-                        <FilterBar 
-                            categories={categories} 
-                            currentCategory={currentCategory} 
-                            currentSubCategory={currentSubCategory}
-                            onSelectCategory={handleSelectCategory}
-                            onSelectSubCategory={handleSelectSubCategory}
-                            onGenerateBriefing={() => openModal('briefing')}
-                            subscriptionTier={settings.subscriptionTier}
-                        />
-                    </div>
+            {!isDashboard && <Hero article={mockArticles[0]} onReadMore={() => handleReadMore(mockArticles[0])} />}
+            <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
+            
+            <div className={isDashboard ? "mt-4" : "mt-8"}>
+                <FilterBar 
+                    categories={categories} 
+                    currentCategory={currentCategory} 
+                    currentSubCategory={currentSubCategory}
+                    onSelectCategory={handleSelectCategory}
+                    onSelectSubCategory={handleSelectSubCategory}
+                    onGenerateBriefing={() => openModal('briefing')}
+                    subscriptionTier={settings.subscriptionTier}
+                />
+            </div>
 
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        {isDashboard && <h1 className="text-3xl font-extrabold mb-6">Your Dashboard</h1>}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2">
-                                <GlobalHighlights
-                                    articles={filteredArticles}
-                                    onSummarize={(a) => openModal('summarize', a)}
-                                    onExplainSimply={(a) => openModal('explain', a)}
-                                    onTextToSpeech={(a) => setTtsModalArticle(a)}
-                                    onTranslate={(a) => openModal('translate', a)}
-                                    onReadMore={handleReadMore}
-                                    audioState={{playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false}}
-                                    bookmarkedArticleIds={bookmarkedArticleIds}
-                                    onToggleBookmark={toggleBookmark}
-                                    offlineArticleIds={offlineArticleIds}
-                                    downloadingArticleId={downloadingArticleId}
-                                    onDownloadArticle={handleDownloadArticle}
-                                    layout={isDashboard ? 'grid' : 'default'}
-                                />
-                                <LiveStream />
-                                <Mahama360 articles={mockArticles.slice(2, 5)} />
-                                <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />
-                                <DataDrivenInsights />
-                                <PodcastHub 
-                                    podcasts={mockPodcasts} 
-                                    activePodcast={activePodcast} 
-                                    isPodcastPlaying={isPodcastPlaying} 
-                                    onPlay={handlePlayPodcast}
-                                />
-                                {settings.showInnovationTimelines && <InnovationTimeline />}
-                                {settings.showNowStreaming && <NowStreaming onWatchMovie={handleWatchMovie} />}
-                            </div>
-                            <RightAside
-                                trendingArticles={mockArticles.slice(5, 10)}
-                                onArticleClick={handleReadMore}
-                                activeArticle={null}
-                                settings={settings}
-                                onGoPremium={() => openModal('subscribe')}
-                            />
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {(activeArticle || activeMovie || activeModal === 'settings') && (
-                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2">
-                            {activeArticle && (
-                                <ArticlePage
-                                    article={activeArticle}
-                                    onClose={handleCloseArticle}
-                                    isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
-                                    onToggleBookmark={toggleBookmark}
-                                    onReadMore={handleReadMore}
-                                    onSummarize={(a) => openModal('summarize', a)}
-                                    onExplainSimply={(a) => openModal('explain', a)}
-                                    onTextToSpeech={(a) => setTtsModalArticle(a)}
-                                    onTranslate={(a) => openModal('translate', a)}
-                                    onQuiz={(a) => openModal('quiz', a)}
-                                    onCounterpoint={(a) => openModal('counterpoint', a)}
-                                    onBehindTheNews={(a) => openModal('behindTheNews', a)}
-                                    onExpertAnalysis={(a) => openModal('expertAnalysis', a)}
-                                    onAskAuthor={(a) => openModal('askAuthor', a)}
-                                    onFactCheckPage={(a) => openModal('factCheckPage', a)}
-                                    onDeepDive={(a) => openModal('deepDive', a)}
-                                    settings={settings}
-                                    onPremiumClick={() => openModal('subscribe')}
-                                />
-                            )}
-                            {activeMovie && (
-                                <MoviePlayerPage movie={activeMovie} onClose={handleCloseArticle} onWatchMovie={handleWatchMovie} />
-                            )}
-                            {activeModal === 'settings' && (
-                                <SettingsPage 
-                                    settings={settings} 
-                                    onSettingsChange={handleSettingsChange} 
-                                    onClose={closeModal}
-                                    onClearBookmarks={() => { setBookmarkedArticleIds([]); localStorage.removeItem('mahamaNewsBookmarks'); }} 
-                                    onClearOffline={async () => { await clearAllOfflineArticles(); setOfflineArticleIds([]); setOfflineArticles([]); }} 
-                                />
-                            )}
-                        </div>
-                        <RightAside 
-                            trendingArticles={mockArticles.slice(5, 10)}
-                            onArticleClick={handleReadMore}
-                            activeArticle={activeArticle}
-                            settings={settings}
-                            onGoPremium={() => openModal('subscribe')}
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        {isDashboard && <h1 className="text-3xl font-extrabold mb-2">Your Dashboard</h1>}
+                        <GlobalHighlights
+                            articles={filteredArticles}
+                            onSummarize={(a) => openModal('summarize', a)}
+                            onExplainSimply={(a) => openModal('explain', a)}
+                            onTextToSpeech={(a) => setTtsModalArticle(a)}
+                            onTranslate={(a) => openModal('translate', a)}
+                            onReadMore={handleReadMore}
+                            audioState={{playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false}}
+                            bookmarkedArticleIds={bookmarkedArticleIds}
+                            onToggleBookmark={toggleBookmark}
+                            offlineArticleIds={offlineArticleIds}
+                            downloadingArticleId={downloadingArticleId}
+                            onDownloadArticle={handleDownloadArticle}
+                            layout={isDashboard ? 'grid' : 'default'}
                         />
+                        <LiveStream />
+                        <Mahama360 articles={mockArticles.slice(2, 5)} />
+                        <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />
+                        <DataDrivenInsights />
+                        <PodcastHub 
+                            podcasts={mockPodcasts} 
+                            activePodcast={activePodcast} 
+                            isPodcastPlaying={isPodcastPlaying} 
+                            onPlay={handlePlayPodcast}
+                        />
+                        {settings.showInnovationTimelines && <InnovationTimeline />}
+                        {settings.showNowStreaming && <NowStreaming onWatchMovie={handleWatchMovie} />}
                     </div>
+                    <RightAside
+                        trendingArticles={mockArticles.slice(5, 10)}
+                        onArticleClick={handleReadMore}
+                        activeArticle={null}
+                        settings={settings}
+                        onGoPremium={() => openModal('subscribe')}
+                    />
                 </div>
-            )}
+            </div>
         </>
+    );
+
+    const renderContentPage = () => (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    {activeArticle && (
+                        <ArticlePage
+                            article={activeArticle}
+                            onClose={handleCloseArticle}
+                            isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
+                            onToggleBookmark={toggleBookmark}
+                            onReadMore={handleReadMore}
+                            onSummarize={(a) => openModal('summarize', a)}
+                            onExplainSimply={(a) => openModal('explain', a)}
+                            onTextToSpeech={(a) => setTtsModalArticle(a)}
+                            onTranslate={(a) => openModal('translate', a)}
+                            onQuiz={(a) => openModal('quiz', a)}
+                            onCounterpoint={(a) => openModal('counterpoint', a)}
+                            onBehindTheNews={(a) => openModal('behindTheNews', a)}
+                            onExpertAnalysis={(a) => openModal('expertAnalysis', a)}
+                            onAskAuthor={(a) => openModal('askAuthor', a)}
+                            onFactCheckPage={(a) => openModal('factCheckPage', a)}
+                            onDeepDive={(a) => openModal('deepDive', a)}
+                            settings={settings}
+                            onPremiumClick={() => openModal('subscribe')}
+                        />
+                    )}
+                    {activeMovie && (
+                        <MoviePlayerPage movie={activeMovie} onClose={handleCloseArticle} onWatchMovie={handleWatchMovie} />
+                    )}
+                </div>
+                <RightAside 
+                    trendingArticles={mockArticles.slice(5, 10)}
+                    onArticleClick={handleReadMore}
+                    activeArticle={activeArticle}
+                    settings={settings}
+                    onGoPremium={() => openModal('subscribe')}
+                />
+            </div>
+        </div>
     );
 
     return (
@@ -404,7 +396,7 @@ const App: React.FC = () => {
             <Header
                 onMenuClick={() => openModal('menu')}
                 onSearchClick={() => openModal('search')}
-                onSettingsClick={() => openModal('settings')}
+                onSettingsClick={() => setIsSettingsOpen(true)}
                 onLogoClick={handleCloseArticle}
                 categories={categories.map(c => c.name)}
                 onSelectCategory={setCurrentCategory}
@@ -414,7 +406,19 @@ const App: React.FC = () => {
             />
             
             <main className="pt-20">
-                {pageContent}
+                {isSettingsOpen ? (
+                     <SettingsPage 
+                        settings={settings} 
+                        onSettingsChange={handleSettingsChange} 
+                        onClose={() => setIsSettingsOpen(false)}
+                        onClearBookmarks={() => { setBookmarkedArticleIds([]); localStorage.removeItem('mahamaNewsBookmarks'); }} 
+                        onClearOffline={async () => { await clearAllOfflineArticles(); setOfflineArticleIds([]); setOfflineArticles([]); }} 
+                    />
+                ) : activeArticle || activeMovie ? (
+                    renderContentPage()
+                ) : (
+                    renderHomePage()
+                )}
             </main>
             
             <Footer />
@@ -441,7 +445,7 @@ const App: React.FC = () => {
             <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={(plan) => { if(plan === 'Premium') { handleSettingsChange({...settings, subscriptionTier: 'Premium' }); } closeModal(); }} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
-            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories.map(c => c.name)} onCategorySelect={(c) => { setCurrentCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => openModal('settings')} />
+            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories.map(c => c.name)} onCategorySelect={(c) => { setCurrentCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             

@@ -65,12 +65,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   );
 
   return (
-    <article className={`bg-white dark:bg-slate-800/50 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl ${featured ? 'flex flex-col lg:flex-row' : ''}`}>
-      <div className={`${featured ? 'lg:w-1/2' : ''} relative`}>
+    <article className={`group bg-white dark:bg-slate-800/50 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold/20 dark:hover:shadow-gold/10 ${featured ? 'flex flex-col lg:flex-row' : ''}`}>
+      <div className={`${featured ? 'lg:w-1/2' : ''} relative overflow-hidden`}>
         <img
           src={article.imageUrl}
           alt={article.title}
-          className={`w-full object-cover ${featured ? 'h-full' : 'h-64'}`}
+          className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${featured ? 'h-full' : 'h-64'}`}
         />
         <div className="absolute top-4 left-4 bg-deep-red text-white text-xs font-bold px-2 py-1 rounded">{article.category}</div>
       </div>
@@ -81,7 +81,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <SentimentIndicator sentiment={article.sentiment} />
           </div>
           <h3 className={`font-extrabold leading-tight mb-3 ${featured ? 'text-3xl' : 'text-2xl'}`}>
-            <a href="#" onClick={handleReadMore} className="hover:underline">{article.title}</a>
+            <a href="#" onClick={handleReadMore} className="group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-300">{article.title}</a>
           </h3>
           <p className="text-slate-600 dark:text-slate-400 mb-4 density-compact:text-sm">{article.excerpt}</p>
         </div>
