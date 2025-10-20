@@ -27,15 +27,17 @@ const ThisDayInHistory: React.FC = () => {
   const formattedContent = useMemo(() => {
     if (!content) return [];
     return content.split('## ').filter(s => s.trim() !== '').map(s => {
-        const [title, description] = s.split(':');
-        return { title: title?.trim(), description: description?.trim() };
+        const parts = s.split('\n');
+        const title = parts[0]?.trim() || '';
+        const description = parts.slice(1).join(' ').trim();
+        return { title, description };
     });
   }, [content]);
 
   return (
     <aside className="p-6 rounded-lg shadow-lg text-white relative overflow-hidden bg-gradient-to-br from-slate-700 via-navy to-slate-800">
-      <h2 className="text-2xl font-extrabold mb-4 border-l-4 border-gold pl-3 flex items-center gap-2">
-        <ClockIcon className="w-6 h-6" />
+      <h2 className="text-xl font-extrabold mb-4 border-l-4 border-gold pl-3 flex items-center gap-2">
+        <ClockIcon className="w-5 h-5" />
         This Day in History
       </h2>
       {isLoading ? (
@@ -43,7 +45,7 @@ const ThisDayInHistory: React.FC = () => {
           <LoadingSpinner />
         </div>
       ) : error ? (
-        <p className="text-red-400">{error}</p>
+        <p className="text-red-400 text-sm">{error}</p>
       ) : (
         <div className="space-y-4">
           {formattedContent.map((event, index) => (

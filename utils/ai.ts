@@ -362,7 +362,7 @@ export async function applyReadingLens(content: string, lens: 'Simplify' | 'Defi
 }
 
 // 15. extractKeyConcepts
-export async function extractKeyConcepts(article: Article, settings: Settings): Promise<KeyConcept[]> {
+export const extractKeyConcepts = async (article: Article, settings: Settings): Promise<KeyConcept[]> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings);
     const prompt = `Identify the key people, locations, organizations, and concepts from the following article. For each, provide a brief, one-sentence description. Return the result as a JSON array. Each object should have "term" (string), "description" (string), and "type" (one of "Person", "Location", "Organization", "Concept").\n\nArticle: ${article.content}`;
@@ -669,7 +669,7 @@ export const getThisDayInHistory = async (): Promise<string> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
-    const prompt = `Using Google Search, tell me about two significant and interesting historical events that happened on this day, ${today}. For each event, provide a title using markdown like '## Year - Event Title' and a one-sentence summary.`;
+    const prompt = `Using Google Search, tell me about two significant and interesting historical events that happened on this day, ${today}. For each event, provide a title using markdown like '## Year - Event Title' and a one-sentence summary on the next line.`;
     
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
