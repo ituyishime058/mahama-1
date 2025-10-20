@@ -1,5 +1,5 @@
-
 import React from 'react';
+import type { Category } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import Logo from './Logo';
 import BookmarkIcon from './icons/BookmarkIcon';
@@ -9,7 +9,7 @@ import SettingsIcon from './icons/SettingsIcon';
 interface CategoryMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  categories: string[];
+  categories: Category[];
   onCategorySelect: (category: string) => void;
   onBookmarksClick: () => void;
   onOfflineClick: () => void;
@@ -62,9 +62,11 @@ const CategoryMenu: React.FC<CategoryMenuProps> = ({
         
         <nav className="py-8 flex-grow overflow-y-auto">
           <ul className="space-y-2">
-            {categories.map((category, index) => (
+            {categories.map((category, index) => {
+              const Icon = category.icon;
+              return (
               <li 
-                key={category}
+                key={category.name}
                 className="transition-all duration-500"
                 style={{ 
                   transitionDelay: `${index * 30}ms`,
@@ -76,14 +78,15 @@ const CategoryMenu: React.FC<CategoryMenuProps> = ({
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    onCategorySelect(category);
+                    onCategorySelect(category.name);
                   }}
-                  className="block py-4 px-4 text-2xl font-semibold text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center gap-4 py-4 px-4 text-2xl font-semibold text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
                 >
-                  {category}
+                  <Icon className="w-6 h-6 text-deep-red dark:text-gold" />
+                  {category.name}
                 </a>
               </li>
-            ))}
+            )})}
           </ul>
         </nav>
       </div>

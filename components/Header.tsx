@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import MenuIcon from './icons/MenuIcon';
@@ -12,8 +10,6 @@ interface HeaderProps {
   onSearchClick: () => void;
   onSettingsClick: () => void;
   onLogoClick: () => void;
-  categories: string[];
-  onSelectCategory: (category: string) => void;
   isAuthenticated: boolean;
   onLoginClick: () => void;
   onLogout: () => void;
@@ -24,8 +20,6 @@ const Header: React.FC<HeaderProps> = ({
   onSearchClick,
   onSettingsClick,
   onLogoClick,
-  categories,
-  onSelectCategory,
   isAuthenticated,
   onLoginClick,
   onLogout,

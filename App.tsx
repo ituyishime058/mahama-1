@@ -1,7 +1,4 @@
-
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-// FIX: Import `stockData` from './constants'.
 import { mockArticles, mockPodcasts, categories, stockData } from './constants';
 import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
@@ -21,14 +18,13 @@ import NewsMap from './components/NewsMap';
 import DataDrivenInsights from './components/DataDrivenInsights';
 import PodcastHub from './components/PodcastHub';
 import InnovationTimeline from './components/InnovationTimeline';
-import NowStreaming from './components/NowStreaming';
 import Footer from './components/Footer';
 import ScrollProgressBar from './components/ScrollProgressBar';
+import MoviesTVPage from './components/MoviesTVPage';
 
 // Modal Imports
 import SummarizerModal from './components/SummarizerModal';
 import ExplainSimplyModal from './components/ExplainSimplyModal';
-import TranslationModal from './components/TranslationModal';
 import QuizModal from './components/QuizModal';
 import CounterpointModal from './components/CounterpointModal';
 import BehindTheNewsModal from './components/BehindTheNewsModal';
@@ -40,7 +36,6 @@ import BookmarksModal from './components/BookmarksModal';
 import OfflineModal from './components/OfflineModal';
 import SettingsPage from './components/SettingsPage';
 import LoginModal from './components/LoginModal';
-import TrailerModal from './components/TrailerModal';
 import MoviePlayerPage from './components/MoviePlayerPage';
 import SubscriptionModal from './components/SubscriptionModal';
 import NewsBriefingModal from './components/NewsBriefingModal';
@@ -92,6 +87,7 @@ const App: React.FC = () => {
     // Page state
     const [activeArticle, setActiveArticle] = useState<Article | null>(null);
     const [activeMovie, setActiveMovie] = useState<StreamingContent | null>(null);
+    const [isMoviesPage, setIsMoviesPage] = useState(false);
     const [currentCategory, setCurrentCategory] = useState('For You');
     const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -113,11 +109,6 @@ const App: React.FC = () => {
     
     // Audio Player
     const [audioPlayerState, setAudioPlayerState] = useState<AudioPlayerState | null>(null);
-    const [activePodcast, setActivePodcast] = useState<Podcast | null>(null);
-    const [isPodcastPlaying, setIsPodcastPlaying] = useState(false);
-
-    // Trailer Modal
-    const [trailerUrl, setTrailerUrl] = useState<string | null>(null);
     
     // Apply theme
     useEffect(() => {
@@ -194,6 +185,7 @@ const App: React.FC = () => {
         setActiveMovie(null);
         setActiveModal(null);
         setIsSettingsOpen(false);
+        setIsMoviesPage(false);
     };
     
     const handleWatchMovie = (movie: StreamingContent) => {
@@ -201,12 +193,16 @@ const App: React.FC = () => {
         setActiveArticle(null);
         setActiveModal(null);
         setIsSettingsOpen(false);
+        setIsMoviesPage(false);
     };
 
-    const handleCloseArticle = () => {
+    const handleCloseContent = () => {
         setActiveArticle(null);
         setActiveMovie(null);
         setIsSettingsOpen(false);
+        setIsMoviesPage(false);
+        setCurrentCategory('For You');
+        setCurrentSubCategory(null);
     };
 
     const toggleBookmark = (id: number) => {
@@ -236,15 +232,6 @@ const App: React.FC = () => {
         setOfflineArticles(await getOfflineArticles());
     };
 
-    const handlePlayPodcast = (podcast: Podcast) => {
-        if(activePodcast?.id === podcast.id) {
-            setIsPodcastPlaying(!isPodcastPlaying);
-        } else {
-            setActivePodcast(podcast);
-            setIsPodcastPlaying(true);
-        }
-    };
-
     const handlePlayBriefing = (briefingArticle: Article) => {
         setAudioPlayerState({ article: briefingArticle });
     };
@@ -261,7 +248,6 @@ const App: React.FC = () => {
 
     const filteredArticles = useMemo(() => {
         if (currentCategory === 'All' || currentCategory === 'For You') {
-            setCurrentSubCategory(null);
             return mockArticles;
         }
         
@@ -278,12 +264,18 @@ const App: React.FC = () => {
     }, [currentCategory, currentSubCategory]);
 
     const handleSelectCategory = (category: string) => {
+        if (category === "Movies & TV") {
+            setIsMoviesPage(true);
+            setActiveArticle(null);
+            setActiveMovie(null);
+        } else {
+            setIsMoviesPage(false);
+        }
         setCurrentCategory(category);
         setCurrentSubCategory(null);
     };
 
-    const handleSelectSubCategory = (category: string, subCategory: string) => {
-        setCurrentCategory(category);
+    const handleSelectSubCategory = (subCategory: string) => {
         setCurrentSubCategory(subCategory);
     };
     
@@ -294,58 +286,54 @@ const App: React.FC = () => {
             {!isDashboard && <Hero article={mockArticles[0]} onReadMore={() => handleReadMore(mockArticles[0])} />}
             <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
             
-            <div className={isDashboard ? "mt-4" : "mt-8"}>
-                <FilterBar 
-                    categories={categories} 
-                    currentCategory={currentCategory} 
-                    currentSubCategory={currentSubCategory}
-                    onSelectCategory={handleSelectCategory}
-                    onSelectSubCategory={handleSelectSubCategory}
-                    onGenerateBriefing={() => openModal('briefing')}
-                    subscriptionTier={settings.subscriptionTier}
-                />
-            </div>
+            <FilterBar 
+                categories={categories} 
+                currentCategory={currentCategory} 
+                currentSubCategory={currentSubCategory}
+                onSelectCategory={handleSelectCategory}
+                onSelectSubCategory={handleSelectSubCategory}
+                onGenerateBriefing={() => openModal('briefing')}
+                subscriptionTier={settings.subscriptionTier}
+            />
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-8">
-                        {isDashboard && <h1 className="text-3xl font-extrabold mb-2">Your Dashboard</h1>}
-                        <GlobalHighlights
-                            articles={filteredArticles}
-                            onSummarize={(a) => openModal('summarize', a)}
-                            onExplainSimply={(a) => openModal('explain', a)}
-                            onTextToSpeech={(a) => setTtsModalArticle(a)}
-                            onTranslate={(a) => openModal('translate', a)}
-                            onReadMore={handleReadMore}
-                            audioState={{playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false}}
-                            bookmarkedArticleIds={bookmarkedArticleIds}
-                            onToggleBookmark={toggleBookmark}
-                            offlineArticleIds={offlineArticleIds}
-                            downloadingArticleId={downloadingArticleId}
-                            onDownloadArticle={handleDownloadArticle}
-                            layout={isDashboard ? 'grid' : 'default'}
+                {isMoviesPage ? (
+                    <MoviesTVPage onWatchMovie={handleWatchMovie} />
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-8">
+                            {isDashboard && <h1 className="text-3xl font-extrabold mb-2">Your Dashboard</h1>}
+                            <GlobalHighlights
+                                articles={filteredArticles}
+                                onSummarize={(a) => openModal('summarize', a)}
+                                onExplainSimply={(a) => openModal('explain', a)}
+                                onTextToSpeech={(a) => setTtsModalArticle(a)}
+                                onTranslate={(a) => setTtsModalArticle(a)} // Re-using TTS modal for translate & listen
+                                onReadMore={handleReadMore}
+                                audioState={{playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false}}
+                                bookmarkedArticleIds={bookmarkedArticleIds}
+                                onToggleBookmark={toggleBookmark}
+                                offlineArticleIds={offlineArticleIds}
+                                downloadingArticleId={downloadingArticleId}
+                                onDownloadArticle={handleDownloadArticle}
+                                layout={isDashboard ? 'grid' : 'default'}
+                            />
+                            <LiveStream />
+                            <Mahama360 articles={mockArticles.slice(2, 5)} />
+                            <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />
+                            <DataDrivenInsights />
+                            <PodcastHub podcasts={mockPodcasts} />
+                            {settings.showInnovationTimelines && <InnovationTimeline />}
+                        </div>
+                        <RightAside
+                            trendingArticles={mockArticles.slice(5, 10)}
+                            onArticleClick={handleReadMore}
+                            activeArticle={null}
+                            settings={settings}
+                            onGoPremium={() => openModal('subscribe')}
                         />
-                        <LiveStream />
-                        <Mahama360 articles={mockArticles.slice(2, 5)} />
-                        <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />
-                        <DataDrivenInsights />
-                        <PodcastHub 
-                            podcasts={mockPodcasts} 
-                            activePodcast={activePodcast} 
-                            isPodcastPlaying={isPodcastPlaying} 
-                            onPlay={handlePlayPodcast}
-                        />
-                        {settings.showInnovationTimelines && <InnovationTimeline />}
-                        {settings.showNowStreaming && <NowStreaming onWatchMovie={handleWatchMovie} />}
                     </div>
-                    <RightAside
-                        trendingArticles={mockArticles.slice(5, 10)}
-                        onArticleClick={handleReadMore}
-                        activeArticle={null}
-                        settings={settings}
-                        onGoPremium={() => openModal('subscribe')}
-                    />
-                </div>
+                )}
             </div>
         </>
     );
@@ -357,14 +345,14 @@ const App: React.FC = () => {
                     {activeArticle && (
                         <ArticlePage
                             article={activeArticle}
-                            onClose={handleCloseArticle}
+                            onClose={handleCloseContent}
                             isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
                             onToggleBookmark={toggleBookmark}
                             onReadMore={handleReadMore}
                             onSummarize={(a) => openModal('summarize', a)}
                             onExplainSimply={(a) => openModal('explain', a)}
                             onTextToSpeech={(a) => setTtsModalArticle(a)}
-                            onTranslate={(a) => openModal('translate', a)}
+                            onTranslate={(a) => setTtsModalArticle(a)}
                             onQuiz={(a) => openModal('quiz', a)}
                             onCounterpoint={(a) => openModal('counterpoint', a)}
                             onBehindTheNews={(a) => openModal('behindTheNews', a)}
@@ -377,7 +365,7 @@ const App: React.FC = () => {
                         />
                     )}
                     {activeMovie && (
-                        <MoviePlayerPage movie={activeMovie} onClose={handleCloseArticle} onWatchMovie={handleWatchMovie} />
+                        <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />
                     )}
                 </div>
                 <RightAside 
@@ -397,9 +385,7 @@ const App: React.FC = () => {
                 onMenuClick={() => openModal('menu')}
                 onSearchClick={() => openModal('search')}
                 onSettingsClick={() => setIsSettingsOpen(true)}
-                onLogoClick={handleCloseArticle}
-                categories={categories.map(c => c.name)}
-                onSelectCategory={setCurrentCategory}
+                onLogoClick={handleCloseContent}
                 isAuthenticated={isAuthenticated}
                 onLoginClick={() => openModal('login')}
                 onLogout={() => setIsAuthenticated(false)}
@@ -430,7 +416,6 @@ const App: React.FC = () => {
             {/* Modals */}
             <SummarizerModal isOpen={activeModal === 'summarize'} onClose={closeModal} article={modalArticle} settings={settings} />
             <ExplainSimplyModal isOpen={activeModal === 'explain'} onClose={closeModal} article={modalArticle} settings={settings} />
-            <TranslationModal isOpen={activeModal === 'translate'} onClose={closeModal} article={modalArticle} settings={settings} />
             <QuizModal isOpen={activeModal === 'quiz'} onClose={closeModal} article={modalArticle} settings={settings} />
             <CounterpointModal isOpen={activeModal === 'counterpoint'} onClose={closeModal} article={modalArticle} settings={settings} />
             <BehindTheNewsModal isOpen={activeModal === 'behindTheNews'} onClose={closeModal} article={modalArticle} settings={settings} />
@@ -445,12 +430,10 @@ const App: React.FC = () => {
             <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={(plan) => { if(plan === 'Premium') { handleSettingsChange({...settings, subscriptionTier: 'Premium' }); } closeModal(); }} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
-            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories.map(c => c.name)} onCategorySelect={(c) => { setCurrentCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
+            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={(c) => { handleSelectCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             
-            <TrailerModal isOpen={activeModal === 'trailer'} onClose={() => { setTrailerUrl(null); closeModal(); }} trailerUrl={trailerUrl} />
-
             <TextToSpeechModal 
                 isOpen={!!ttsModalArticle}
                 article={ttsModalArticle}

@@ -2,7 +2,6 @@ import React from 'react';
 import type { Article } from '../types';
 import SummarizeIcon from './icons/SummarizeIcon';
 import BrainIcon from './icons/BrainIcon';
-import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import BookmarkIcon from './icons/BookmarkIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import CheckIcon from './icons/CheckIcon';
@@ -91,9 +90,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         </div>
 
         <div className={`border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 ${isGridLayout ? 'flex-col items-start' : ''}`}>
-          <div className={`flex items-center gap-4 ${isGridLayout ? 'order-2 w-full justify-between' : ''}`}>
+          <div className={`flex items-center gap-4 flex-wrap ${isGridLayout ? 'order-2 w-full justify-start' : ''}`}>
             <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
             <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
+            <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Listen" />
           </div>
           <div className={`flex items-center gap-2 ${isGridLayout ? 'order-1 self-end mb-2' : ''}`}>
             <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}>
