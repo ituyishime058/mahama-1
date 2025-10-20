@@ -22,6 +22,7 @@ import InnovationTimeline from './components/InnovationTimeline';
 import Footer from './components/Footer';
 import ScrollProgressBar from './components/ScrollProgressBar';
 import MoviesTVPage from './components/MoviesTVPage';
+import SponsoredBanners from './components/SponsoredBanners';
 
 // Modal Imports
 import SummarizerModal from './components/SummarizerModal';
@@ -32,7 +33,7 @@ import BehindTheNewsModal from './components/BehindTheNewsModal';
 import ExpertAnalysisModal from './components/ExpertAnalysisModal';
 import AskAuthorModal from './components/AskAuthorModal';
 import SearchModal from './components/SearchModal';
-import CategoryMenu from './components/CategoryMenu';
+import MegaMenu from './components/CategoryMenu';
 import BookmarksModal from './components/BookmarksModal';
 import OfflineModal from './components/OfflineModal';
 import SettingsPage from './components/SettingsPage';
@@ -47,6 +48,7 @@ import FactCheckPageModal from './components/FactCheckPageModal';
 import TextToSpeechModal from './components/TextToSpeechModal';
 import DeepDiveModal from './components/DeepDiveModal';
 import InfographicModal from './components/InfographicModal';
+import PaymentModal from './components/PaymentModal';
 
 
 const defaultSettings: Settings = {
@@ -77,6 +79,8 @@ const defaultSettings: Settings = {
     subscriptionTier: 'Free',
     informationDensity: 'Comfortable',
 };
+
+const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic'];
 
 
 const App: React.FC = () => {
@@ -228,6 +232,10 @@ const App: React.FC = () => {
 
 
     const openModal = (modal: string, article?: Article) => {
+        if (premiumModals.includes(modal) && !isAuthenticated) {
+            setActiveModal('login');
+            return;
+        }
         setModalArticle(article || activeArticle || null);
         setActiveModal(modal);
     };
@@ -303,6 +311,21 @@ const App: React.FC = () => {
         setAudioPlayerState({ article: translatedArticle, voiceOverride: voice });
     };
 
+    const handleSubscribe = (plan: 'Free' | 'Premium') => {
+        if (plan === 'Premium') {
+            closeModal();
+            openModal('payment');
+        } else {
+            closeModal();
+        }
+    };
+
+    const handlePaymentSuccess = () => {
+        handleSettingsChange({...settings, subscriptionTier: 'Premium' });
+        if (!isAuthenticated) setIsAuthenticated(true);
+        closeModal();
+    };
+
     const filteredArticles = useMemo(() => {
         if (currentCategory === 'All' || currentCategory === 'For You') {
             return allArticles;
@@ -344,6 +367,7 @@ const App: React.FC = () => {
             
             <div className="sticky top-20 z-30">
                 <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
+                 <SponsoredBanners />
                 <FilterBar 
                     categories={categories} 
                     currentCategory={currentCategory} 
@@ -501,10 +525,11 @@ const App: React.FC = () => {
             
             <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} onArticleSelect={handleReadMore} />
             <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={() => { setIsAuthenticated(true); closeModal(); }} />
-            <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={(plan) => { if(plan === 'Premium') { handleSettingsChange({...settings, subscriptionTier: 'Premium' }); } closeModal(); }} />
+            <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={handleSubscribe} />
+            <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={{ name: 'Premium', price: '$9.99/month' }} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
-            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={(c) => { handleSelectCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
+            <MegaMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={(c) => { handleSelectCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             

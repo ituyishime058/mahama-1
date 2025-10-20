@@ -503,6 +503,30 @@ export const stockData: Stock[] = [
     { symbol: 'NVDA', price: 450.70, change: '-4.30', changePercent: '-0.95%' },
 ];
 
+export const mockSponsors = [
+  {
+    name: 'QuantumLeap AI',
+    logoUrl: 'https://i.imgur.com/gxsV3fW.png',
+    imageUrl: 'https://picsum.photos/seed/qai-bg/600/400',
+    tagline: 'Pioneering the next generation of artificial intelligence.',
+    website: 'https://example.com/quantumleap',
+  },
+  {
+    name: 'BioSynth Futures',
+    logoUrl: 'https://i.imgur.com/gxsV3fW.png',
+    imageUrl: 'https://picsum.photos/seed/bsf-bg/600/400',
+    tagline: 'Engineering biology for a sustainable tomorrow.',
+    website: 'https://example.com/biosynth',
+  },
+  {
+    name: 'Stellar Navigators',
+    logoUrl: 'https://i.imgur.com/gxsV3fW.png',
+    imageUrl: 'https://picsum.photos/seed/sn-bg/600/400',
+    tagline: 'Your partners in interplanetary exploration.',
+    website: 'https://example.com/stellar',
+  },
+];
+
 export const LANGUAGES: string[] = [
     "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", 
     "Kinyarwanda", "Swahili", "Italian", "Korean", "Dutch", "Turkish", "Polish", "Swedish", "Norwegian", 
@@ -647,8 +671,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     },
     {
         name: 'Premium',
-        price: '$9.99 / month',
-        priceYearly: '$99.99 / year',
+        price: '$9.99',
+        priceYearly: '$99.99',
         features: [
             'Everything in Free, plus:',
             'Ad-free experience',
