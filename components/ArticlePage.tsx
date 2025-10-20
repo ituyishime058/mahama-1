@@ -33,6 +33,7 @@ interface ArticlePageProps {
   onExpertAnalysis: (article: Article) => void;
   onAskAuthor: (article: Article) => void;
   onFactCheckPage: (article: Article) => void;
+  onDeepDive: (article: Article) => void;
   settings: Settings;
   onPremiumClick: () => void;
 }
@@ -53,6 +54,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onExpertAnalysis,
     onAskAuthor,
     onFactCheckPage,
+    onDeepDive,
     settings,
     onPremiumClick,
 }) => {
@@ -321,6 +323,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onExpertAnalysis={onExpertAnalysis}
             onAskAuthor={onAskAuthor}
             onFactCheckPage={onFactCheckPage}
+            onDeepDive={onDeepDive}
             showCounterpoint={settings.showCounterpoint}
             isZenMode={isZenMode}
             activeLens={activeLens}

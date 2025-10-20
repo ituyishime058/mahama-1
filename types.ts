@@ -1,4 +1,3 @@
-// FIX: Import React to provide types for React.FC and React.SVGProps.
 import React from 'react';
 
 export type Article = {
