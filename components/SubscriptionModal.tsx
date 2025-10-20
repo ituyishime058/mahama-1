@@ -8,7 +8,7 @@ import CrownIcon from './icons/CrownIcon';
 interface SubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubscribe: (plan: 'Free' | 'Premium') => void;
+  onSubscribe: (plan: 'Free' | 'Premium', priceDetails: { name: string, price: string }) => void;
 }
 
 const PlanCard: React.FC<{ plan: SubscriptionPlan, onSelect: () => void, billingCycle: 'monthly' | 'annually' }> = ({ plan, onSelect, billingCycle }) => {
@@ -63,6 +63,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
 
     if (!isOpen) return null;
 
+    const handleSelectPlan = (planName: 'Free' | 'Premium') => {
+        if (planName === 'Free') {
+            onSubscribe('Free', { name: 'Free', price: 'Free' });
+            return;
+        }
+        
+        const premiumPlan = subscriptionPlans.find(p => p.name === 'Premium')!;
+        const price = billingCycle === 'annually' ? premiumPlan.priceYearly : premiumPlan.price;
+        const priceSuffix = billingCycle === 'annually' ? '/year' : '/month';
+
+        onSubscribe('Premium', { name: `Premium (${billingCycle})`, price: `${price}${priceSuffix}` });
+    };
+
     return (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose}>
             <div className="relative w-full max-w-3xl bg-white dark:bg-navy rounded-2xl shadow-xl transform transition-all duration-300 animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -84,7 +97,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ isOpen, onClose, 
 
                     <div className="grid md:grid-cols-2 gap-8">
                         {subscriptionPlans.map(plan => (
-                            <PlanCard key={plan.name} plan={plan} onSelect={() => onSubscribe(plan.name as 'Free' | 'Premium')} billingCycle={billingCycle} />
+                            <PlanCard key={plan.name} plan={plan} onSelect={() => handleSelectPlan(plan.name as 'Free' | 'Premium')} billingCycle={billingCycle} />
                         ))}
                     </div>
                 </div>

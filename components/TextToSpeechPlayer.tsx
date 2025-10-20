@@ -50,7 +50,8 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
     
     return () => {
       if (sourceRef.current) {
-        sourceRef.current.stop();
+        // FIX: Provide argument to stop() to fix "Expected 1 arguments, but got 0" error.
+        sourceRef.current.stop(0);
       }
       // FIX: By not closing the context, we avoid potential buggy behavior in its cleanup in some environments.
       if(audioContextRef.current && audioContextRef.current.state !== 'closed') {
@@ -63,7 +64,8 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
     if (audioBase64 && audioContextRef.current) {
       const playAudio = async () => {
         if (sourceRef.current) {
-          sourceRef.current.stop();
+          // FIX: Provide argument to stop() to fix "Expected 1 arguments, but got 0" error.
+          sourceRef.current.stop(0);
         }
         
         const audioBuffer = await decodeAudioData(

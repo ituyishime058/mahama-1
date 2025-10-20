@@ -105,6 +105,8 @@ const App: React.FC = () => {
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [modalArticle, setModalArticle] = useState<Article | null>(null);
     const [ttsModalArticle, setTtsModalArticle] = useState<Article | null>(null);
+    const [selectedPlan, setSelectedPlan] = useState<{ name: string; price: string } | null>(null);
+
 
     // Real-time feed state
     const [allArticles, setAllArticles] = useState<Article[]>(mockArticles);
@@ -311,8 +313,9 @@ const App: React.FC = () => {
         setAudioPlayerState({ article: translatedArticle, voiceOverride: voice });
     };
 
-    const handleSubscribe = (plan: 'Free' | 'Premium') => {
+    const handleSubscribe = (plan: 'Free' | 'Premium', priceDetails: { name: string, price: string }) => {
         if (plan === 'Premium') {
+            setSelectedPlan(priceDetails);
             closeModal();
             openModal('payment');
         } else {
@@ -506,7 +509,7 @@ const App: React.FC = () => {
             
             <Footer />
 
-            <FloatingActionButton onClick={() => openModal('live')} />
+            {isAuthenticated && <FloatingActionButton onClick={() => openModal('live')} />}
             
             <ScrollProgressBar />
 
@@ -526,7 +529,7 @@ const App: React.FC = () => {
             <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} onArticleSelect={handleReadMore} />
             <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={() => { setIsAuthenticated(true); closeModal(); }} />
             <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={handleSubscribe} />
-            <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={{ name: 'Premium', price: '$9.99/month' }} />
+            <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
             <MegaMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={(c) => { handleSelectCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />

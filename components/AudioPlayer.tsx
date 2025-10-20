@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Article, AiTtsVoice, AudioPlayerState } from '../types';
 import { decode, decodeAudioData } from '../utils/audio';
@@ -39,7 +40,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     return () => {
-      sourceRef.current?.stop();
+      // FIX: Provide argument to stop() to fix "Expected 1 arguments, but got 0" error.
+      sourceRef.current?.stop(0);
     };
   }, []);
 
@@ -54,7 +56,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
         
         if (sourceRef.current) {
           sourceRef.current.onended = null;
-          sourceRef.current.stop();
+          sourceRef.current.stop(0);
         }
 
         try {
@@ -93,7 +95,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
     
     if (sourceRef.current) {
         sourceRef.current.onended = null;
-        sourceRef.current.stop();
+        sourceRef.current.stop(0);
     }
     
     const source = audioContextRef.current.createBufferSource();
@@ -121,7 +123,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
   const pause = () => {
     if (!sourceRef.current || !audioContextRef.current) return;
     pausedAtRef.current = audioContextRef.current.currentTime - startedAtRef.current;
-    sourceRef.current.stop();
+    sourceRef.current.stop(0);
     setIsPlaying(false);
   };
 

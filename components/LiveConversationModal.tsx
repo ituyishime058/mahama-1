@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
@@ -169,7 +170,8 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                     }
                     if(message.serverContent?.interrupted) {
                          for (const source of sourcesRef.current.values()) {
-                            source.stop();
+                            // FIX: Provide argument to stop() to fix "Expected 1 arguments, but got 0" error.
+                            source.stop(0);
                         }
                         sourcesRef.current.clear();
                         nextStartTimeRef.current = 0;

@@ -9,7 +9,7 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  plan: { name: string, price: string };
+  plan: { name: string, price: string } | null;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess, plan }) => {
@@ -53,7 +53,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess,
             <>
                 <div className="p-8 border-b border-slate-200 dark:border-slate-800">
                     <h2 className="text-2xl font-bold">Complete Your Upgrade</h2>
-                    <p className="text-slate-500 dark:text-slate-400">You are subscribing to the <span className="font-bold text-deep-red dark:text-gold">{plan.name}</span> plan for <span className="font-bold text-deep-red dark:text-gold">{plan.price}</span>.</p>
+                    <p className="text-slate-500 dark:text-slate-400">You are subscribing to the <span className="font-bold text-deep-red dark:text-gold">{plan?.name}</span> plan for <span className="font-bold text-deep-red dark:text-gold">{plan?.price}</span>.</p>
                 </div>
                 
                 <div className="p-8">
@@ -85,7 +85,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess,
                                 </div>
                                  <button type="submit" disabled={isProcessing} className="w-full py-3 mt-4 bg-deep-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors transform hover:scale-105 flex items-center justify-center disabled:bg-slate-400">
                                     {isProcessing && <LoadingSpinner className="mr-2"/>}
-                                    {isProcessing ? 'Processing...' : `Pay ${plan.price}`}
+                                    {isProcessing ? 'Processing...' : `Pay ${plan?.price}`}
                                 </button>
                             </>
                         ) : (
