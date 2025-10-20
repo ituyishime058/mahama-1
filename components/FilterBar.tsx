@@ -1,60 +1,44 @@
-import React from 'react';
-
-// Icon imports from the existing file structure
-import AllIcon from './icons/AllIcon';
-import GlobeIcon from './icons/GlobeIcon';
-import PoliticsIcon from './icons/PoliticsIcon';
-import EconomyIcon from './icons/EconomyIcon';
-import TechnologyIcon from './icons/TechnologyIcon';
-import SportsIcon from './icons/SportsIcon';
-import HealthIcon from './icons/HealthIcon';
-import HistoryIcon from './icons/HistoryIcon';
-import CultureIcon from './icons/CultureIcon';
-import EntertainmentIcon from './icons/EntertainmentIcon';
-import InvestigatesIcon from './icons/InvestigatesIcon';
-import MoviesTVIcon from './icons/MoviesTVIcon';
-import ScienceIcon from './icons/ScienceIcon';
-import EnvironmentIcon from './icons/EnvironmentIcon';
-import ArtIcon from './icons/ArtIcon';
-import MusicIcon from './icons/MusicIcon';
-import ForYouIcon from './icons/ForYouIcon';
+import React, { useState, useRef, useEffect } from 'react';
+import type { Category, SubscriptionTier } from '../types';
 import BriefingIcon from './icons/BriefingIcon';
 import CrownIcon from './icons/CrownIcon';
-import type { SubscriptionTier } from '../types';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface FilterBarProps {
-  categories: string[];
+  categories: Category[];
   currentCategory: string;
+  currentSubCategory: string | null;
   onSelectCategory: (category: string) => void;
+  onSelectSubCategory: (category: string, subCategory: string) => void;
   onGenerateBriefing: () => void;
   subscriptionTier: SubscriptionTier;
 }
 
-const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
-  "For You": ForYouIcon,
-  "All": AllIcon,
-  "World": GlobeIcon,
-  "Politics": PoliticsIcon,
-  "Economy": EconomyIcon,
-  "Technology": TechnologyIcon,
-  "Sports": SportsIcon,
-  "Health": HealthIcon,
-  "History": HistoryIcon,
-  "Movies & TV": MoviesTVIcon,
-  "Culture": CultureIcon,
-  "Entertainment": EntertainmentIcon,
-  "Science": ScienceIcon,
-  "Environment": EnvironmentIcon,
-  "Art": ArtIcon,
-  "Music": MusicIcon,
-  "Mahama Investigates": InvestigatesIcon,
-};
-
-const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSelectCategory, onGenerateBriefing, subscriptionTier }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ 
+  categories, 
+  currentCategory,
+  currentSubCategory,
+  onSelectCategory,
+  onSelectSubCategory,
+  onGenerateBriefing, 
+  subscriptionTier 
+}) => {
   const isPremium = subscriptionTier === 'Premium';
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseLeave = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.relatedTarget as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+    navRef.current?.addEventListener('mouseleave', handleMouseLeave);
+    return () => navRef.current?.removeEventListener('mouseleave', handleMouseLeave);
+  }, []);
 
   return (
-    <nav className="border-b border-slate-200 dark:border-slate-800 sticky top-20 z-30 bg-slate-50/80 dark:bg-navy/80 backdrop-blur-sm">
+    <nav ref={navRef} className="border-b border-slate-200 dark:border-slate-800 sticky top-20 z-30 bg-slate-50/80 dark:bg-navy/80 backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-3 scrollbar-hide">
           <button
@@ -67,34 +51,71 @@ const FilterBar: React.FC<FilterBarProps> = ({ categories, currentCategory, onSe
           </button>
 
           {categories.map((category) => {
-            const Icon = categoryIcons[category];
-            const isActive = category === currentCategory;
+            const Icon = category.icon;
+            const isActive = category.name === currentCategory;
+
+            if (category.subcategories) {
+              return (
+                <div 
+                  key={category.name} 
+                  className="relative"
+                  onMouseEnter={() => setOpenDropdown(category.name)}
+                >
+                  <button
+                    onClick={() => onSelectCategory(category.name)}
+                    className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-deep-red text-white shadow-md'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="hidden sm:inline">{category.name}</span>
+                    <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${openDropdown === category.name ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openDropdown === category.name && (
+                     <div 
+                        className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-2xl overflow-hidden z-10 border border-slate-200 dark:border-slate-700 animate-fade-in-down"
+                        onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                        <ul>
+                            {category.subcategories.map(sub => (
+                                <li key={sub}>
+                                    <button 
+                                        onClick={() => onSelectSubCategory(category.name, sub)}
+                                        className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${currentSubCategory === sub && isActive ? 'bg-deep-red/10 text-deep-red dark:bg-gold/10 dark:text-gold' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                                    >
+                                        {sub}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                     </div>
+                  )}
+                </div>
+              );
+            }
 
             return (
               <button
-                key={category}
-                onClick={() => onSelectCategory(category)}
+                key={category.name}
+                onClick={() => onSelectCategory(category.name)}
                 className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
                   isActive
                     ? 'bg-deep-red text-white shadow-md'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
-                {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
-                <span className="hidden sm:inline">{category}</span>
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <span className="hidden sm:inline">{category.name}</span>
               </button>
             );
           })}
         </div>
       </div>
        <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </nav>
   );

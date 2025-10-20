@@ -31,7 +31,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
   
   const article = state?.article;
   const playlist = state?.playlist;
+  const voiceOverride = state?.voiceOverride;
   const currentTrackIndex = playlist?.findIndex(a => a.id === article?.id) ?? -1;
+  const voiceToUse = voiceOverride || voice;
 
   // Initialize AudioContext
   useEffect(() => {
@@ -56,8 +58,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
         }
 
         try {
-          const textToGenerate = article.id === -1 ? article.content : `Article title: ${article.title}. By ${article.author}. ${article.excerpt}`;
-          const b64 = await textToSpeech(textToGenerate, voice);
+          const textToGenerate = article.id === -1 ? article.content : `Article title: ${article.title}. By ${article.author}. ${article.content}`;
+          const b64 = await textToSpeech(textToGenerate, voiceToUse);
           const audioBuffer = await decodeAudioData(decode(b64), audioContextRef.current!, 24000, 1);
           audioBufferRef.current = audioBuffer;
           setIsGenerating(false);
@@ -70,7 +72,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ state, onStateChange, voice }
       };
       generateAndPlay();
     }
-  }, [article, voice]);
+  }, [article, voiceToUse]);
   
   const handleClose = () => onStateChange(null);
 

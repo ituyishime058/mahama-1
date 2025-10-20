@@ -1,3 +1,6 @@
+// FIX: Import React to provide types for React.FC and React.SVGProps.
+import React from 'react';
+
 export type Article = {
   id: number;
   title: string;
@@ -13,6 +16,13 @@ export type Article = {
   keyTakeaways: string[];
   hasTimeline?: boolean;
   imageUrlBase64?: string;
+  tags?: string[];
+};
+
+export type Category = {
+  name: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  subcategories?: string[];
 };
 
 export type Podcast = {
@@ -141,4 +151,5 @@ export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 
 export type AudioPlayerState = {
     article: Article;
     playlist?: Article[];
+    voiceOverride?: AiTtsVoice;
 };

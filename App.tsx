@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// FIX: Import `stockData` from './constants'.
 import { mockArticles, mockPodcasts, categories, stockData } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState } from './types';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 
 // Component Imports
@@ -44,6 +46,8 @@ import LiveConversationModal from './components/LiveConversationModal';
 import AudioPlayer from './components/AudioPlayer';
 import FloatingActionButton from './components/FloatingActionButton';
 import FactCheckPageModal from './components/FactCheckPageModal';
+import TextToSpeechModal from './components/TextToSpeechModal';
+
 
 const defaultSettings: Settings = {
     theme: 'system',
@@ -86,10 +90,13 @@ const App: React.FC = () => {
     const [activeArticle, setActiveArticle] = useState<Article | null>(null);
     const [activeMovie, setActiveMovie] = useState<StreamingContent | null>(null);
     const [currentCategory, setCurrentCategory] = useState('For You');
+    const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
 
     // Modal states
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [modalArticle, setModalArticle] = useState<Article | null>(null);
+    const [ttsModalArticle, setTtsModalArticle] = useState<Article | null>(null);
+
 
     // Authentication
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -213,11 +220,45 @@ const App: React.FC = () => {
         setAudioPlayerState({ article: briefingArticle });
     };
 
-    const filteredArticles = currentCategory === 'All' || currentCategory === 'For You' 
-        ? mockArticles
-        : mockArticles.filter(a => a.category === currentCategory);
+    const handlePlayTranslatedAudio = (originalArticle: Article, translatedText: string, voice: AiTtsVoice) => {
+        const translatedArticle: Article = {
+            ...originalArticle,
+            id: originalArticle.id + Math.random(), // make it unique to retrigger useEffect in player
+            content: translatedText,
+            title: `(Translated) ${originalArticle.title}`
+        };
+        setAudioPlayerState({ article: translatedArticle, voiceOverride: voice });
+    };
+
+    const filteredArticles = useMemo(() => {
+        if (currentCategory === 'All' || currentCategory === 'For You') {
+            setCurrentSubCategory(null);
+            return mockArticles;
+        }
+        
+        let articles = mockArticles.filter(a => a.category === currentCategory);
+
+        if (currentSubCategory) {
+            articles = articles.filter(a => 
+                (a.tags && a.tags.some(tag => tag.toLowerCase() === currentSubCategory.toLowerCase())) ||
+                a.title.toLowerCase().includes(currentSubCategory.toLowerCase()) || 
+                a.excerpt.toLowerCase().includes(currentSubCategory.toLowerCase())
+            );
+        }
+        return articles;
+    }, [currentCategory, currentSubCategory]);
 
     const bookmarkedArticles = mockArticles.filter(a => bookmarkedArticleIds.includes(a.id));
+
+    const handleSelectCategory = (category: string) => {
+        setCurrentCategory(category);
+        setCurrentSubCategory(null);
+    };
+
+    const handleSelectSubCategory = (category: string, subCategory: string) => {
+        setCurrentCategory(category);
+        setCurrentSubCategory(subCategory);
+    };
 
     const pageContent = (
         <>
@@ -230,7 +271,9 @@ const App: React.FC = () => {
                         <FilterBar 
                             categories={categories} 
                             currentCategory={currentCategory} 
-                            onSelectCategory={setCurrentCategory}
+                            currentSubCategory={currentSubCategory}
+                            onSelectCategory={handleSelectCategory}
+                            onSelectSubCategory={handleSelectSubCategory}
                             onGenerateBriefing={() => openModal('briefing')}
                             subscriptionTier={settings.subscriptionTier}
                         />
@@ -243,7 +286,7 @@ const App: React.FC = () => {
                                     articles={filteredArticles}
                                     onSummarize={(a) => openModal('summarize', a)}
                                     onExplainSimply={(a) => openModal('explain', a)}
-                                    onTextToSpeech={(a) => setAudioPlayerState({article: a})}
+                                    onTextToSpeech={(a) => setTtsModalArticle(a)}
                                     onTranslate={(a) => openModal('translate', a)}
                                     onReadMore={handleReadMore}
                                     audioState={{playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false}}
@@ -291,7 +334,7 @@ const App: React.FC = () => {
                                     onReadMore={handleReadMore}
                                     onSummarize={(a) => openModal('summarize', a)}
                                     onExplainSimply={(a) => openModal('explain', a)}
-                                    onTextToSpeech={(a) => setAudioPlayerState({article: a})}
+                                    onTextToSpeech={(a) => setTtsModalArticle(a)}
                                     onTranslate={(a) => openModal('translate', a)}
                                     onQuiz={(a) => openModal('quiz', a)}
                                     onCounterpoint={(a) => openModal('counterpoint', a)}
@@ -336,7 +379,7 @@ const App: React.FC = () => {
                 onSearchClick={() => openModal('search')}
                 onSettingsClick={() => openModal('settings')}
                 onLogoClick={handleCloseArticle}
-                categories={categories}
+                categories={categories.map(c => c.name)}
                 onSelectCategory={setCurrentCategory}
                 isAuthenticated={isAuthenticated}
                 onLoginClick={() => openModal('login')}
@@ -370,11 +413,19 @@ const App: React.FC = () => {
             <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={(plan) => { if(plan === 'Premium') { handleSettingsChange({...settings, subscriptionTier: 'Premium' }); } closeModal(); }} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
-            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={(c) => { setCurrentCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => openModal('settings')} />
+            <CategoryMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories.map(c => c.name)} onCategorySelect={(c) => { setCurrentCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => openModal('settings')} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             
             <TrailerModal isOpen={activeModal === 'trailer'} onClose={() => { setTrailerUrl(null); closeModal(); }} trailerUrl={trailerUrl} />
+
+            <TextToSpeechModal 
+                isOpen={!!ttsModalArticle}
+                article={ttsModalArticle}
+                settings={settings}
+                onClose={() => setTtsModalArticle(null)}
+                onPlay={handlePlayTranslatedAudio}
+            />
 
             <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
         </div>

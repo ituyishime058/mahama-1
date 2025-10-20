@@ -1,5 +1,24 @@
+import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent, SubscriptionPlan, AiTtsVoice, Category } from './types';
 
-import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent, SubscriptionPlan, AiTtsVoice } from './types';
+// Icon imports for categories
+import ForYouIcon from './components/icons/ForYouIcon';
+import AllIcon from './components/icons/AllIcon';
+import GlobeIcon from './components/icons/GlobeIcon';
+import PoliticsIcon from './components/icons/PoliticsIcon';
+import EconomyIcon from './components/icons/EconomyIcon';
+import TechnologyIcon from './components/icons/TechnologyIcon';
+import SportsIcon from './components/icons/SportsIcon';
+import HealthIcon from './components/icons/HealthIcon';
+import HistoryIcon from './components/icons/HistoryIcon';
+import MoviesTVIcon from './components/icons/MoviesTVIcon';
+import CultureIcon from './components/icons/CultureIcon';
+import EntertainmentIcon from './components/icons/EntertainmentIcon';
+import ScienceIcon from './components/icons/ScienceIcon';
+import EnvironmentIcon from './components/icons/EnvironmentIcon';
+import ArtIcon from './components/icons/ArtIcon';
+import MusicIcon from './components/icons/MusicIcon';
+import InvestigatesIcon from './components/icons/InvestigatesIcon';
+
 
 export const mockUsers: { currentUser: User; otherUsers: User[] } = {
   currentUser: {
@@ -95,7 +114,8 @@ const newArticles: Article[] = [
             'Millions of fans attended the event as virtual avatars.',
             'The concert featured advanced motion capture and interactive visuals.',
             'The event highlights the growing potential of VR in the entertainment industry.'
-        ]
+        ],
+        tags: ['VR', 'Virtual Reality', 'Music']
     },
     {
         id: 12,
@@ -113,7 +133,8 @@ const newArticles: Article[] = [
             'Patients showed significant improvement in vision.',
             'This marks a milestone for in-vivo (inside the body) gene editing.',
             'The technology holds promise for treating other genetic disorders.'
-        ]
+        ],
+        tags: ['Biotech', 'CRISPR']
     },
     {
         id: 13,
@@ -150,7 +171,8 @@ const newArticles: Article[] = [
             'The AI, "Aether," created a unique style after being trained on art history.',
             'The sale has sparked a debate on AI\'s role in art and creativity.',
             'The creators view the AI as a new tool for artists.'
-        ]
+        ],
+        tags: ['AI']
     },
     {
         id: 15,
@@ -168,7 +190,8 @@ const newArticles: Article[] = [
             'The system can interpret fragmented notations and simulate lost instruments.',
             'A recent project successfully reconstructed a Hittite ceremonial hymn.',
             'The technology is a new tool for preserving cultural heritage.'
-        ]
+        ],
+        tags: ['AI']
     },
     {
         id: 16,
@@ -186,7 +209,8 @@ const newArticles: Article[] = [
           'Community members use apps to record their native tongues.',
           'The AI builds interactive lessons and dictionaries from the data.',
           'The initiative aims to create a digital archive for cultural preservation.'
-        ]
+        ],
+        tags: ['AI']
     },
     {
         id: 17,
@@ -262,7 +286,8 @@ export const mockArticles: Article[] = [
             'The policy aims to manage inflation, unemployment, and trade.',
             'Market reaction is mixed, with tech stocks rising.',
             'Concerns about algorithmic bias and lack of human oversight persist.'
-        ]
+        ],
+        tags: ['AI', 'Finance']
     },
     {
         id: 2,
@@ -280,7 +305,8 @@ export const mockArticles: Article[] = [
             'The breakthrough occurred at the ITER project in France.',
             'This is a critical step towards creating viable fusion power plants.',
             'Fusion energy promises clean, safe, and limitless power.'
-        ]
+        ],
+        tags: ['Energy', 'Sci-Fi']
     },
     {
         id: 3,
@@ -334,7 +360,8 @@ export const mockArticles: Article[] = [
             'Technologies include brain-sensing devices and AI therapy apps.',
             'Experts are cautiously optimistic, citing potential for increased access to care.',
             'Concerns remain about the lack of scientific validation for many products.'
-        ]
+        ],
+        tags: ['AI']
     },
     {
         id: 6,
@@ -352,7 +379,8 @@ export const mockArticles: Article[] = [
           'These AI-generated videos can be used to spread misinformation.',
           'Social media platforms and lawmakers are struggling to address the issue.',
           'Voters are advised to be critical of online content and use trusted sources.'
-        ]
+        ],
+        tags: ['AI', 'Cybersecurity']
     },
     {
         id: 7,
@@ -370,7 +398,8 @@ export const mockArticles: Article[] = [
           'They defeated the three-time champions, Quantum Leap.',
           'The final match was decided in the last seconds of the game.',
           "The tournament MVP was the Dragons' young star, 'Pixel'."
-        ]
+        ],
+        tags: ['Gaming']
     },
     {
         id: 8,
@@ -443,6 +472,18 @@ export const LANGUAGES: string[] = [
     "Slovenian", "Icelandic", "Irish", "Welsh", "Scottish Gaelic", "Basque", "Catalan", "Galician", "Afrikaans", "Zulu", "Xhosa"
 ];
 
+export const LANGUAGE_VOICE_MAP: { [key: string]: AiTtsVoice } = {
+    "English": "en-US-A",
+    "Spanish": "es-ES-B",
+    "French": "fr-FR-B",
+    "German": "de-DE-B",
+    "Japanese": "ja-JP-C",
+    "Russian": "ru-RU-B",
+    "Italian": "it-IT-B",
+    "Korean": "ko-KR-B",
+};
+
+
 export const TTS_VOICES: { name: string; value: AiTtsVoice, label: string }[] = [
     { name: 'Zephyr (Male, Default)', value: 'Zephyr', label: 'Default' },
     { name: 'Puck (Male, Calm)', value: 'Puck', label: 'Calm' },
@@ -497,7 +538,25 @@ export const TTS_VOICES: { name: string; value: AiTtsVoice, label: string }[] = 
 ];
 
 
-export const categories = ["For You", "All", "World", "Politics", "Economy", "Technology", "Sports", "Health", "History", "Movies & TV", "Culture", "Entertainment", "Science", "Environment", "Art", "Music", "Mahama Investigates"];
+export const categories: Category[] = [
+    { name: "For You", icon: ForYouIcon },
+    { name: "All", icon: AllIcon },
+    { name: "World", icon: GlobeIcon, subcategories: ["Americas", "Europe", "Asia", "Africa", "Middle East"] },
+    { name: "Politics", icon: PoliticsIcon },
+    { name: "Economy", icon: EconomyIcon, subcategories: ["Markets", "Finance", "Business"] },
+    { name: "Technology", icon: TechnologyIcon, subcategories: ["AI", "Cybersecurity", "Gadgets", "Energy", "Sci-Fi"] },
+    { name: "Sports", icon: SportsIcon, subcategories: ["Football", "Basketball", "Gaming"] },
+    { name: "Health", icon: HealthIcon },
+    { name: "Science", icon: ScienceIcon, subcategories: ["Space", "Biotech"] },
+    { name: "Environment", icon: EnvironmentIcon },
+    { name: "Culture", icon: CultureIcon },
+    { name: "Entertainment", icon: EntertainmentIcon },
+    { name: "Movies & TV", icon: MoviesTVIcon },
+    { name: "Art", icon: ArtIcon },
+    { name: "Music", icon: MusicIcon },
+    { name: "History", icon: HistoryIcon },
+    { name: "Mahama Investigates", icon: InvestigatesIcon },
+];
 
 export const innovations: Innovation[] = [
     { year: 1989, title: "World Wide Web Invented", description: "Tim Berners-Lee invents the Web, changing how information is shared globally.", icon: 'GlobeIcon' },
