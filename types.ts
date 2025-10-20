@@ -16,6 +16,7 @@ export type Article = {
   hasTimeline?: boolean;
   imageUrlBase64?: string;
   tags?: string[];
+  coordinates?: { lat: number; lon: number };
 };
 
 export type Category = {
@@ -160,4 +161,11 @@ export type AudioPlayerState = {
 export type InfographicData = {
   title: string;
   items: { label: string; value: number }[];
+};
+
+export type WeatherData = {
+    locationName: string;
+    temperature: number;
+    condition: 'Sunny' | 'Cloudy' | 'Rainy';
+    icon: React.FC<React.SVGProps<SVGSVGElement>>;
 };

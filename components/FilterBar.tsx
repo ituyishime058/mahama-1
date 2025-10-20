@@ -60,7 +60,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   }, [currentCategory, categories]);
 
   return (
-    <div className="sticky top-20 z-30 bg-slate-50/80 dark:bg-navy/80 backdrop-blur-sm shadow-sm">
+    <div className="bg-slate-50/80 dark:bg-navy/80 backdrop-blur-sm shadow-sm">
         {selectedCategoryData?.subcategories && selectedCategoryData.subcategories.length > 0 && (
              <SubCategoryBar 
                 subcategories={selectedCategoryData.subcategories}

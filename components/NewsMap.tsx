@@ -60,7 +60,7 @@ const NewsMap: React.FC<NewsMapProps> = ({ articles, onArticleClick }) => {
                                     <div key={article.id} className="animate-fade-in">
                                         <p className="text-xs font-semibold uppercase text-deep-red dark:text-gold">{article.category}</p>
                                         <h4 className="font-semibold leading-tight hover:underline">
-                                            <a href="#" onClick={(e) => { e.preventDefault(); onArticleClick(article); }}>{article.title}</a>
+                                            <button onClick={() => onArticleClick(article)} className="text-left">{article.title}</button>
                                         </h4>
                                     </div>
                                 ))

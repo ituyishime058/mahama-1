@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Article, Settings } from '../types';
+import type { Article, Settings, WeatherData } from '../types';
 import TrendingNews from './TrendingNews';
 import InteractiveAd from './InteractiveAd';
 import CommunityPoll from './CommunityPoll';
@@ -15,9 +15,11 @@ interface RightAsideProps {
   activeArticle: Article | null;
   settings: Settings;
   onGoPremium: () => void;
+  weatherData: WeatherData | null;
+  isWeatherLoading: boolean;
 }
 
-const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle, settings, onGoPremium }) => {
+const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClick, activeArticle, settings, onGoPremium, weatherData, isWeatherLoading }) => {
   return (
     <div className="lg:col-span-1">
       <div className="lg:sticky top-28 space-y-8">
@@ -31,7 +33,7 @@ const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClic
                 {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
                 <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
                 <ThisDayInHistory />
-                <WeatherWidget />
+                <WeatherWidget weatherData={weatherData} isLoading={isWeatherLoading} />
                 <CommunityPoll />
                 {settings.subscriptionTier === 'Free' && <InteractiveAd />}
               </>

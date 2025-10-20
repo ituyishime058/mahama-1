@@ -61,214 +61,6 @@ export const mockComments: Comment[] = [
   },
 ];
 
-const newArticles: Article[] = [
-    {
-        id: 9,
-        title: 'Blockbuster Film "Dune: Part Two" Smashes Box Office Records',
-        excerpt: 'The sci-fi epic "Dune: Part Two" has taken the world by storm, grossing over $700 million globally, setting a new record for the post-pandemic era.',
-        content: '"Dune: Part Two," the highly anticipated sci-fi adventure from director Denis Villeneuve, has exceeded all expectations. The film\'s stunning visuals, compelling storyline, and charismatic cast have resonated with audiences worldwide. Industry analysts are now predicting it could become one of the highest-grossing films of all time. The success of "Dune" is seen as a major win for movie theaters, which have been struggling to attract audiences back. The film follows Paul Atreides as he unites with the Fremen people of the desert planet Arrakis to wage war against House Harkonnen.',
-        imageUrl: 'https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8soXRmfddl.jpg',
-        author: 'Chloe Kim',
-        date: 'March 1, 2024',
-        category: 'Movies & TV',
-        region: 'North America',
-        sentiment: 'Positive',
-        keyTakeaways: [
-            '"Dune: Part Two" grossed over $700 million worldwide.',
-            'The film has set a new post-pandemic box office record.',
-            'Its success is a significant boost for the movie theater industry.',
-            'The film is praised for its visuals, story, and cast performance.'
-        ]
-    },
-    {
-        id: 10,
-        title: 'The Lost Symphony: Rediscovered Manuscript of a Classical Masterpiece',
-        excerpt: 'A previously unknown symphony by 18th-century composer Amadeus Richter has been discovered in a dusty attic in Vienna, stunning the classical music world.',
-        content: 'Musicologists are in a state of euphoria after the discovery of a complete, handwritten manuscript for a symphony by Amadeus Richter, a contemporary of Mozart whose work was thought to be largely lost. The manuscript, found by a family while renovating their ancestral home, has been authenticated by experts and is being hailed as a monumental find. The "Vienna" symphony, as it is being called, is a powerful four-movement work that showcases Richter\'s genius for melody and orchestration. The discovery sheds new light on the musical landscape of the classical period and adds a major new work to the orchestral repertoire. A world premiere performance is already being planned by the Vienna Philharmonic for later this year.',
-        imageUrl: 'https://picsum.photos/seed/picsum10/1200/800',
-        author: 'Klaus Mueller',
-        date: 'October 28, 2023',
-        category: 'Culture',
-        region: 'Europe',
-        sentiment: 'Positive',
-        keyTakeaways: [
-            'A lost symphony by 18th-century composer Amadeus Richter has been found.',
-            'The manuscript was discovered in an attic in Vienna.',
-            'The work is considered a major addition to the classical repertoire.',
-            'The Vienna Philharmonic is planning a world premiere performance.'
-        ],
-        tags: ['Music', 'Classical']
-    },
-    {
-        id: 11,
-        title: 'Virtual Reality Concerts: The Future of Live Entertainment?',
-        excerpt: 'Pop superstar Aura held a groundbreaking concert entirely within a virtual reality metaverse, drawing millions of fans from around the globe. Is this the new normal for live music?',
-        content: 'Last night, pop sensation Aura made history by hosting a full-length concert in the "Oasis" metaverse. Fans, represented by their custom avatars, were able to fly through fantastical landscapes, interact with each other, and experience the music in a way that would be impossible in a physical venue. The event was a massive technical undertaking, featuring real-time motion capture of Aura and her dancers, and stunning, interactive visual effects that were synchronized with the music. While some critics argue that it can never replace the energy of a live, in-person show, the concert\'s massive success and positive fan reception suggest that virtual reality is poised to become a major platform for entertainment. Promoters are already looking at this as a new, highly lucrative revenue stream.',
-        imageUrl: 'https://picsum.photos/seed/picsum11/1200/800',
-        author: 'Madison Chen',
-        date: 'October 29, 2023',
-        category: 'Entertainment',
-        region: 'Asia',
-        sentiment: 'Neutral',
-        keyTakeaways: [
-            'Pop star Aura held a successful concert in a VR metaverse.',
-            'Millions of fans attended the event as virtual avatars.',
-            'The concert featured advanced motion capture and interactive visuals.',
-            'The event highlights the growing potential of VR in the entertainment industry.'
-        ],
-        tags: ['VR', 'Virtual Reality', 'Music']
-    },
-    {
-        id: 12,
-        title: 'CRISPR Gene Editing Shows Promise in Curing Genetic Blindness',
-        excerpt: 'A landmark clinical trial has successfully used CRISPR-Cas9 technology to restore vision in patients with a rare form of hereditary blindness.',
-        content: 'In a significant step forward for genetic medicine, researchers have reported positive results from the first human trial using CRISPR gene editing to treat a genetic disorder directly inside the body. The trial focused on Leber congenital amaurosis, a rare disease that causes blindness in childhood. Patients who received the treatment showed marked improvements in their ability to perceive light and navigate obstacles. The therapy works by delivering the CRISPR tool via a harmless virus to edit a faulty gene in the retina. While the long-term effects are still being studied, this breakthrough opens the door for in-vivo gene editing to treat a wide range of other genetic diseases.',
-        imageUrl: 'https://picsum.photos/seed/picsum12/1200/800',
-        author: 'Dr. Kenji Tanaka',
-        date: 'November 1, 2023',
-        category: 'Science',
-        region: 'North America',
-        sentiment: 'Positive',
-        keyTakeaways: [
-            'CRISPR gene editing successfully used to treat hereditary blindness in a human trial.',
-            'Patients showed significant improvement in vision.',
-            'This marks a milestone for in-vivo (inside the body) gene editing.',
-            'The technology holds promise for treating other genetic disorders.'
-        ],
-        tags: ['Biotech', 'CRISPR']
-    },
-    {
-        id: 13,
-        title: '"Ocean Sanctuaries": New Global Pact to Protect 30% of Oceans by 2030',
-        excerpt: 'After years of negotiations, United Nations members have agreed on a historic treaty to protect international waters, a crucial step for marine biodiversity.',
-        content: 'In a landmark decision, nations across the globe have finalized the High Seas Treaty, an agreement aimed at placing 30% of the world\'s oceans into protected areas by 2030. These "ocean sanctuaries" will restrict fishing, shipping routes, and deep-sea mining to allow marine ecosystems to recover. The treaty provides a legal framework for conservation efforts in international waters, which were previously largely unregulated. Environmental groups have hailed the agreement as a victory for ocean life, but stress that its success will depend on rapid ratification and effective enforcement by member states. The pact is seen as essential for mitigating the impacts of climate change, overfishing, and pollution on the world\'s oceans.',
-        imageUrl: 'https://picsum.photos/seed/picsum13/1200/800',
-        author: 'Maria Santos',
-        date: 'November 2, 2023',
-        category: 'Environment',
-        region: 'Europe',
-        sentiment: 'Positive',
-        keyTakeaways: [
-            'A historic High Seas Treaty has been agreed upon at the UN.',
-            'The goal is to protect 30% of the world\'s oceans by 2030.',
-            'The treaty establishes a framework for creating "ocean sanctuaries" in international waters.',
-            'Success depends on rapid ratification and enforcement.'
-        ]
-    },
-     {
-        id: 14,
-        title: 'Digital Da Vinci: AI Artist Sells Masterpiece for Record Sum',
-        excerpt: 'An artwork created entirely by an artificial intelligence known as "Aether" has been sold at auction for over $10 million, raising questions about the future of creativity.',
-        content: 'The art world is buzzing after "Electric Dreams," a mesmerizing digital painting generated by the AI Aether, fetched a staggering $10.2 million at a prestigious London auction house. The piece, which dynamically shifts and evolves on its high-resolution display, was "trained" on the entire history of Western art but developed a style described by critics as entirely unique. The sale has ignited a fierce debate about the nature of art and authorship. While some celebrate it as a new frontier of human-machine collaboration, others fear it devalues human creativity. The anonymous collective behind Aether states their goal is not to replace artists but to create a new tool for artistic expression.',
-        imageUrl: 'https://picsum.photos/seed/art2023/1200/800',
-        author: 'Juliette Dubois',
-        date: 'November 3, 2023',
-        category: 'Art',
-        region: 'Europe',
-        sentiment: 'Neutral',
-        keyTakeaways: [
-            'An AI-generated artwork sold for over $10 million at auction.',
-            'The AI, "Aether," created a unique style after being trained on art history.',
-            'The sale has sparked a debate on AI\'s role in art and creativity.',
-            'The creators view the AI as a new tool for artists.'
-        ],
-        tags: ['AI']
-    },
-    {
-        id: 15,
-        title: 'The Unheard Sound: How AI is Resurrecting Lost Musical Traditions',
-        excerpt: 'Researchers are using machine learning to reconstruct and perform music from ancient cultures, offering a glimpse into soundscapes lost to time.',
-        content: 'A team of ethnomusicologists and computer scientists has developed an AI model that can interpret ancient, fragmented musical notations and even predict how instruments that no longer exist might have sounded. By feeding the AI data from archaeological findings, historical texts, and the physics of materials, the system can generate full musical performances. Their latest project, a reconstruction of a Hittite ceremonial hymn, has been released online to critical acclaim. "We are not just hearing notes; we are hearing a culture," said the project lead. The technology offers a revolutionary way to engage with history and preserve intangible cultural heritage that would otherwise be permanently silent.',
-        imageUrl: 'https://picsum.photos/seed/music2023/1200/800',
-        author: 'Dr. Samuel Chen',
-        date: 'November 4, 2023',
-        category: 'Music',
-        region: 'Asia',
-        sentiment: 'Positive',
-        keyTakeaways: [
-            'AI is being used to reconstruct music from ancient cultures.',
-            'The system can interpret fragmented notations and simulate lost instruments.',
-            'A recent project successfully reconstructed a Hittite ceremonial hymn.',
-            'The technology is a new tool for preserving cultural heritage.'
-        ],
-        tags: ['AI']
-    },
-    {
-        id: 16,
-        title: 'Global Language Revival: Indigenous Tongues Go Digital',
-        excerpt: 'A new initiative is using AI and community-driven platforms to document and teach endangered indigenous languages, creating a digital lifeline for cultural heritage.',
-        content: 'The "Native Tongues" project is a global collaboration that pairs linguists with indigenous communities to preserve languages at risk of disappearing. Using mobile apps, community members can record spoken words, stories, and songs, which an AI then analyzes to build a comprehensive linguistic model. This model powers interactive lessons, dictionaries, and translation tools. The project has already seen success in revitalizing languages like Ainu in Japan and Quechua in Peru. "This isn\'t just about saving words; it\'s about saving worlds," explained the project director. By creating a living digital archive, they hope to ensure these vital parts of human culture are accessible for generations to come.',
-        imageUrl: 'https://picsum.photos/seed/culture2023a/1200/800',
-        author: 'Isabella Rossi',
-        date: 'November 5, 2023',
-        category: 'Culture',
-        region: 'Oceania',
-        sentiment: 'Positive',
-        keyTakeaways: [
-          'A new project uses AI to document and teach endangered languages.',
-          'Community members use apps to record their native tongues.',
-          'The AI builds interactive lessons and dictionaries from the data.',
-          'The initiative aims to create a digital archive for cultural preservation.'
-        ],
-        tags: ['AI', 'Language']
-    },
-    {
-        id: 17,
-        title: 'The Culinary Comeback: How Ancient Grains Are Reshaping Modern Cuisine',
-        excerpt: 'Chefs and food scientists are looking to the past to innovate, bringing ancient grains like fonio, amaranth, and teff back to the forefront of gastronomy.',
-        content: 'A culinary renaissance is underway, centered on grains that have been cultivated for millennia but were largely forgotten by industrial agriculture. These "ancient grains" are prized not only for their unique, nutty flavors but also for their nutritional benefits and resilience to climate change. Top restaurants are featuring them in everything from artisanal breads to gourmet porridges, and they are rapidly gaining popularity among home cooks. Food scientists are also studying their genetic makeup, hoping to learn lessons that can be applied to modern crops. This trend represents a delicious intersection of history, culture, and sustainability, proving that sometimes the most innovative ideas are the ones that have been with us all along.',
-        imageUrl: 'https://picsum.photos/seed/culture2023b/1200/800',
-        author: 'Kenjiro Sato',
-        date: 'November 6, 2023',
-        category: 'Culture',
-        region: 'Africa',
-        sentiment: 'Positive',
-        keyTakeaways: [
-          'Ancient grains like fonio and amaranth are becoming popular in modern cuisine.',
-          'These grains are valued for their flavor, nutritional benefits, and climate resilience.',
-          'Top chefs are incorporating them into their menus.',
-          'The trend combines history, culture, and sustainability.'
-        ],
-        tags: ['Food']
-    },
-    {
-        id: 18,
-        title: 'Inside the Matrix: How "Bullet Time" Changed Cinema Forever',
-        excerpt: 'A deep dive into the revolutionary visual effects of "The Matrix," exploring the complex techniques and lasting impact of its iconic "bullet time" sequences.',
-        content: 'When "The Matrix" hit theaters in 1999, it didn\'t just tell a story; it redefined how stories could be told on screen. At the heart of its visual innovation was "bullet time," a stunning effect that appeared to stop time, allowing the camera to move around a character frozen in mid-air. This was not simple slow-motion. The technique, developed by visual effects supervisor John Gaeta and his team at Manex Visual Effects, involved a complex array of still cameras arranged around the subject. By firing these cameras sequentially in rapid succession, they created a series of still images that, when stitched together, simulated a fluid camera movement through a frozen moment. This "virtual camera" technique has since influenced countless action films, music videos, and video games, cementing its place as one of the most significant cinematic innovations of its time.',
-        imageUrl: 'https://picsum.photos/seed/matrix1999/1200/800',
-        author: 'Lexi Stratford',
-        date: 'November 7, 2023',
-        category: 'Movies & TV',
-        region: 'North America',
-        sentiment: 'Positive',
-        keyTakeaways: [
-            '"Bullet time" was a revolutionary visual effect pioneered in "The Matrix".',
-            'It used an array of still cameras to create a virtual camera movement through a frozen moment.',
-            'The technique was developed by John Gaeta and Manex Visual Effects.',
-            'It has had a lasting impact on action filmmaking and other media.'
-        ]
-    },
-    {
-        id: 19,
-        title: 'The Unseen Hand: A Critical Look at the Power of the Film Editor',
-        excerpt: 'Often overlooked, the film editor plays a crucial role in shaping a movie\'s narrative, pacing, and emotional impact. We explore the art and craft of this vital cinematic role.',
-        content: 'While directors and actors often receive the spotlight, the film editor works in the quiet darkness of the editing bay, assembling the raw footage into a cohesive and compelling story. The editor\'s choices—when to cut, how long to hold a shot, how to sequence scenes—are fundamental to the final film. A great editor can save a troubled production or elevate a good one to greatness. Through rhythmic cutting, they create tension in an action sequence or intimacy in a quiet conversation. Walter Murch, Thelma Schoonmaker, and Dody Dorn are just a few of the legendary editors whose invisible art has shaped some of cinema\'s most iconic moments. Their work is a testament to the idea that a film is not just shot, but made—and much of that making happens in the edit.',
-        imageUrl: 'https://picsum.photos/seed/filmedit/1200/800',
-        author: 'David Chen',
-        date: 'November 8, 2023',
-        category: 'Movies & TV',
-        region: 'Europe',
-        sentiment: 'Neutral',
-        keyTakeaways: [
-            'Film editors are crucial in shaping a movie\'s narrative and emotional impact.',
-            'Their choices in cutting and sequencing define the film\'s rhythm and pacing.',
-            'Legendary editors have had a profound impact on cinematic history.',
-            'The editing process is a fundamental part of the filmmaking art form.'
-        ]
-    }
-];
-
 export const mockArticles: Article[] = [
     {
         id: 1,
@@ -282,6 +74,7 @@ export const mockArticles: Article[] = [
         live: true,
         region: 'North America',
         sentiment: 'Neutral',
+        coordinates: { lat: 40.7128, lon: -74.0060 },
         keyTakeaways: [
             'G7 nations announce new AI-driven economic framework.',
             'The policy aims to manage inflation, unemployment, and trade.',
@@ -301,6 +94,7 @@ export const mockArticles: Article[] = [
         category: 'Technology',
         region: 'Europe',
         sentiment: 'Positive',
+        coordinates: { lat: 43.7031, lon: 5.7667 },
         keyTakeaways: [
             'Scientists achieve sustained net energy gain in a fusion reaction.',
             'The breakthrough occurred at the ITER project in France.',
@@ -320,6 +114,7 @@ export const mockArticles: Article[] = [
         category: 'History',
         region: 'Europe',
         sentiment: 'Neutral',
+        coordinates: { lat: 35.3999, lon: 26.9324 },
         keyTakeaways: [
             'A Bronze Age underwater city was discovered near Kasos, Greece.',
             'The ruins are well-preserved and include buildings, roads, and tombs.',
@@ -338,6 +133,7 @@ export const mockArticles: Article[] = [
         category: 'World',
         region: 'South America',
         sentiment: 'Negative',
+        coordinates: { lat: -3.4653, lon: -62.2159 },
         keyTakeaways: [
             'Amazon deforestation has increased by 22% in the last year.',
             'This is the highest rate of deforestation in over a decade.',
@@ -356,6 +152,7 @@ export const mockArticles: Article[] = [
         category: 'Health',
         region: 'Asia',
         sentiment: 'Neutral',
+        coordinates: { lat: 35.6895, lon: 139.6917 },
         keyTakeaways: [
             'The neuro-wellness industry is a rapidly growing sector in mental health.',
             'Technologies include brain-sensing devices and AI therapy apps.',
@@ -375,6 +172,7 @@ export const mockArticles: Article[] = [
         category: 'Politics',
         region: 'North America',
         sentiment: 'Negative',
+        coordinates: { lat: 38.9072, lon: -77.0369 },
         keyTakeaways: [
           'Deepfake videos pose a significant threat to upcoming elections.',
           'These AI-generated videos can be used to spread misinformation.',
@@ -394,6 +192,7 @@ export const mockArticles: Article[] = [
         category: 'Sports',
         region: 'Asia',
         sentiment: 'Positive',
+        coordinates: { lat: 37.5665, lon: 126.9780 },
         keyTakeaways: [
           "The 'Digital Dragons' won the World Esports Championship.",
           'They defeated the three-time champions, Quantum Leap.',
@@ -413,6 +212,7 @@ export const mockArticles: Article[] = [
         category: 'World',
         region: 'Africa',
         sentiment: 'Negative',
+        coordinates: { lat: -2.3333, lon: 34.8333 },
         keyTakeaways: [
           'Climate change is altering wildlife migration patterns in Africa.',
           'The great wildebeest migration in the Serengeti is starting earlier due to drought.',
@@ -420,7 +220,225 @@ export const mockArticles: Article[] = [
           'Conservationists are using technology to track and study these changes.'
         ]
     },
-    ...newArticles
+    {
+        id: 9,
+        title: 'Blockbuster Film "Dune: Part Two" Smashes Box Office Records',
+        excerpt: 'The sci-fi epic "Dune: Part Two" has taken the world by storm, grossing over $700 million globally, setting a new record for the post-pandemic era.',
+        content: '"Dune: Part Two," the highly anticipated sci-fi adventure from director Denis Villeneuve, has exceeded all expectations. The film\'s stunning visuals, compelling storyline, and charismatic cast have resonated with audiences worldwide. Industry analysts are now predicting it could become one of the highest-grossing films of all time. The success of "Dune" is seen as a major win for movie theaters, which have been struggling to attract audiences back. The film follows Paul Atreides as he unites with the Fremen people of the desert planet Arrakis to wage war against House Harkonnen.',
+        imageUrl: 'https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8soXRmfddl.jpg',
+        author: 'Chloe Kim',
+        date: 'March 1, 2024',
+        category: 'Movies & TV',
+        region: 'North America',
+        sentiment: 'Positive',
+        coordinates: { lat: 34.0522, lon: -118.2437 },
+        keyTakeaways: [
+            '"Dune: Part Two" grossed over $700 million worldwide.',
+            'The film has set a new post-pandemic box office record.',
+            'Its success is a significant boost for the movie theater industry.',
+            'The film is praised for its visuals, story, and cast performance.'
+        ]
+    },
+    {
+        id: 10,
+        title: 'The Lost Symphony: Rediscovered Manuscript of a Classical Masterpiece',
+        excerpt: 'A previously unknown symphony by 18th-century composer Amadeus Richter has been discovered in a dusty attic in Vienna, stunning the classical music world.',
+        content: 'Musicologists are in a state of euphoria after the discovery of a complete, handwritten manuscript for a symphony by Amadeus Richter, a contemporary of Mozart whose work was thought to be largely lost. The manuscript, found by a family while renovating their ancestral home, has been authenticated by experts and is being hailed as a monumental find. The "Vienna" symphony, as it is being called, is a powerful four-movement work that showcases Richter\'s genius for melody and orchestration. The discovery sheds new light on the musical landscape of the classical period and adds a major new work to the orchestral repertoire. A world premiere performance is already being planned by the Vienna Philharmonic for later this year.',
+        imageUrl: 'https://picsum.photos/seed/picsum10/1200/800',
+        author: 'Klaus Mueller',
+        date: 'October 28, 2023',
+        category: 'Culture',
+        region: 'Europe',
+        sentiment: 'Positive',
+        coordinates: { lat: 48.2082, lon: 16.3738 },
+        keyTakeaways: [
+            'A lost symphony by 18th-century composer Amadeus Richter has been found.',
+            'The manuscript was discovered in an attic in Vienna.',
+            'The work is considered a major addition to the classical repertoire.',
+            'The Vienna Philharmonic is planning a world premiere performance.'
+        ],
+        tags: ['Music', 'Classical']
+    },
+    {
+        id: 11,
+        title: 'Virtual Reality Concerts: The Future of Live Entertainment?',
+        excerpt: 'Pop superstar Aura held a groundbreaking concert entirely within a virtual reality metaverse, drawing millions of fans from around the globe. Is this the new normal for live music?',
+        content: 'Last night, pop sensation Aura made history by hosting a full-length concert in the "Oasis" metaverse. Fans, represented by their custom avatars, were able to fly through fantastical landscapes, interact with each other, and experience the music in a way that would be impossible in a physical venue. The event was a massive technical undertaking, featuring real-time motion capture of Aura and her dancers, and stunning, interactive visual effects that were synchronized with the music. While some critics argue that it can never replace the energy of a live, in-person show, the concert\'s massive success and positive fan reception suggest that virtual reality is poised to become a major platform for entertainment. Promoters are already looking at this as a new, highly lucrative revenue stream.',
+        imageUrl: 'https://picsum.photos/seed/picsum11/1200/800',
+        author: 'Madison Chen',
+        date: 'October 29, 2023',
+        category: 'Entertainment',
+        region: 'Asia',
+        sentiment: 'Neutral',
+        coordinates: { lat: 22.3193, lon: 114.1694 },
+        keyTakeaways: [
+            'Pop star Aura held a successful concert in a VR metaverse.',
+            'Millions of fans attended the event as virtual avatars.',
+            'The concert featured advanced motion capture and interactive visuals.',
+            'The event highlights the growing potential of VR in the entertainment industry.'
+        ],
+        tags: ['VR', 'Virtual Reality', 'Music']
+    },
+    {
+        id: 12,
+        title: 'CRISPR Gene Editing Shows Promise in Curing Genetic Blindness',
+        excerpt: 'A landmark clinical trial has successfully used CRISPR-Cas9 technology to restore vision in patients with a rare form of hereditary blindness.',
+        content: 'In a significant step forward for genetic medicine, researchers have reported positive results from the first human trial using CRISPR gene editing to treat a genetic disorder directly inside the body. The trial focused on Leber congenital amaurosis, a rare disease that causes blindness in childhood. Patients who received the treatment showed marked improvements in their ability to perceive light and navigate obstacles. The therapy works by delivering the CRISPR tool via a harmless virus to edit a faulty gene in the retina. While the long-term effects are still being studied, this breakthrough opens the door for in-vivo gene editing to treat a wide range of other genetic diseases.',
+        imageUrl: 'https://picsum.photos/seed/picsum12/1200/800',
+        author: 'Dr. Kenji Tanaka',
+        date: 'November 1, 2023',
+        category: 'Science',
+        region: 'North America',
+        sentiment: 'Positive',
+        coordinates: { lat: 42.3601, lon: -71.0589 },
+        keyTakeaways: [
+            'CRISPR gene editing successfully used to treat hereditary blindness in a human trial.',
+            'Patients showed significant improvement in vision.',
+            'This marks a milestone for in-vivo (inside the body) gene editing.',
+            'The technology holds promise for treating other genetic disorders.'
+        ],
+        tags: ['Biotech', 'CRISPR']
+    },
+    {
+        id: 13,
+        title: '"Ocean Sanctuaries": New Global Pact to Protect 30% of Oceans by 2030',
+        excerpt: 'After years of negotiations, United Nations members have agreed on a historic treaty to protect international waters, a crucial step for marine biodiversity.',
+        content: 'In a landmark decision, nations across the globe have finalized the High Seas Treaty, an agreement aimed at placing 30% of the world\'s oceans into protected areas by 2030. These "ocean sanctuaries" will restrict fishing, shipping routes, and deep-sea mining to allow marine ecosystems to recover. The treaty provides a legal framework for conservation efforts in international waters, which were previously largely unregulated. Environmental groups have hailed the agreement as a victory for ocean life, but stress that its success will depend on rapid ratification and effective enforcement by member states. The pact is seen as essential for mitigating the impacts of climate change, overfishing, and pollution on the world\'s oceans.',
+        imageUrl: 'https://picsum.photos/seed/picsum13/1200/800',
+        author: 'Maria Santos',
+        date: 'November 2, 2023',
+        category: 'Environment',
+        region: 'Europe',
+        sentiment: 'Positive',
+        coordinates: { lat: 46.2044, lon: 6.1432 },
+        keyTakeaways: [
+            'A historic High Seas Treaty has been agreed upon at the UN.',
+            'The goal is to protect 30% of the world\'s oceans by 2030.',
+            'The treaty establishes a framework for creating "ocean sanctuaries" in international waters.',
+            'Success depends on rapid ratification and enforcement.'
+        ]
+    },
+];
+
+export const hiddenArticles: Article[] = [
+    {
+        id: 14,
+        title: 'Digital Da Vinci: AI Artist Sells Masterpiece for Record Sum',
+        excerpt: 'An artwork created entirely by an artificial intelligence known as "Aether" has been sold at auction for over $10 million, raising questions about the future of creativity.',
+        content: 'The art world is buzzing after "Electric Dreams," a mesmerizing digital painting generated by the AI Aether, fetched a staggering $10.2 million at a prestigious London auction house. The piece, which dynamically shifts and evolves on its high-resolution display, was "trained" on the entire history of Western art but developed a style described by critics as entirely unique. The sale has ignited a fierce debate about the nature of art and authorship. While some celebrate it as a new frontier of human-machine collaboration, others fear it devalues human creativity. The anonymous collective behind Aether states their goal is not to replace artists but to create a new tool for artistic expression.',
+        imageUrl: 'https://picsum.photos/seed/art2023/1200/800',
+        author: 'Juliette Dubois',
+        date: 'November 3, 2023',
+        category: 'Art',
+        region: 'Europe',
+        sentiment: 'Neutral',
+        coordinates: { lat: 51.5072, lon: -0.1276 },
+        keyTakeaways: [
+            'An AI-generated artwork sold for over $10 million at auction.',
+            'The AI, "Aether," created a unique style after being trained on art history.',
+            'The sale has sparked a debate on AI\'s role in art and creativity.',
+            'The creators view the AI as a new tool for artists.'
+        ],
+        tags: ['AI']
+    },
+    {
+        id: 15,
+        title: 'The Unheard Sound: How AI is Resurrecting Lost Musical Traditions',
+        excerpt: 'Researchers are using machine learning to reconstruct and perform music from ancient cultures, offering a glimpse into soundscapes lost to time.',
+        content: 'A team of ethnomusicologists and computer scientists has developed an AI model that can interpret ancient, fragmented musical notations and even predict how instruments that no longer exist might have sounded. By feeding the AI data from archaeological findings, historical texts, and the physics of materials, the system can generate full musical performances. Their latest project, a reconstruction of a Hittite ceremonial hymn, has been released online to critical acclaim. "We are not just hearing notes; we are hearing a culture," said the project lead. The technology offers a revolutionary way to engage with history and preserve intangible cultural heritage that would otherwise be permanently silent.',
+        imageUrl: 'https://picsum.photos/seed/music2023/1200/800',
+        author: 'Dr. Samuel Chen',
+        date: 'November 4, 2023',
+        category: 'Music',
+        region: 'Asia',
+        sentiment: 'Positive',
+        coordinates: { lat: 39.9042, lon: 116.4074 },
+        keyTakeaways: [
+            'AI is being used to reconstruct music from ancient cultures.',
+            'The system can interpret fragmented notations and simulate lost instruments.',
+            'A recent project successfully reconstructed a Hittite ceremonial hymn.',
+            'The technology is a new tool for preserving cultural heritage.'
+        ],
+        tags: ['AI']
+    },
+    {
+        id: 16,
+        title: 'Global Language Revival: Indigenous Tongues Go Digital',
+        excerpt: 'A new initiative is using AI and community-driven platforms to document and teach endangered indigenous languages, creating a digital lifeline for cultural heritage.',
+        content: 'The "Native Tongues" project is a global collaboration that pairs linguists with indigenous communities to preserve languages at risk of disappearing. Using mobile apps, community members can record spoken words, stories, and songs, which an AI then analyzes to build a comprehensive linguistic model. This model powers interactive lessons, dictionaries, and translation tools. The project has already seen success in revitalizing languages like Ainu in Japan and Quechua in Peru. "This isn\'t just about saving words; it\'s about saving worlds," explained the project director. By creating a living digital archive, they hope to ensure these vital parts of human culture are accessible for generations to come.',
+        imageUrl: 'https://picsum.photos/seed/culture2023a/1200/800',
+        author: 'Isabella Rossi',
+        date: 'November 5, 2023',
+        category: 'Culture',
+        region: 'Oceania',
+        sentiment: 'Positive',
+        coordinates: { lat: -33.8688, lon: 151.2093 },
+        keyTakeaways: [
+          'A new project uses AI to document and teach endangered languages.',
+          'Community members use apps to record their native tongues.',
+          'The AI builds interactive lessons and dictionaries from the data.',
+          'The initiative aims to create a digital archive for cultural preservation.'
+        ],
+        tags: ['AI', 'Language']
+    },
+    {
+        id: 17,
+        title: 'The Culinary Comeback: How Ancient Grains Are Reshaping Modern Cuisine',
+        excerpt: 'Chefs and food scientists are looking to the past to innovate, bringing ancient grains like fonio, amaranth, and teff back to the forefront of gastronomy.',
+        content: 'A culinary renaissance is underway, centered on grains that have been cultivated for millennia but were largely forgotten by industrial agriculture. These "ancient grains" are prized not only for their unique, nutty flavors but also for their nutritional benefits and resilience to climate change. Top restaurants are featuring them in everything from artisanal breads to gourmet porridges, and they are rapidly gaining popularity among home cooks. Food scientists are also studying their genetic makeup, hoping to learn lessons that can be applied to modern crops. This trend represents a delicious intersection of history, culture, and sustainability, proving that sometimes the most innovative ideas are the ones that have been with us all along.',
+        imageUrl: 'https://picsum.photos/seed/culture2023b/1200/800',
+        author: 'Kenjiro Sato',
+        date: 'November 6, 2023',
+        category: 'Culture',
+        region: 'Africa',
+        sentiment: 'Positive',
+        coordinates: { lat: 9.0765, lon: 7.3986 },
+        keyTakeaways: [
+          'Ancient grains like fonio and amaranth are becoming popular in modern cuisine.',
+          'These grains are valued for their flavor, nutritional benefits, and climate resilience.',
+          'Top chefs are incorporating them into their menus.',
+          'The trend combines history, culture, and sustainability.'
+        ],
+        tags: ['Food']
+    },
+    {
+        id: 18,
+        title: 'Inside the Matrix: How "Bullet Time" Changed Cinema Forever',
+        excerpt: 'A deep dive into the revolutionary visual effects of "The Matrix," exploring the complex techniques and lasting impact of its iconic "bullet time" sequences.',
+        content: 'When "The Matrix" hit theaters in 1999, it didn\'t just tell a story; it redefined how stories could be told on screen. At the heart of its visual innovation was "bullet time," a stunning effect that appeared to stop time, allowing the camera to move around a character frozen in mid-air. This was not simple slow-motion. The technique, developed by visual effects supervisor John Gaeta and his team at Manex Visual Effects, involved a complex array of still cameras arranged around the subject. By firing these cameras sequentially in rapid succession, they created a series of still images that, when stitched together, simulated a fluid camera movement through a frozen moment. This "virtual camera" technique has since influenced countless action films, music videos, and video games, cementing its place as one of the most significant cinematic innovations of its time.',
+        imageUrl: 'https://picsum.photos/seed/matrix1999/1200/800',
+        author: 'Lexi Stratford',
+        date: 'November 7, 2023',
+        category: 'Movies & TV',
+        region: 'Oceania',
+        sentiment: 'Positive',
+        coordinates: { lat: -33.865143, lon: 151.209900 },
+        keyTakeaways: [
+            '"Bullet time" was a revolutionary visual effect pioneered in "The Matrix".',
+            'It used an array of still cameras to create a virtual camera movement through a frozen moment.',
+            'The technique was developed by John Gaeta and Manex Visual Effects.',
+            'It has had a lasting impact on action filmmaking and other media.'
+        ]
+    },
+    {
+        id: 19,
+        title: 'The Unseen Hand: A Critical Look at the Power of the Film Editor',
+        excerpt: 'Often overlooked, the film editor plays a crucial role in shaping a movie\'s narrative, pacing, and emotional impact. We explore the art and craft of this vital cinematic role.',
+        content: 'While directors and actors often receive the spotlight, the film editor works in the quiet darkness of the editing bay, assembling the raw footage into a cohesive and compelling story. The editor\'s choices—when to cut, how long to hold a shot, how to sequence scenes—are fundamental to the final film. A great editor can save a troubled production or elevate a good one to greatness. Through rhythmic cutting, they create tension in an action sequence or intimacy in a quiet conversation. Walter Murch, Thelma Schoonmaker, and Dody Dorn are just a few of the legendary editors whose invisible art has shaped some of cinema\'s most iconic moments. Their work is a testament to the idea that a film is not just shot, but made—and much of that making happens in the edit.',
+        imageUrl: 'https://picsum.photos/seed/filmedit/1200/800',
+        author: 'David Chen',
+        date: 'November 8, 2023',
+        category: 'Movies & TV',
+        region: 'North America',
+        sentiment: 'Neutral',
+        coordinates: { lat: 34.0928, lon: -118.3287 },
+        keyTakeaways: [
+            'Film editors are crucial in shaping a movie\'s narrative and emotional impact.',
+            'Their choices in cutting and sequencing define the film\'s rhythm and pacing.',
+            'Legendary editors have had a profound impact on cinematic history.',
+            'The editing process is a fundamental part of the filmmaking art form.'
+        ]
+    }
 ];
 
 export const mockPodcasts: Podcast[] = [

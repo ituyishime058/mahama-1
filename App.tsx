@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { mockArticles, mockPodcasts, categories, stockData } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice } from './types';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData } from './constants';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { determineOptimalLayout } from './utils/ai';
+import { fetchWeather } from './utils/weather';
 
 // Component Imports
 import Header from './components/Header';
@@ -101,6 +102,11 @@ const App: React.FC = () => {
     const [modalArticle, setModalArticle] = useState<Article | null>(null);
     const [ttsModalArticle, setTtsModalArticle] = useState<Article | null>(null);
 
+    // Real-time feed state
+    const [allArticles, setAllArticles] = useState<Article[]>(mockArticles);
+    const [newArticlesQueue, setNewArticlesQueue] = useState<Article[]>([]);
+    const hiddenArticlesRef = useRef([...hiddenArticles]);
+
 
     // Authentication
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -113,6 +119,10 @@ const App: React.FC = () => {
     
     // Audio Player
     const [audioPlayerState, setAudioPlayerState] = useState<AudioPlayerState | null>(null);
+
+    // Widgets state
+    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+    const [isWeatherLoading, setIsWeatherLoading] = useState(true);
     
     // Apply theme
     useEffect(() => {
@@ -130,15 +140,15 @@ const App: React.FC = () => {
         document.body.classList.add(`density-${settings.informationDensity.toLowerCase()}`);
     }, [settings]);
 
-    // Load bookmarks and offline articles on init
+    // Initial data loading
     useEffect(() => {
+        // Bookmarks
         try {
             const savedBookmarks = localStorage.getItem('mahamaNewsBookmarks');
             if (savedBookmarks) setBookmarkedArticleIds(JSON.parse(savedBookmarks));
-        } catch (error) {
-            console.error("Failed to load bookmarks", error);
-        }
+        } catch (error) { console.error("Failed to load bookmarks", error); }
         
+        // Offline Articles
         const fetchOfflineData = async () => {
             const ids = await getOfflineArticleIds();
             setOfflineArticleIds(ids);
@@ -146,13 +156,56 @@ const App: React.FC = () => {
             setOfflineArticles(articles);
         };
         fetchOfflineData();
+
+        // Geolocation & Weather
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                  const data = await fetchWeather(latitude, longitude);
+                  setWeatherData(data);
+                } catch (e) { console.error("Failed to fetch weather"); } 
+                finally { setIsWeatherLoading(false); }
+              },
+              () => {
+                console.error("Geolocation permission denied.");
+                setIsWeatherLoading(false);
+              }
+            );
+        } else {
+            setIsWeatherLoading(false);
+        }
+
     }, []);
+
+    // Real-time article simulation
+    useEffect(() => {
+      const interval = setInterval(() => {
+        if (hiddenArticlesRef.current.length > 0) {
+          const nextArticle = hiddenArticlesRef.current.shift();
+          if (nextArticle) {
+            setNewArticlesQueue(prev => [nextArticle, ...prev]);
+          }
+        } else {
+          clearInterval(interval);
+        }
+      }, 20000); // New article every 20 seconds
+    
+      return () => clearInterval(interval);
+    }, []);
+
+    const loadNewArticles = () => {
+        setAllArticles(prev => [...newArticlesQueue, ...prev]);
+        setNewArticlesQueue([]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const handleSettingsChange = (newSettings: Settings) => {
         setSettings(newSettings);
     };
 
-    const bookmarkedArticles = useMemo(() => mockArticles.filter(a => bookmarkedArticleIds.includes(a.id)), [bookmarkedArticleIds]);
+    const bookmarkedArticles = useMemo(() => allArticles.filter(a => bookmarkedArticleIds.includes(a.id)), [bookmarkedArticleIds, allArticles]);
 
     // AI Layout Optimization
     useEffect(() => {
@@ -252,10 +305,10 @@ const App: React.FC = () => {
 
     const filteredArticles = useMemo(() => {
         if (currentCategory === 'All' || currentCategory === 'For You') {
-            return mockArticles;
+            return allArticles;
         }
         
-        let articles = mockArticles.filter(a => a.category === currentCategory);
+        let articles = allArticles.filter(a => a.category === currentCategory);
 
         if (currentSubCategory) {
             articles = articles.filter(a => 
@@ -265,7 +318,7 @@ const App: React.FC = () => {
             );
         }
         return articles;
-    }, [currentCategory, currentSubCategory]);
+    }, [currentCategory, currentSubCategory, allArticles]);
 
     const handleSelectCategory = (category: string) => {
         if (category === "Movies & TV") {
@@ -287,20 +340,31 @@ const App: React.FC = () => {
 
     const renderHomePage = () => (
         <>
-            {!isDashboard && <Hero article={mockArticles[0]} onReadMore={() => handleReadMore(mockArticles[0])} />}
-            <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
+            {!isDashboard && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])} />}
             
-            <FilterBar 
-                categories={categories} 
-                currentCategory={currentCategory} 
-                currentSubCategory={currentSubCategory}
-                onSelectCategory={handleSelectCategory}
-                onSelectSubCategory={handleSelectSubCategory}
-                onGenerateBriefing={() => openModal('briefing')}
-                subscriptionTier={settings.subscriptionTier}
-            />
-
+            <div className="sticky top-20 z-30">
+                <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
+                <FilterBar 
+                    categories={categories} 
+                    currentCategory={currentCategory} 
+                    currentSubCategory={currentSubCategory}
+                    onSelectCategory={handleSelectCategory}
+                    onSelectSubCategory={handleSelectSubCategory}
+                    onGenerateBriefing={() => openModal('briefing')}
+                    subscriptionTier={settings.subscriptionTier}
+                />
+            </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {newArticlesQueue.length > 0 && (
+                    <div className="-mt-4 mb-8">
+                        <button 
+                            onClick={loadNewArticles}
+                            className="w-full text-center py-3 bg-deep-red/90 hover:bg-deep-red text-white font-bold rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 transform hover:scale-[1.02] animate-pulse"
+                        >
+                            Show {newArticlesQueue.length} New Article{newArticlesQueue.length > 1 ? 's' : ''}
+                        </button>
+                    </div>
+                )}
                 {isMoviesPage ? (
                     <MoviesTVPage onWatchMovie={handleWatchMovie} />
                 ) : (
@@ -323,18 +387,20 @@ const App: React.FC = () => {
                                 layout={isDashboard ? 'grid' : 'default'}
                             />
                             <LiveStream />
-                            {settings.showMahama360 && <Mahama360 articles={mockArticles.slice(2, 5)} />}
-                            {settings.showNewsMap && <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />}
+                            {settings.showMahama360 && <Mahama360 articles={allArticles.slice(2, 5)} />}
+                            {settings.showNewsMap && <NewsMap articles={allArticles} onArticleClick={handleReadMore} />}
                             {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts} />
                             {settings.showInnovationTimelines && <InnovationTimeline />}
                         </div>
                         <RightAside
-                            trendingArticles={mockArticles.slice(5, 10)}
+                            trendingArticles={allArticles.slice(5, 10)}
                             onArticleClick={handleReadMore}
                             activeArticle={null}
                             settings={settings}
                             onGoPremium={() => openModal('subscribe')}
+                            weatherData={weatherData}
+                            isWeatherLoading={isWeatherLoading}
                         />
                     </div>
                 )}
@@ -374,11 +440,13 @@ const App: React.FC = () => {
                     )}
                 </div>
                 <RightAside 
-                    trendingArticles={mockArticles.slice(5, 10)}
+                    trendingArticles={allArticles.slice(5, 10)}
                     onArticleClick={handleReadMore}
                     activeArticle={activeArticle}
                     settings={settings}
                     onGoPremium={() => openModal('subscribe')}
+                    weatherData={weatherData}
+                    isWeatherLoading={isWeatherLoading}
                 />
             </div>
         </div>
@@ -426,12 +494,12 @@ const App: React.FC = () => {
             <BehindTheNewsModal isOpen={activeModal === 'behindTheNews'} onClose={closeModal} article={modalArticle} settings={settings} />
             <ExpertAnalysisModal isOpen={activeModal === 'expertAnalysis'} onClose={closeModal} article={modalArticle} settings={settings} />
             <AskAuthorModal isOpen={activeModal === 'askAuthor'} onClose={closeModal} article={modalArticle} settings={settings} />
-            <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={mockArticles} onPlayBriefing={handlePlayBriefing} />
+            <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={allArticles} onPlayBriefing={handlePlayBriefing} />
             <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={modalArticle?.content || ''} />
             <DeepDiveModal isOpen={activeModal === 'deepDive'} onClose={closeModal} article={modalArticle} settings={settings} />
             <InfographicModal isOpen={activeModal === 'infographic'} onClose={closeModal} article={modalArticle} settings={settings} />
             
-            <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={mockArticles} onArticleSelect={handleReadMore} />
+            <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} onArticleSelect={handleReadMore} />
             <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={() => { setIsAuthenticated(true); closeModal(); }} />
             <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={(plan) => { if(plan === 'Premium') { handleSettingsChange({...settings, subscriptionTier: 'Premium' }); } closeModal(); }} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />

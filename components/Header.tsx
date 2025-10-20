@@ -53,6 +53,14 @@ const Header: React.FC<HeaderProps> = ({
                 <span>Mahama News Hub</span>
              </a>
           </div>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs font-bold uppercase text-deep-red dark:text-gold">
+              <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-current"></span>
+              </span>
+              LIVE
+          </div>
           
           <div className="flex items-center justify-end gap-2">
             <button onClick={onSearchClick} aria-label="Open search" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
