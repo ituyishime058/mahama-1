@@ -7,6 +7,7 @@ import WeatherWidget from './WeatherWidget';
 import SubscriptionCard from './SubscriptionCard';
 import ArticleCompanion from './ArticleCompanion';
 import KeyConcepts from './KeyConcepts';
+import ThisDayInHistory from './ThisDayInHistory';
 
 interface RightAsideProps {
   trendingArticles: Article[];
@@ -29,6 +30,7 @@ const RightAside: React.FC<RightAsideProps> = ({ trendingArticles, onArticleClic
               <>
                 {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
                 <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
+                <ThisDayInHistory />
                 <WeatherWidget />
                 <CommunityPoll />
                 {settings.subscriptionTier === 'Free' && <InteractiveAd />}

@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import type { Settings } from '../types';
 import { TTS_VOICES } from '../constants';
@@ -12,13 +10,10 @@ import FontSizeIcon from './icons/FontSizeIcon';
 import SansFontIcon from './icons/SansFontIcon';
 import SerifFontIcon from './icons/SerifFontIcon';
 import TrashIcon from './icons/TrashIcon';
-import DataIcon from './icons/DataIcon';
 import TextToSpeechIcon from './icons/TextToSpeechIcon';
 import CrownIcon from './icons/CrownIcon';
 import ProfileIcon from './icons/ProfileIcon';
 import DensityIcon from './icons/DensityIcon';
-import LayoutStandardIcon from './icons/LayoutStandardIcon';
-import LayoutDashboardIcon from './icons/LayoutDashboardIcon';
 import ShieldCheckIcon from './icons/ShieldCheckIcon';
 
 interface SettingsPageProps {
@@ -31,10 +26,25 @@ interface SettingsPageProps {
 
 const settingsNav = [
   { name: 'Appearance', icon: PaletteIcon },
+  { name: 'Personalization', icon: ProfileIcon },
   { name: 'AI & Reading', icon: SparklesIcon },
-  { name: 'Account', icon: ProfileIcon },
+  { name: 'Account', icon: CrownIcon },
   { name: 'Data & Privacy', icon: ShieldCheckIcon },
 ];
+
+const ToggleSwitch: React.FC<{label: string, enabled: boolean, onChange: (enabled: boolean) => void}> = ({ label, enabled, onChange }) => (
+    <div className="flex justify-between items-center">
+        <label className="font-semibold">{label}</label>
+        <button
+            onClick={() => onChange(!enabled)}
+            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${enabled ? 'bg-deep-red' : 'bg-slate-300 dark:bg-slate-600'}`}
+        >
+            <span
+            className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`}
+            />
+        </button>
+    </div>
+);
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onClose, onClearBookmarks, onClearOffline }) => {
   const [localSettings, setLocalSettings] = useState(settings);
@@ -55,7 +65,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
     switch (activeTab) {
       case 'Appearance':
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
             <h3 className="text-2xl font-bold">Appearance</h3>
             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-6">
                 <div className="flex justify-between items-center">
@@ -90,9 +100,22 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
             </div>
           </div>
         );
+      case 'Personalization':
+        return (
+            <div className="space-y-6 animate-fade-in">
+                <h3 className="text-2xl font-bold">Homepage Customization</h3>
+                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
+                    <ToggleSwitch label="Show Mahama 360° Section" enabled={localSettings.showMahama360} onChange={(val) => handleSettingChange('showMahama360', val)} />
+                    <ToggleSwitch label="Show Interactive News Map" enabled={localSettings.showNewsMap} onChange={(val) => handleSettingChange('showNewsMap', val)} />
+                    <ToggleSwitch label="Show Data-Driven Insights" enabled={localSettings.showDataInsights} onChange={(val) => handleSettingChange('showDataInsights', val)} />
+                    <ToggleSwitch label="Show Innovation Timeline" enabled={localSettings.showInnovationTimelines} onChange={(val) => handleSettingChange('showInnovationTimelines', val)} />
+                    <ToggleSwitch label="Show Now Streaming Section" enabled={localSettings.showNowStreaming} onChange={(val) => handleSettingChange('showNowStreaming', val)} />
+                </div>
+            </div>
+        );
       case 'AI & Reading':
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
                 <h3 className="text-2xl font-bold">AI & Reading Experience</h3>
                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4 divide-y divide-slate-200 dark:divide-slate-700">
                     <div className="flex justify-between items-center pt-4 first:pt-0">
@@ -131,7 +154,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
         );
       case 'Account':
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
                 <h3 className="text-2xl font-bold">Account</h3>
                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
                     <p>You are on the <span className={`font-bold ${isPremium ? 'text-gold' : ''}`}>{localSettings.subscriptionTier}</span> plan.</p>
@@ -140,7 +163,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
         );
       case 'Data & Privacy':
         return (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
                 <h3 className="text-2xl font-bold">Data & Privacy</h3>
                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4">
                     <button onClick={onClearBookmarks} className="w-full flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30">
@@ -160,10 +183,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
   };
 
   return (
-    <div className="container mx-auto max-w-6xl py-8">
+    <div className="container mx-auto max-w-6xl py-8 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-4xl font-extrabold">Settings</h1>
-        <button onClick={handleSave} className="px-6 py-3 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save & Close</button>
+        <div className="flex items-center gap-4">
+            <button onClick={onClose} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+            <button onClick={handleSave} className="px-6 py-3 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save & Close</button>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         <aside className="md:col-span-1">
@@ -181,7 +207,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                       : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Icon className="w-6 h-6" />
+                  <Icon className={`w-6 h-6 ${isActive ? '' : 'text-slate-500'}`} />
                   <span>{item.name}</span>
                 </button>
               )

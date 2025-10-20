@@ -663,3 +663,21 @@ export const generateInfographicData = async (article: Article, settings: Settin
         throw new Error("Could not generate valid infographic data.");
     }
 };
+
+// 24. getThisDayInHistory
+export const getThisDayInHistory = async (): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+    const prompt = `Using Google Search, tell me about two significant and interesting historical events that happened on this day, ${today}. For each event, provide a title using markdown like '## Year - Event Title' and a one-sentence summary.`;
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            tools: [{ googleSearch: {} }],
+        },
+    });
+
+    return response.text;
+};
