@@ -47,8 +47,8 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
 
   if (layout === 'grid') {
     return (
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {articles.map(article => (
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {articles.slice(0, 9).map(article => (
            <ArticleCard 
             key={article.id} 
             article={article} 
@@ -63,6 +63,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             offlineArticleIds={offlineArticleIds}
             downloadingArticleId={downloadingArticleId}
             onDownloadArticle={onDownloadArticle}
+            layout="grid"
           />
         ))}
       </section>
@@ -70,7 +71,7 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   }
 
   const featuredArticle = articles[0];
-  const otherArticles = articles.slice(1); 
+  const otherArticles = articles.slice(1, 5); 
   
   return (
     <section className="space-y-8">

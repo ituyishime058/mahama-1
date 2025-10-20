@@ -71,6 +71,7 @@ export type StreamingContent = {
   trailerUrl: string;
   description: string;
   isNew?: boolean;
+  genre: 'Sci-Fi' | 'Drama' | 'Action' | 'Thriller' | 'Animation';
 };
 
 export type SubscriptionPlan = {

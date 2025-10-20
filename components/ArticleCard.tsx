@@ -27,6 +27,7 @@ interface ArticleCardProps {
   downloadingArticleId: number | null;
   onDownloadArticle: (article: Article) => void;
   featured?: boolean;
+  layout?: 'default' | 'grid';
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -43,6 +44,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   downloadingArticleId,
   onDownloadArticle,
   featured = false,
+  layout = 'default',
 }) => {
   const isAudioPlaying = audioState.playingArticleId === article.id;
   const isOffline = offlineArticleIds.includes(article.id);
@@ -64,35 +66,36 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     </button>
   );
 
+  const isGridLayout = layout === 'grid';
+
   return (
-    <article className={`group bg-white dark:bg-slate-800/50 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold/20 dark:hover:shadow-gold/10 ${featured ? 'flex flex-col lg:flex-row' : ''}`}>
+    <article className={`group bg-white dark:bg-slate-800/50 rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold/20 dark:hover:shadow-gold/10 flex flex-col ${featured ? 'lg:flex-row' : ''}`}>
       <div className={`${featured ? 'lg:w-1/2' : ''} relative overflow-hidden`}>
         <img
           src={article.imageUrl}
           alt={article.title}
-          className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${featured ? 'h-full' : 'h-64'}`}
+          className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${featured ? 'h-full' : isGridLayout ? 'h-48' : 'h-64'}`}
         />
-        <div className="absolute top-4 left-4 bg-deep-red text-white text-xs font-bold px-2 py-1 rounded">{article.category}</div>
+        <div className="absolute top-2 left-2 bg-deep-red text-white text-xs font-bold px-2 py-1 rounded">{article.category}</div>
       </div>
-      <div className={`flex flex-col ${featured ? 'lg:w-1/2' : ''} p-6 density-compact:p-4`}>
+      <div className={`flex flex-col flex-grow ${featured ? 'lg:w-1/2' : ''} p-4 sm:p-6`}>
         <div className="flex-grow">
           <div className="flex justify-between items-center mb-2">
-            <p className="text-sm text-slate-500">{article.author} &bull; {article.date}</p>
-            <SentimentIndicator sentiment={article.sentiment} />
+            <p className="text-xs sm:text-sm text-slate-500">{article.author} &bull; {article.date}</p>
+            {!isGridLayout && <SentimentIndicator sentiment={article.sentiment} />}
           </div>
-          <h3 className={`font-extrabold leading-tight mb-3 ${featured ? 'text-3xl' : 'text-2xl'}`}>
-            <a href="#" onClick={handleReadMore} className="group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-300">{article.title}</a>
+          <h3 className={`font-extrabold leading-tight mb-2 sm:mb-3 ${featured ? 'text-3xl' : isGridLayout ? 'text-lg' : 'text-2xl'}`}>
+            <a href="#" onClick={handleReadMore} className="group-hover:text-deep-red dark:group-hover:text-gold transition-colors duration-300 line-clamp-3">{article.title}</a>
           </h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-4 density-compact:text-sm">{article.excerpt}</p>
+          <p className={`text-slate-600 dark:text-slate-400 mb-4 ${isGridLayout ? 'text-sm line-clamp-2' : ''}`}>{article.excerpt}</p>
         </div>
 
-        <div className="border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className={`border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 ${isGridLayout ? 'flex-col items-start' : ''}`}>
+          <div className={`flex items-center gap-4 ${isGridLayout ? 'order-2 w-full justify-between' : ''}`}>
             <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
             <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-             <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 ${isGridLayout ? 'order-1 self-end mb-2' : ''}`}>
             <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}>
               <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 transition-colors ${isBookmarked ? 'text-deep-red' : 'text-slate-400 hover:text-deep-red'}`} />
             </button>
