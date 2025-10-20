@@ -1,0 +1,53 @@
+import React from 'react';
+import type { Article } from '../types';
+import AuthorInfo from './AuthorInfo';
+import BookmarkIcon from './icons/BookmarkIcon';
+import ReadAloudIcon from './icons/ReadAloudIcon';
+import SummarizeIcon from './icons/SummarizeIcon';
+import ShareIcon from './icons/ShareIcon';
+
+interface ArticleHeaderProps {
+    article: Article;
+    onTextToSpeech: (article: Article) => void;
+    onSummarize: (article: Article) => void;
+    isBookmarked: boolean;
+    onToggleBookmark: (id: number) => void;
+}
+
+const PrimaryActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; }> = ({ onClick, icon, label }) => (
+    <button onClick={onClick} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold transition-colors">
+        {icon}
+        {label}
+    </button>
+);
+
+const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onTextToSpeech, onSummarize, isBookmarked, onToggleBookmark }) => {
+    return (
+        <header className="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 mb-8 text-white min-h-[50vh] flex flex-col justify-end p-4 sm:p-8 lg:p-12 rounded-b-2xl overflow-hidden">
+            <div 
+                className="absolute inset-0 bg-cover bg-center animate-hero-bg-parallax" 
+                style={{ backgroundImage: `url(${article.imageUrl})` }}
+            ></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/50 to-transparent"></div>
+
+            <div className="relative z-10 animate-fade-in-up max-w-4xl">
+                <p className="font-semibold uppercase tracking-wider text-gold mb-2">{article.category}</p>
+                <h1 className="text-4xl md:text-6xl font-extrabold !leading-tight tracking-tight mb-4">
+                    {article.title}
+                </h1>
+                <p className="text-lg md:text-xl text-slate-300 max-w-3xl">
+                    {article.excerpt}
+                </p>
+
+                <div className="mt-6 flex flex-wrap items-center gap-4">
+                    <PrimaryActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
+                    <PrimaryActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
+                    <PrimaryActionButton onClick={() => onToggleBookmark(article.id)} icon={<BookmarkIcon filled={isBookmarked} className="w-5 h-5" />} label={isBookmarked ? "Bookmarked" : "Bookmark"} />
+                    {navigator.share && <PrimaryActionButton onClick={() => navigator.share({title: article.title, url: window.location.href})} icon={<ShareIcon className="w-5 h-5" />} label="Share" />}
+                </div>
+            </div>
+        </header>
+    );
+};
+
+export default ArticleHeader;

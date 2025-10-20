@@ -1,13 +1,11 @@
-
-
-
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
 import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts, summarizeComments } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
-import SocialShare from './SocialShare';
+// FIX: Replace SocialShare with ContentGutter as SocialShare.tsx is not a module.
+import ContentGutter from './ContentGutter';
 import KeyTakeaways from './KeyTakeaways';
 import AITags from './AITags';
 import FactCheck from './FactCheck';
@@ -140,7 +138,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       
       const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled(promises);
 
-      // FIX: Add type assertions to fix type mismatch from Promise.allSettled results.
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value as string[]);
       if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value as { status: string; summary: string; });
       if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value as string[]);
@@ -250,12 +247,15 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
         </button>
         <div className={`transition-all duration-300 ${isZenMode ? '' : 'max-w-4xl'}`}>
             <div className="relative">
-                <SocialShare 
+                {/* FIX: Replaced SocialShare with ContentGutter and added required props. */}
+                <ContentGutter 
                     article={article}
                     isBookmarked={isBookmarked}
                     onToggleBookmark={() => onToggleBookmark(article.id)}
                     isZenMode={isZenMode}
                     onToggleZenMode={() => setIsZenMode(!isZenMode)}
+                    activeLens={activeLens}
+                    onSetLens={setActiveLens}
                 />
                 
                 <main className={!isZenMode ? 'lg:pl-24' : ''}>

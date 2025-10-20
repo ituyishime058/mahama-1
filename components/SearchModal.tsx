@@ -35,9 +35,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, articles, on
   const [results, setResults] = useState<AiSearchResult | null>(null);
   const [error, setError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  // FIX: Replace NodeJS.Timeout with a browser-compatible type.
-  // `setTimeout` in the browser returns a number, not a Timeout object.
-  // Using ReturnType<typeof setTimeout> is a robust way to get the correct type.
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {

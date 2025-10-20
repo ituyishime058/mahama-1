@@ -26,9 +26,10 @@
                 'ticker-scroll': 'ticker-scroll 60s linear infinite',
                 'progress-bar': 'progress-bar 1s ease-out forwards',
                 'fade-in': 'fade-in 0.3s ease-out forwards',
-                'slide-up': 'slide-up 0.3s ease-out forwards',
+                'slide-up': 'slide-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+                'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
                 'equalizer': 'equalizer 1.2s infinite ease-in-out',
-                'fade-in-down': 'fade-in-down 0.2s ease-out forwards',
+                'fade-in-down': 'fade-in-down 0.3s ease-out forwards',
                 'blink': 'blink 1s step-end infinite',
                 'gradient-shift': 'gradient-shift 10s ease infinite',
                 'glow': 'glow 2s ease-in-out infinite alternate',
@@ -37,11 +38,16 @@
                 'map-ping': 'map-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
                 'tilt-in': 'tilt-in 0.6s ease-out forwards',
                 'bounce': 'bounce 1s infinite',
+                'hero-bg-parallax': 'hero-bg-parallax 40s ease-in-out infinite alternate',
             },
             keyframes: {
                 'ken-burns': {
                     '0%, 100%': { transform: 'scale(1) translate(0, 0)' },
                     '50%': { transform: 'scale(1.1) translate(-2%, 2%)' },
+                },
+                'hero-bg-parallax': {
+                    '0%': { 'background-position': '0% 0%' },
+                    '100%': { 'background-position': '10% 10%' },
                 },
                 'ticker-scroll': {
                     'from': { transform: 'translateX(0%)' },
@@ -55,8 +61,12 @@
                     'to': { opacity: '1' },
                 },
                 'slide-up': {
-                    'from': { transform: 'translateY(20px)', opacity: '0' },
+                    'from': { transform: 'translateY(30px)', opacity: '0' },
                     'to': { transform: 'translateY(0)', opacity: '1' },
+                },
+                'fade-in-up': {
+                    'from': { opacity: '0', transform: 'translateY(20px)' },
+                    'to': { opacity: '1', transform: 'translateY(0)' },
                 },
                 'equalizer': {
                     '0%': { height: '25%' },
@@ -154,6 +164,12 @@
         console.error("Error applying pre-load settings:", e);
       }
     </script>
+    <style>
+      /* Animation delay utilities */
+      .animation-delay-200 { animation-delay: 200ms; }
+      .animation-delay-400 { animation-delay: 400ms; }
+      .animation-delay-600 { animation-delay: 600ms; }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-navy dark:to-slate-900 transition-colors duration-500">
     <div id="root"></div>

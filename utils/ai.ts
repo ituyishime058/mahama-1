@@ -747,3 +747,33 @@ export const performAiSearch = async (query: string, articles: Article[], settin
         throw new Error("AI search returned an invalid format.");
     }
 };
+
+// 27. generatePullQuotes
+export const generatePullQuotes = async (article: Article, settings: Settings): Promise<string[]> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings);
+    const prompt = `From the following article, extract one or two of the most impactful, representative, or thought-provoking sentences to be used as pull quotes. Return them as a simple JSON array of strings. Maximum of two quotes.
+    
+    Article Content:
+    ---
+    ${article.content}
+    ---
+    `;
+    
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            ...config,
+            responseMimeType: "application/json",
+            responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } },
+        }
+    });
+
+    try {
+        const quotes = JSON.parse(response.text.trim()) as string[];
+        return quotes.slice(0, 2); // Ensure max of 2
+    } catch {
+        return [];
+    }
+};

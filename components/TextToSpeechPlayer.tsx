@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 import React, { useEffect, useRef, useState } from 'react';
 import { decode, decodeAudioData } from '../utils/audio';
 import { textToSpeech } from '../utils/ai';
@@ -34,7 +26,6 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
             setIsGenerating(true);
             setError('');
             try {
-                // FIX: Use full article content instead of just the excerpt for a complete read-aloud experience.
                 const text = `Title: ${article.title}. By ${article.author}. ${article.content}`;
                 const b64 = await textToSpeech(text, voice);
                 setAudioBase64(b64);
@@ -50,19 +41,11 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
   }, [article, voice]);
 
   useEffect(() => {
-    // FIX: The webkitAudioContext constructor (a fallback for older browsers) does not accept arguments.
-    // However, the guide for Text-to-Speech specifies a sample rate of 24000. 
-    // We provide this option for modern browsers that support it.
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     
     return () => {
       if (sourceRef.current) {
-        // FIX: Provide argument to stop() to fix "Expected 1 arguments, but got 0" error.
         sourceRef.current.stop(0);
-      }
-      // FIX: By not closing the context, we avoid potential buggy behavior in its cleanup in some environments.
-      if(audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        // audioContextRef.current.close();
       }
     };
   }, []);
@@ -71,7 +54,6 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
     if (audioBase64 && audioContextRef.current) {
       const playAudio = async () => {
         if (sourceRef.current) {
-          // FIX: Provide argument to stop() to fix "Expected 1 arguments, but got 0" error.
           sourceRef.current.stop(0);
         }
         

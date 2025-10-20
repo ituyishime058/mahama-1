@@ -290,49 +290,40 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-navy dark:to-slate-900 overflow-y-auto animate-fade-in">
-        <style>{`
-          .settings-gradient-bg {
-             background: linear-gradient(-45deg, #0a192f, #1e293b, #b91c1c, #d97706);
-             background-size: 400% 400%;
-             animation: gradient-shift 15s ease infinite;
-          }
-        `}</style>
-        <div className="container mx-auto max-w-7xl py-8 px-4 sm:px-6 lg:px-8">
-            <header className="flex items-center justify-between mb-8">
-                <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white">Settings</h1>
-                <div className="flex items-center gap-4">
-                    <button onClick={onClose} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-                    <button onClick={handleSave} className="px-6 py-3 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save & Close</button>
-                </div>
-            </header>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <aside className="md:col-span-1">
-                <nav className="space-y-2 sticky top-8">
-                    {settingsNav.map(item => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.name;
-                    return (
-                        <button 
-                        key={item.name} 
-                        onClick={() => setActiveTab(item.name)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-left font-semibold transition-all duration-200 transform ${
-                            isActive 
-                            ? 'bg-deep-red/10 text-deep-red dark:bg-gold/20 dark:text-gold scale-105' 
-                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:translate-x-1 text-slate-600 dark:text-slate-300'
-                        }`}
-                        >
-                        <Icon className={`w-6 h-6 ${isActive ? '' : 'text-slate-500'}`} />
-                        <span>{item.name}</span>
-                        </button>
-                    )
-                    })}
-                </nav>
-                </aside>
-                <main className="md:col-span-3">
-                {renderContent()}
-                </main>
+    <div className="animate-fade-in">
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white">Settings</h1>
+            <div className="flex items-center gap-4 self-end">
+                <button onClick={onClose} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+                <button onClick={handleSave} className="px-6 py-3 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save Changes</button>
             </div>
+        </header>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <aside className="md:col-span-1">
+            <nav className="space-y-2 md:sticky top-28">
+                {settingsNav.map(item => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.name;
+                return (
+                    <button 
+                    key={item.name} 
+                    onClick={() => setActiveTab(item.name)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left font-semibold transition-all duration-200 transform ${
+                        isActive 
+                        ? 'bg-deep-red/10 text-deep-red dark:bg-gold/20 dark:text-gold md:scale-105' 
+                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 md:hover:translate-x-1 text-slate-600 dark:text-slate-300'
+                    }`}
+                    >
+                    <Icon className={`w-6 h-6 ${isActive ? '' : 'text-slate-500'}`} />
+                    <span>{item.name}</span>
+                    </button>
+                )
+                })}
+            </nav>
+            </aside>
+            <main className="md:col-span-3">
+            {renderContent()}
+            </main>
         </div>
         <ConfirmationModal 
             isOpen={!!confirmClear}

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent } from './constants';
 import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User } from './types';
@@ -15,7 +13,6 @@ import RightAside from './components/RightAside';
 import NewsTicker from './components/NewsTicker';
 import FilterBar from './components/FilterBar';
 import ArticlePage from './components/ArticlePage';
-import LiveStream from './components/LiveStream';
 import Mahama360 from './components/Mahama360';
 import NewsMap from './components/NewsMap';
 import DataDrivenInsights from './components/DataDrivenInsights';
@@ -51,7 +48,6 @@ import TextToSpeechModal from './components/TextToSpeechModal';
 import DeepDiveModal from './components/DeepDiveModal';
 import InfographicModal from './components/InfographicModal';
 import PaymentModal from './components/PaymentModal';
-// FIX: Add imports for Info pages.
 import AboutPage from './components/AboutPage';
 import CareersPage from './components/CareersPage';
 import ContactPage from './components/ContactPage';
@@ -270,14 +266,8 @@ const App: React.FC = () => {
 
 
     const openModal = (modal: string, article?: Article) => {
-        if ((aiModals.includes(modal) || modal === 'settings') && !isAuthenticated) {
+        if (aiModals.includes(modal) && !isAuthenticated) {
             setActiveModal('login');
-            return;
-        }
-
-        // Handle settings page separately as it's a full-page overlay now
-        if (modal === 'settings') {
-            setIsSettingsOpen(true);
             return;
         }
 
@@ -301,36 +291,59 @@ const App: React.FC = () => {
         setTtsModalArticle(article);
     };
 
-
     const closeModal = () => {
         setActiveModal(null);
         setModalArticle(null);
     };
-
-    const handleReadMore = (article: Article) => {
-        setActiveArticle(article);
-        setActiveMovie(null);
-        setActiveModal(null);
-        setIsSettingsOpen(false);
-    };
     
-    const handleWatchMovie = (movie: StreamingContent) => {
-        setActiveMovie(movie);
-        setActiveArticle(null);
-        setActiveModal(null);
-        setIsSettingsOpen(false);
+    const navigateTo = (view: 'article' | 'movie' | 'settings' | 'profile' | 'info' | 'home' | 'moviesPage', data?: any) => {
+        setActiveArticle(view === 'article' ? data : null);
+        setActiveMovie(view === 'movie' ? data : null);
+        setIsSettingsOpen(view === 'settings');
+        setIsProfileOpen(view === 'profile');
+        setActiveInfoPage(view === 'info' ? data : null);
+        setIsMoviesPage(view === 'moviesPage');
+
+        if (view === 'home') {
+            setIsMoviesPage(false);
+            setCurrentCategory('For You');
+            setCurrentSubCategory(null);
+        }
+
+        setActiveModal(null); // Close any open modals
+        window.scrollTo(0, 0);
     };
 
-    const handleWatchTrailer = (url: string) => {
-        setActiveTrailer(url);
-    };
 
+    const handleReadMore = (article: Article) => navigateTo('article', article);
+    const handleWatchMovie = (movie: StreamingContent) => navigateTo('movie', movie);
+    const handleWatchTrailer = (url: string) => setActiveTrailer(url);
+    const handleLogoClick = () => navigateTo('home');
+    
     const handleCloseContent = () => {
+        // This function now returns to the last known category view instead of just home.
         setActiveArticle(null);
         setActiveMovie(null);
         setIsSettingsOpen(false);
         setIsProfileOpen(false);
+        setActiveInfoPage(null);
     };
+
+    const handleOpenSettings = () => {
+        if (!isAuthenticated) {
+            setActiveModal('login');
+        } else {
+            navigateTo('settings');
+        }
+    }
+    
+    const handleOpenProfile = () => {
+        if (!isAuthenticated) {
+            setActiveModal('login');
+        } else {
+            navigateTo('profile');
+        }
+    }
 
     const toggleBookmark = (id: number) => {
         const newBookmarks = bookmarkedArticleIds.includes(id)
@@ -386,7 +399,13 @@ const App: React.FC = () => {
         setIsAuthenticated(true);
         setActiveModal(null);
     };
-    const handleLogout = () => setIsAuthenticated(false);
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+        // If on a protected page, redirect to home
+        if (isSettingsOpen || isProfileOpen) {
+            handleLogoClick();
+        }
+    };
     
     const handleSubscribe = (plan: 'Free' | 'Premium', priceDetails: { name: string, price: string }) => {
         if (plan === 'Premium') {
@@ -404,35 +423,18 @@ const App: React.FC = () => {
         setSelectedPlan(null);
     }
     
-    const handleLogoClick = () => {
-        setActiveArticle(null);
-        setActiveMovie(null);
-        setIsSettingsOpen(false);
-        setIsProfileOpen(false);
-        setIsMoviesPage(false);
-        setCurrentCategory('For You');
-        setCurrentSubCategory(null);
-        window.scrollTo(0, 0);
-    };
-
     const handleSelectCategory = (category: string) => {
         if (category === currentCategory) return;
-
         setIsCategoryLoading(true);
-
+        // Close any open page to show the category view
+        handleCloseContent();
+        
         setTimeout(() => {
-            if (category === 'Movies & TV') {
-                setIsMoviesPage(true);
-                setActiveArticle(null);
-            } else {
-                setIsMoviesPage(false);
-                setActiveArticle(null);
-            }
+            navigateTo(category === 'Movies & TV' ? 'moviesPage' : 'home');
             setCurrentCategory(category);
             setCurrentSubCategory(null);
-            window.scrollTo(0, 0);
             setIsCategoryLoading(false);
-        }, 4000); // 4-second delay as requested
+        }, 1500); // shorter delay
     };
 
     const handleSelectSubCategory = (subCategory: string) => {
@@ -444,7 +446,6 @@ const App: React.FC = () => {
         let articlesToFilter = allArticles;
 
         if (currentCategory === 'For You') {
-            // Simple personalization: mix of positive sentiment and user's preferred categories
             return articlesToFilter
                 .filter(a => settings.contentPreferences.length === 0 || settings.contentPreferences.includes(a.category) || a.sentiment === 'Positive')
                 .slice(0, 15);
@@ -453,55 +454,95 @@ const App: React.FC = () => {
         if(currentCategory !== 'All') {
             articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
         }
-
-        if(currentSubCategory) {
-            // This is a placeholder for more complex subcategory logic if needed.
-            // For now, we assume subcategories are just for UI and don't filter further.
-        }
-
         return articlesToFilter;
     }, [allArticles, currentCategory, currentSubCategory, settings.contentPreferences]);
     
-    const renderCategoryContent = () => {
+    const isHomePage = !activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage;
+
+    const renderMainContent = () => {
+        if (activeArticle) {
+            return <ArticlePage 
+                        article={activeArticle} 
+                        onClose={handleCloseContent}
+                        isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
+                        onToggleBookmark={toggleBookmark}
+                        onReadMore={handleReadMore}
+                        onSummarize={(article) => openModal('summarize', article)}
+                        onExplainSimply={(article) => openModal('explain', article)}
+                        onTextToSpeech={handleOpenTtsModal}
+                        onTranslate={(article) => openModal('translate', article)}
+                        onQuiz={(article) => openModal('quiz', article)}
+                        onCounterpoint={(article) => openModal('counterpoint', article)}
+                        onBehindTheNews={(article) => openModal('behindTheNews', article)}
+                        onExpertAnalysis={(article) => openModal('expertAnalysis', article)}
+                        onAskAuthor={(article) => openModal('askAuthor', article)}
+                        onFactCheckPage={(article) => openModal('factCheckPage', article)}
+                        onDeepDive={(article) => openModal('deepDive', article)}
+                        onInfographic={(article) => openModal('infographic', article)}
+                        settings={settings}
+                        onPremiumClick={() => setActiveModal('subscribe')}
+                    />;
+        }
+        if (activeMovie) {
+            return <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />;
+        }
+        if (isSettingsOpen) {
+            return <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />;
+        }
+        if (isProfileOpen) {
+            return <ProfilePage user={currentUser} onUserChange={setCurrentUser} settings={settings} onManageSubscription={() => setActiveModal('subscribe')} readingHistory={allArticles.slice(5, 10)} />;
+        }
+        if (activeInfoPage) {
+            const InfoPageComponent = {
+                about: AboutPage,
+                careers: CareersPage,
+                contact: ContactPage,
+                advertise: AdvertisePage,
+            }[activeInfoPage];
+            return InfoPageComponent ? <InfoPageComponent isOpen={true} onClose={() => setActiveInfoPage(null)} /> : null;
+        }
         if (isMoviesPage) {
             return <MoviesTVPage onWatchMovie={handleWatchMovie} onWatchTrailer={handleWatchTrailer} />;
         }
-        
+
+        // --- HOMEPAGE / CATEGORY CONTENT ---
         const worldAndPoliticsArticles = allArticles.filter(a => a.category === 'World' || a.category === 'Politics');
-        const techArticles = allArticles.filter(a => a.category === 'Technology');
+        const layout = settings.homepageLayout === 'Dashboard' ? 'grid' : 'default';
+        
+        const renderCategoryContent = () => {
+             switch(currentCategory) {
+                case 'World':
+                case 'Politics':
+                     return (
+                        <>
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <NewsMap articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />
+                        </>
+                     );
+                case 'Technology':
+                    return (
+                        <>
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <InnovationTimeline />
+                            <DataDrivenInsights />
+                        </>
+                    );
+                default:
+                    return <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} layout={layout} />;
+            }
+        };
 
-        switch(currentCategory) {
-            case 'World':
-            case 'Politics':
-                 return (
-                    <>
-                        <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                        <NewsMap articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />
-                    </>
-                 );
-            case 'Technology':
-                return (
-                    <>
-                        <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                        <InnovationTimeline />
-                        <DataDrivenInsights />
-                    </>
-                );
-            case 'Health':
-            case 'Science':
-            case 'Culture':
-                return (
-                    <>
-                        <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                        <PodcastHub podcasts={mockPodcasts.filter(p => p.id < 5)} />
-                    </>
-                )
-            default:
-                const layout = settings.homepageLayout === 'Dashboard' ? 'grid' : 'default';
-                return <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} layout={layout} />;
-        }
+        return (
+            <>
+               {currentCategory === 'For You' && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
+               <div className={`${currentCategory === 'For You' ? 'mt-8' : ''}`}>
+                   {renderCategoryContent()}
+               </div>
+                {settings.showMahama360 && currentCategory === 'For You' && <Mahama360 articles={allArticles.slice(7, 10)} />}
+                {settings.showNowStreaming && currentCategory === 'For You' && <SponsoredBanners />}
+            </>
+        )
     };
-
 
     return (
         <div className="min-h-screen">
@@ -510,8 +551,8 @@ const App: React.FC = () => {
             <Header
                 onMenuClick={() => openModal('categoryExplorer')}
                 onSearchClick={() => openModal('search')}
-                onSettingsClick={() => setIsSettingsOpen(true)}
-                onProfileClick={() => setIsProfileOpen(true)}
+                onSettingsClick={handleOpenSettings}
+                onProfileClick={handleOpenProfile}
                 onLogoClick={handleLogoClick}
                 isAuthenticated={isAuthenticated}
                 onLoginClick={() => setActiveModal('login')}
@@ -520,78 +561,48 @@ const App: React.FC = () => {
             />
 
             <main className="pt-20">
-                {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && (
-                  <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />
+                {!activeMovie && (
+                    <>
+                        {isHomePage && <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />}
+                        <div className="sticky top-20 z-30">
+                            <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={handleSelectSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />
+                        </div>
+                    </>
                 )}
-                 <div className="sticky top-20 z-30">
-                     {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && (
-                        <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={handleSelectSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />
-                     )}
-                 </div>
                  
-                 {newArticlesQueue.length > 0 && (
-                     <div className="fixed top-24 left-1/2 -translate-x-1/2 z-40">
+                {newArticlesQueue.length > 0 && isHomePage && (
+                     <div className="fixed top-40 left-1/2 -translate-x-1/2 z-40">
                          <button onClick={loadNewArticles} className="px-4 py-2 bg-deep-red text-white font-semibold rounded-full shadow-lg animate-bounce">
                              {newArticlesQueue.length} New Article{newArticlesQueue.length > 1 ? 's' : ''}
                          </button>
                      </div>
-                 )}
+                )}
                 
-                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${isMoviesPage ? 'max-w-full' : ''}`}>
-                    {activeArticle ? (
-                        <ArticlePage 
-                            article={activeArticle} 
-                            onClose={handleCloseContent}
-                            isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
-                            onToggleBookmark={toggleBookmark}
-                            onReadMore={handleReadMore}
-                            onSummarize={(article) => openModal('summarize', article)}
-                            onExplainSimply={(article) => openModal('explain', article)}
-                            onTextToSpeech={handleOpenTtsModal}
-                            onTranslate={(article) => openModal('translate', article)}
-                            onQuiz={(article) => openModal('quiz', article)}
-                            onCounterpoint={(article) => openModal('counterpoint', article)}
-                            onBehindTheNews={(article) => openModal('behindTheNews', article)}
-                            onExpertAnalysis={(article) => openModal('expertAnalysis', article)}
-                            onAskAuthor={(article) => openModal('askAuthor', article)}
-                            onFactCheckPage={(article) => openModal('factCheckPage', article)}
-                            onDeepDive={(article) => openModal('deepDive', article)}
-                            onInfographic={(article) => openModal('infographic', article)}
-                            settings={settings}
-                            onPremiumClick={() => setActiveModal('subscribe')}
-                        />
-                    ) : activeMovie ? (
-                         <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />
-                    ) : isSettingsOpen ? (
-                        <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />
-                    ) : isProfileOpen ? (
-                        <ProfilePage isOpen={isProfileOpen} onClose={handleCloseContent} user={currentUser} onUserChange={setCurrentUser} settings={settings} onManageSubscription={() => setActiveModal('subscribe')} readingHistory={allArticles.slice(5, 10)} />
-                    // FIX: Property 'children' is missing in type '{ isOpen: boolean; title: string; onClose: () => void; }' but required in type 'InfoPageProps'.
-                    // Render specific info pages based on activeInfoPage state.
-                    ) : activeInfoPage ? (
-                        <>
-                            {activeInfoPage === 'about' && <AboutPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                            {activeInfoPage === 'careers' && <CareersPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                            {activeInfoPage === 'contact' && <ContactPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                            {activeInfoPage === 'advertise' && <AdvertisePage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                        </>
-                    ) : (
-                        <div className={`lg:grid ${isMoviesPage ? '' : 'lg:grid-cols-3 lg:gap-8'}`}>
-                            <div className={`${isMoviesPage ? 'col-span-3' : 'lg:col-span-2'}`}>
-                               {currentCategory === 'For You' && !isMoviesPage && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
-                               <div className={`${currentCategory === 'For You' && !isMoviesPage ? 'mt-8' : ''}`}>
-                                   {renderCategoryContent()}
-                               </div>
-                                {settings.showMahama360 && currentCategory === 'For You' && <Mahama360 articles={allArticles.slice(7, 10)} />}
-                                {settings.showNowStreaming && currentCategory === 'For You' && <SponsoredBanners />}
-                            </div>
-                            {!isMoviesPage && <RightAside trendingArticles={allArticles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => setActiveModal('subscribe')} weatherData={weatherData} isWeatherLoading={isWeatherLoading}/>}
+                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie ? 'max-w-full' : ''}`}>
+                    <div className="lg:grid lg:grid-cols-3 lg:gap-8">
+                        <div className={`${activeMovie ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
+                            {renderMainContent()}
                         </div>
-                    )}
+
+                        {!activeMovie && 
+                            <RightAside 
+                                trendingArticles={allArticles.slice(1, 6)} 
+                                onArticleClick={handleReadMore} 
+                                activeArticle={activeArticle} 
+                                settings={settings} 
+                                onGoPremium={() => setActiveModal('subscribe')} 
+                                weatherData={weatherData} 
+                                isWeatherLoading={isWeatherLoading}
+                                isSettingsOpen={isSettingsOpen}
+                                isProfileOpen={isProfileOpen}
+                                user={currentUser}
+                            />
+                        }
+                    </div>
                 </div>
             </main>
 
-            {!activeArticle && <Footer onInfoPageClick={setActiveInfoPage} />}
+            {isHomePage && <Footer onInfoPageClick={(page) => navigateTo('info', page)} />}
             
             <SummarizerModal isOpen={activeModal === 'summarize'} article={modalArticle} settings={settings} onClose={closeModal} />
             <ExplainSimplyModal isOpen={activeModal === 'explain'} article={modalArticle} settings={settings} onClose={closeModal} />
@@ -604,7 +615,7 @@ const App: React.FC = () => {
             <InfographicModal isOpen={activeModal === 'infographic'} article={modalArticle} settings={settings} onClose={closeModal} />
             <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={activeArticle?.content || ''} />
             <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} onArticleSelect={handleReadMore} settings={settings}/>
-            <CategoryExplorerPage isOpen={activeModal === 'categoryExplorer'} onClose={closeModal} categories={categories} onCategorySelect={(cat) => { handleSelectCategory(cat); closeModal(); }} onSubCategorySelect={(sub) => {handleSelectSubCategory(sub); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
+            <CategoryExplorerPage isOpen={activeModal === 'categoryExplorer'} onClose={closeModal} categories={categories} onCategorySelect={(cat) => handleSelectCategory(cat)} onSubCategorySelect={(sub) => {handleSelectSubCategory(sub); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={handleOpenSettings} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore}/>
             <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={handleLogin} />
@@ -616,7 +627,7 @@ const App: React.FC = () => {
             <TrailerModal isOpen={!!activeTrailer} onClose={() => setActiveTrailer(null)} trailerUrl={activeTrailer} />
 
             <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
-            {!activeArticle && !activeMovie && <FloatingActionButton onClick={() => openModal('live')} />}
+            {isHomePage && <FloatingActionButton onClick={() => openModal('live')} />}
         </div>
     );
 };

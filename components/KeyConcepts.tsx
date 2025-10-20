@@ -1,8 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
-import type { Article, KeyConcept, Settings } from '../types';
-import { extractKeyConcepts } from '../utils/ai';
-import KeyIcon from './icons/KeyIcon';
+import React from 'react';
+import type { KeyConcept } from '../types';
 import UserIcon from './icons/UserIcon';
 import LocationPinIcon from './icons/LocationPinIcon';
 import BuildingIcon from './icons/BuildingIcon';
@@ -10,8 +7,8 @@ import SparklesIcon from './icons/SparklesIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 
 interface KeyConceptsProps {
-  article: Article;
-  settings: Settings;
+  keyConcepts: KeyConcept[];
+  conceptsLoading: boolean;
 }
 
 const typeIcons: Record<KeyConcept['type'], React.FC<any>> = {
@@ -21,54 +18,41 @@ const typeIcons: Record<KeyConcept['type'], React.FC<any>> = {
   Concept: SparklesIcon,
 };
 
-const KeyConcepts: React.FC<KeyConceptsProps> = ({ article, settings }) => {
-  const [concepts, setConcepts] = useState<KeyConcept[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+const KeyConcepts: React.FC<KeyConceptsProps> = ({ keyConcepts, conceptsLoading }) => {
+  
+  if (conceptsLoading) {
+    return (
+        <div className="flex justify-center items-center h-full">
+            <LoadingSpinner className="w-8 h-8" />
+        </div>
+      );
+  }
 
-  useEffect(() => {
-    const fetchConcepts = async () => {
-      setIsLoading(true);
-      try {
-        const result = await extractKeyConcepts(article, settings);
-        setConcepts(result);
-      } catch (error) {
-        console.error("Failed to extract key concepts", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchConcepts();
-  }, [article, settings]);
+  if (keyConcepts.length === 0) {
+    return (
+        <div className="flex justify-center items-center h-full text-center text-sm text-slate-500 p-4">
+            <p>No key concepts were identified in this article.</p>
+        </div>
+    );
+  }
 
   return (
-    <aside className="bg-white dark:bg-slate-800/50 p-4 rounded-lg shadow-md">
-      <h2 className="text-lg font-extrabold mb-4 border-l-4 border-gold pl-3 flex items-center gap-2">
-        <KeyIcon className="w-5 h-5" />
-        Key Concepts
-      </h2>
-      {isLoading ? (
-        <div className="flex justify-center items-center h-24">
-            <LoadingSpinner className="w-6 h-6" />
-        </div>
-      ) : concepts.length > 0 ? (
-        <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-          {concepts.map((concept) => {
-            const Icon = typeIcons[concept.type] || SparklesIcon;
-            return (
-              <div key={concept.term} className="text-sm">
-                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-white">
-                    <Icon className="w-4 h-4 text-slate-500" />
-                    <span>{concept.term}</span>
-                </div>
-                <p className="ml-6 text-slate-600 dark:text-slate-400">{concept.description}</p>
+    <div className="p-4 h-full overflow-y-auto">
+      <div className="space-y-4">
+        {keyConcepts.map((concept) => {
+          const Icon = typeIcons[concept.type] || SparklesIcon;
+          return (
+            <div key={concept.term} className="text-sm">
+              <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-white">
+                  <Icon className="w-4 h-4 text-slate-500" />
+                  <span>{concept.term}</span>
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="text-sm text-slate-500">No key concepts identified.</p>
-      )}
-    </aside>
+              <p className="ml-6 text-slate-600 dark:text-slate-400">{concept.description}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 

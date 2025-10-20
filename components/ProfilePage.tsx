@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
 import type { Settings, User, Article } from '../types';
 
-import CloseIcon from './icons/CloseIcon';
 import ProfileIcon from './icons/ProfileIcon';
 import BillingIcon from './icons/BillingIcon';
 import HistoryIcon from './icons/HistoryIcon';
 import ShieldCheckIcon from './icons/ShieldCheckIcon';
 import EditIcon from './icons/EditIcon';
-import CrownIcon from './icons/CrownIcon';
 
 interface ProfilePageProps {
-  isOpen: boolean;
-  onClose: () => void;
   user: User;
   onUserChange: (newUser: User) => void;
   settings: Settings;
@@ -40,20 +36,13 @@ const ToggleSwitch: React.FC<{label: string, enabled: boolean, onChange: (enable
     </div>
 );
 
-const ProfilePage: React.FC<ProfilePageProps> = ({ isOpen, onClose, user, onUserChange, settings, onManageSubscription, readingHistory }) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ user, onUserChange, settings, onManageSubscription, readingHistory }) => {
   const [localUser, setLocalUser] = useState(user);
   const [activeTab, setActiveTab] = useState('Edit Profile');
 
   const handleUserFieldChange = <K extends keyof User>(key: K, value: User[K]) => {
     setLocalUser(prev => ({ ...prev, [key]: value }));
   };
-
-  const handleSaveChanges = () => {
-    onUserChange(localUser);
-    // In a real app, you'd show a success toast
-  };
-
-  if (!isOpen) return null;
   
   const renderContent = () => {
     switch (activeTab) {
@@ -61,7 +50,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ isOpen, onClose, user, onUser
         return (
           <div className="space-y-8 animate-fade-in">
             <h3 className="text-2xl font-bold">Public Profile</h3>
-            <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg flex items-center gap-6">
+            <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative group w-24 h-24 flex-shrink-0">
                     <img src={localUser.avatar} alt="User" className="w-24 h-24 rounded-full"/>
                     <button className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
@@ -162,42 +151,37 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ isOpen, onClose, user, onUser
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-gradient-to-br from-slate-100 to-slate-200 dark:from-navy dark:to-slate-900 overflow-y-auto animate-fade-in">
-        <div className="container mx-auto max-w-7xl py-8 px-4 sm:px-6 lg:px-8">
-            <header className="flex items-center justify-between mb-8">
-                <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white">Profile & Settings</h1>
-                <div className="flex items-center gap-4">
-                    <button onClick={onClose} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">Close</button>
-                    <button onClick={handleSaveChanges} className="px-6 py-3 bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save Changes</button>
-                </div>
-            </header>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <aside className="md:col-span-1">
-                <nav className="space-y-2 sticky top-8">
-                    {navItems.map(item => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.name;
-                    return (
-                        <button 
-                        key={item.name} 
-                        onClick={() => setActiveTab(item.name)}
-                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-left font-semibold transition-all duration-200 transform ${
-                            isActive 
-                            ? 'bg-deep-red/10 text-deep-red dark:bg-gold/20 dark:text-gold scale-105' 
-                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:translate-x-1 text-slate-600 dark:text-slate-300'
-                        }`}
-                        >
-                        <Icon className={`w-6 h-6 ${isActive ? '' : 'text-slate-500'}`} />
-                        <span>{item.name}</span>
-                        </button>
-                    )
-                    })}
-                </nav>
-                </aside>
-                <main className="md:col-span-3">
-                {renderContent()}
-                </main>
-            </div>
+    <div className="animate-fade-in">
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white">Your Profile</h1>
+            <button onClick={() => onUserChange(localUser)} className="px-6 py-3 self-end bg-deep-red text-white rounded-lg font-semibold hover:bg-red-700 transition-colors">Save Changes</button>
+        </header>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <aside className="md:col-span-1">
+            <nav className="space-y-2 md:sticky top-28">
+                {navItems.map(item => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.name;
+                return (
+                    <button 
+                    key={item.name} 
+                    onClick={() => setActiveTab(item.name)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left font-semibold transition-all duration-200 transform ${
+                        isActive 
+                        ? 'bg-deep-red/10 text-deep-red dark:bg-gold/20 dark:text-gold md:scale-105' 
+                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 md:hover:translate-x-1 text-slate-600 dark:text-slate-300'
+                    }`}
+                    >
+                    <Icon className={`w-6 h-6 ${isActive ? '' : 'text-slate-500'}`} />
+                    <span>{item.name}</span>
+                    </button>
+                )
+                })}
+            </nav>
+            </aside>
+            <main className="md:col-span-3">
+            {renderContent()}
+            </main>
         </div>
     </div>
   );

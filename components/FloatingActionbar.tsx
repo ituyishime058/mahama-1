@@ -99,40 +99,21 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
     </button>
   );
 
-  const lenses: ReadingLens[] = ['None', 'Simplify', 'DefineTerms'];
-
   return (
     <div
       className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-40 transition-all duration-500 ease-in-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'
+        isVisible && !isZenMode ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'
       }`}
     >
       <div className="bg-white/80 dark:bg-navy/80 backdrop-blur-md rounded-full shadow-2xl p-2 flex items-center gap-1 border border-slate-200 dark:border-slate-700">
-        {isZenMode ? (
-            <div className="flex items-center gap-1 px-2">
-                <div className="flex items-center gap-2 mr-2">
-                    <MagicWandIcon className="w-5 h-5 text-deep-red dark:text-gold" />
-                    <span className="font-semibold text-sm">Lens:</span>
-                </div>
-                {lenses.map(lens => (
-                     <button key={lens} onClick={() => onSetLens(lens)} className={`px-3 py-1.5 rounded-full text-sm font-semibold ${activeLens === lens ? 'bg-deep-red text-white' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
-                        {lens === 'DefineTerms' ? 'Define' : lens}
-                     </button>
-                ))}
-            </div>
-        ) : (
-          <>
-            <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
-            <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-            <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
-            <ActionButton onClick={() => handlePremiumFeature(onDeepDive)} icon={<DeepDiveIcon className="w-5 h-5" />} label="Deep Dive" isPremiumFeature={true} />
-            <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
-            <ActionButton onClick={() => handlePremiumFeature(onInfographic)} icon={<ChartBarIcon className="w-5 h-5" />} label="Infographic" isPremiumFeature={true} />
-            <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
-            <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
-            {showCounterpoint && <ActionButton onClick={() => handlePremiumFeature(onCounterpoint)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" isPremiumFeature={true} />}
-          </>
-        )}
+        <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
+        <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
+        <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
+        <ActionButton onClick={() => handlePremiumFeature(onDeepDive)} icon={<DeepDiveIcon className="w-5 h-5" />} label="Deep Dive" isPremiumFeature={true} />
+        <ActionButton onClick={() => handlePremiumFeature(onInfographic)} icon={<ChartBarIcon className="w-5 h-5" />} label="Infographic" isPremiumFeature={true} />
+        <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
+        <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
+        {showCounterpoint && <ActionButton onClick={() => handlePremiumFeature(onCounterpoint)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" isPremiumFeature={true} />}
       </div>
     </div>
   );
