@@ -96,7 +96,8 @@ const newArticles: Article[] = [
             'The manuscript was discovered in an attic in Vienna.',
             'The work is considered a major addition to the classical repertoire.',
             'The Vienna Philharmonic is planning a world premiere performance.'
-        ]
+        ],
+        tags: ['Music', 'Classical']
     },
     {
         id: 11,
@@ -210,7 +211,7 @@ const newArticles: Article[] = [
           'The AI builds interactive lessons and dictionaries from the data.',
           'The initiative aims to create a digital archive for cultural preservation.'
         ],
-        tags: ['AI']
+        tags: ['AI', 'Language']
     },
     {
         id: 17,
@@ -228,7 +229,8 @@ const newArticles: Article[] = [
           'These grains are valued for their flavor, nutritional benefits, and climate resilience.',
           'Top chefs are incorporating them into their menus.',
           'The trend combines history, culture, and sustainability.'
-        ]
+        ],
+        tags: ['Food']
     },
     {
         id: 18,
@@ -361,7 +363,7 @@ export const mockArticles: Article[] = [
             'Experts are cautiously optimistic, citing potential for increased access to care.',
             'Concerns remain about the lack of scientific validation for many products.'
         ],
-        tags: ['AI']
+        tags: ['AI', 'Wellness']
     },
     {
         id: 6,
@@ -380,7 +382,7 @@ export const mockArticles: Article[] = [
           'Social media platforms and lawmakers are struggling to address the issue.',
           'Voters are advised to be critical of online content and use trusted sources.'
         ],
-        tags: ['AI', 'Cybersecurity']
+        tags: ['AI', 'Cybersecurity', 'Elections']
     },
     {
         id: 7,
@@ -452,6 +454,26 @@ export const mockPodcasts: Podcast[] = [
         duration: "52 min",
         episode: 103,
         audioUrl: "https://storage.googleapis.com/media-session/big-buck-bunny/big-buck-bunny-sintel-audio.mp3",
+    },
+    {
+        id: 4,
+        title: "Decoding Deepfakes: The Fight for Truth in the Digital Age",
+        excerpt: "Cybersecurity expert Jenna Ortiz breaks down the threat of deepfakes in politics and beyond, and what's being done to combat them. A must-listen before the next election.",
+        imageUrl: "https://picsum.photos/seed/podcast4/400/400",
+        author: "Mahama News Hub",
+        duration: "48 min",
+        episode: 104,
+        audioUrl: "https://storage.googleapis.com/media-session/elephants-dream/the-wires.mp3",
+    },
+    {
+        id: 5,
+        title: "The Art of Sound: Composing for Film & Television",
+        excerpt: "Award-winning composer Hans Zimmer discusses his creative process, the power of a good score, and how technology has changed the landscape of film music.",
+        imageUrl: "https://picsum.photos/seed/podcast5/400/400",
+        author: "Mahama News Hub",
+        duration: "62 min",
+        episode: 105,
+        audioUrl: "https://storage.googleapis.com/media-session/sintel/sintel-audio.mp3",
     }
 ];
 
@@ -542,14 +564,14 @@ export const categories: Category[] = [
     { name: "For You", icon: ForYouIcon },
     { name: "All", icon: AllIcon },
     { name: "World", icon: GlobeIcon, subcategories: ["Americas", "Europe", "Asia", "Africa", "Middle East"] },
-    { name: "Politics", icon: PoliticsIcon },
+    { name: "Politics", icon: PoliticsIcon, subcategories: ["Elections", "Policy", "Global"] },
     { name: "Economy", icon: EconomyIcon, subcategories: ["Markets", "Finance", "Business"] },
     { name: "Technology", icon: TechnologyIcon, subcategories: ["AI", "Cybersecurity", "Gadgets", "Energy", "Sci-Fi"] },
     { name: "Sports", icon: SportsIcon, subcategories: ["Football", "Basketball", "Gaming"] },
-    { name: "Health", icon: HealthIcon },
+    { name: "Health", icon: HealthIcon, subcategories: ["Wellness", "Medical", "Mental Health"] },
     { name: "Science", icon: ScienceIcon, subcategories: ["Space", "Biotech"] },
     { name: "Environment", icon: EnvironmentIcon },
-    { name: "Culture", icon: CultureIcon },
+    { name: "Culture", icon: CultureIcon, subcategories: ["Food", "Language", "Traditions"] },
     { name: "Entertainment", icon: EntertainmentIcon },
     { name: "Movies & TV", icon: MoviesTVIcon },
     { name: "Art", icon: ArtIcon },
@@ -560,8 +582,11 @@ export const categories: Category[] = [
 
 export const innovations: Innovation[] = [
     { year: 1989, title: "World Wide Web Invented", description: "Tim Berners-Lee invents the Web, changing how information is shared globally.", icon: 'GlobeIcon' },
+    { year: 1995, title: "GPS Becomes Fully Operational", description: "The Global Positioning System constellation of 24 satellites becomes fully active, revolutionizing navigation.", icon: 'GpsIcon' },
     { year: 1998, title: "Google Founded", description: "The launch of the search engine that would go on to organize the world's information.", icon: 'SearchIcon' },
-    { year: 2007, title: "First iPhone Released", description: "Apple launches the first iPhone, kicking off the modern smartphone era.", icon: 'UserIcon' },
+    { year: 2001, title: "Human Genome Project", description: "The first draft of the human genome is published, opening new doors for genetic medicine.", icon: 'DnaIcon' },
+    { year: 2004, title: "Social Media Emerges", description: "Facebook is launched, marking the beginning of the social networking era that reshaped communication.", icon: 'SocialIcon' },
+    { year: 2007, title: "First iPhone Released", description: "Apple launches the first iPhone, kicking off the modern smartphone era.", icon: 'SmartphoneIcon' },
     { year: 2012, title: "Deep Learning Breakthrough", description: "AlexNet wins the ImageNet competition, showcasing the power of deep neural networks.", icon: 'SparklesIcon' },
     { year: 2022, title: "Generative AI Goes Mainstream", description: "Models like DALL-E 2 and ChatGPT capture public imagination, democratizing AI creation.", icon: 'DataIcon' }
 ];
@@ -578,6 +603,10 @@ export const mockStreamingContent: StreamingContent[] = [
   { id: 9, title: 'Dune: Prophecy', posterUrl: 'https://image.tmdb.org/t/p/w400/sKAt80i0n3l34iV4iCbHFo5H263.jpg', trailerUrl: 'https://www.youtube.com/embed/t_Bf3xQ4p_8?autoplay=1', description: 'A prequel series set 10,000 years before the birth of Paul Atreides, exploring the origins of the Bene Gesserit.', isNew: true },
   { id: 10, title: 'Blade Runner 2099', posterUrl: 'https://image.tmdb.org/t/p/w400/u3bQo6w5nB5yEw2n4sE2osM6wU.jpg', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1', description: 'A new chapter in the Blade Runner saga, set fifty years after the events of Blade Runner 2049.', isNew: true },
   { id: 11, title: 'Project Artemis', posterUrl: 'https://image.tmdb.org/t/p/w400/o16s2eEWKY29I3s2mfl229i69a.jpg', trailerUrl: 'https://www.youtube.com/embed/zMo2cTUy_eQ?autoplay=1', description: 'A high-stakes sci-fi thriller about the race to establish a new human colony on the moon.', isNew: true },
+  { id: 12, title: 'Arrival', posterUrl: 'https://image.tmdb.org/t/p/w400/x2FJsf1ElAgr63Y3PNs7GkKzJrZ.jpg', trailerUrl: 'https://www.youtube.com/embed/tFMo3UJ4B4g?autoplay=1', description: 'A linguist works with the military to communicate with alien lifeforms after twelve mysterious spacecraft appear around the world.'},
+  { id: 13, title: 'Parasite', posterUrl: 'https://image.tmdb.org/t/p/w400/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', trailerUrl: 'https://www.youtube.com/embed/5xH0HfJHsaY?autoplay=1', description: 'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.'},
+  { id: 14, title: 'Interstellar', posterUrl: 'https://image.tmdb.org/t/p/w400/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', trailerUrl: 'https://www.youtube.com/embed/zSWdZVtXT7E?autoplay=1', description: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.'},
+  { id: 15, title: 'Civil War', posterUrl: 'https://image.tmdb.org/t/p/w400/sh7Rg8Er3tFcN9AuqSrJYDALpVS.jpg', trailerUrl: 'https://www.youtube.com/embed/aDyQxtg0V2w?autoplay=1', description: 'A journey across a dystopian future America, following a team of military-embedded journalists as they race against time to reach DC before rebel factions descend upon the White House.', isNew: true },
 ];
 
 export const subscriptionPlans: SubscriptionPlan[] = [
@@ -600,10 +629,11 @@ export const subscriptionPlans: SubscriptionPlan[] = [
             'Everything in Free, plus:',
             'Ad-free experience',
             'Unlimited advanced AI features',
-            'Exclusive "Ask the Author" AI',
+            'Exclusive "Ask the Author" & "Deep Dive" AI',
             'AI-Generated News Briefings',
             'Option for "Quality" AI model',
             'Enhanced "For You" personalization',
+            'AI-Optimized Homepage Layout',
         ],
         isRecommended: true,
     }

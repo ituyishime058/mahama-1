@@ -33,6 +33,7 @@ interface ArticlePageProps {
   onExpertAnalysis: (article: Article) => void;
   onAskAuthor: (article: Article) => void;
   onFactCheckPage: (article: Article) => void;
+  onDeepDive: (article: Article) => void;
   settings: Settings;
   onPremiumClick: () => void;
 }
@@ -53,6 +54,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onExpertAnalysis,
     onAskAuthor,
     onFactCheckPage,
+    onDeepDive,
     settings,
     onPremiumClick,
 }) => {
@@ -82,6 +84,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   
   const articleRef = useRef<HTMLDivElement>(null);
 
+  const handleManualTranslate = async () => {
+    if (isTranslating) return;
+    setIsTranslating(true);
+    try {
+        const translation = await translateArticle(article.content, settings.preferredLanguage, settings);
+        setTranslatedContent(translation);
+        setShowOriginal(false);
+    } catch (e) {
+        console.error("Translation failed:", e);
+    } finally {
+        setIsTranslating(false);
+    }
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     setTags([]);
@@ -105,20 +121,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setHighlightsLoading(true);
 
     if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
-        const doTranslate = async () => {
-            setIsTranslating(true);
-            setShowOriginal(false);
-            try {
-                const translation = await translateArticle(article.content, settings.preferredLanguage, settings);
-                setTranslatedContent(translation);
-            } catch (e) {
-                console.error("Auto-translation failed:", e);
-                setShowOriginal(true);
-            } finally {
-                setIsTranslating(false);
-            }
-        };
-        doTranslate();
+        handleManualTranslate();
     }
 
     const fetchAIData = async () => {
@@ -254,21 +257,21 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                     <p className="text-lg text-slate-600 dark:text-slate-400">{article.excerpt}</p>
                     
                     <AuthorInfo author={article.author} date={article.date} content={article.content} />
-
-                    {translatedContent && (
-                        <div className="my-4 p-3 bg-slate-100 dark:bg-slate-800/50 rounded-md flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                {isTranslating ? <>
-                                    <LoadingSpinner/> Translating to ${settings.preferredLanguage}...
-                                </> : <>
-                                    <TranslateIcon className="w-5 h-5"/> Translated to {settings.preferredLanguage}
-                                </>}
-                            </div>
-                            <button onClick={() => setShowOriginal(!showOriginal)} className="font-semibold text-sm text-deep-red dark:text-gold hover:underline">
-                                {showOriginal ? 'Show Translation' : 'Show Original'}
-                            </button>
+                    
+                    <div className="my-4 flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                           {translatedContent && (
+                                <button onClick={() => setShowOriginal(!showOriginal)} className="font-semibold text-sm text-deep-red dark:text-gold hover:underline">
+                                    {showOriginal ? 'Show Translation' : 'Show Original'}
+                                </button>
+                           )}
                         </div>
-                    )}
+                        <button onClick={handleManualTranslate} disabled={isTranslating} className="flex items-center gap-2 text-sm font-semibold p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50">
+                            {isTranslating ? <LoadingSpinner /> : <TranslateIcon className="w-5 h-5"/>}
+                            <span>{isTranslating ? 'Translating...' : `Translate to ${settings.preferredLanguage}`}</span>
+                        </button>
+                    </div>
+
 
                     {!isZenMode && (
                          <figure className="my-8">
@@ -314,13 +317,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
-            onTranslate={onTranslate}
+            onTranslate={() => onTranslate(article)}
             onQuiz={onQuiz}
             onCounterpoint={onCounterpoint}
             onBehindTheNews={onBehindTheNews}
             onExpertAnalysis={onExpertAnalysis}
             onAskAuthor={onAskAuthor}
             onFactCheckPage={onFactCheckPage}
+            onDeepDive={onDeepDive}
             showCounterpoint={settings.showCounterpoint}
             isZenMode={isZenMode}
             activeLens={activeLens}

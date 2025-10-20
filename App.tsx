@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { mockArticles, mockPodcasts, categories, stockData } from './constants';
 import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
+import { determineOptimalLayout } from './utils/ai';
 
 // Component Imports
 import Header from './components/Header';
@@ -47,6 +48,7 @@ import AudioPlayer from './components/AudioPlayer';
 import FloatingActionButton from './components/FloatingActionButton';
 import FactCheckPageModal from './components/FactCheckPageModal';
 import TextToSpeechModal from './components/TextToSpeechModal';
+import DeepDiveModal from './components/DeepDiveModal';
 
 
 const defaultSettings: Settings = {
@@ -153,6 +155,28 @@ const App: React.FC = () => {
         setSettings(newSettings);
     };
 
+    const bookmarkedArticles = useMemo(() => mockArticles.filter(a => bookmarkedArticleIds.includes(a.id)), [bookmarkedArticleIds]);
+
+    // AI Layout Optimization
+    useEffect(() => {
+        const optimizeLayout = async () => {
+          if (settings.subscriptionTier === 'Premium' && bookmarkedArticles.length >= 3) {
+            try {
+              const optimalLayout = await determineOptimalLayout(bookmarkedArticles, settings);
+              if (optimalLayout && settings.homepageLayout !== optimalLayout) {
+                const newDensity = optimalLayout === 'Dashboard' ? 'Compact' : 'Comfortable';
+                handleSettingsChange({ ...settings, homepageLayout: optimalLayout, informationDensity: newDensity });
+              }
+            } catch (e) {
+              console.error("Layout optimization failed", e);
+            }
+          }
+        };
+        const timer = setTimeout(optimizeLayout, 2000); // Debounce
+        return () => clearTimeout(timer);
+    }, [bookmarkedArticles, settings.subscriptionTier]);
+
+
     const openModal = (modal: string, article?: Article) => {
         setModalArticle(article || activeArticle || null);
         setActiveModal(modal);
@@ -248,8 +272,6 @@ const App: React.FC = () => {
         return articles;
     }, [currentCategory, currentSubCategory]);
 
-    const bookmarkedArticles = mockArticles.filter(a => bookmarkedArticleIds.includes(a.id));
-
     const handleSelectCategory = (category: string) => {
         setCurrentCategory(category);
         setCurrentSubCategory(null);
@@ -259,15 +281,17 @@ const App: React.FC = () => {
         setCurrentCategory(category);
         setCurrentSubCategory(subCategory);
     };
+    
+    const isDashboard = settings.homepageLayout === 'Dashboard';
 
     const pageContent = (
         <>
             {!activeArticle && !activeMovie && activeModal !== 'settings' && (
                 <>
-                    <Hero article={mockArticles[0]} onReadMore={() => handleReadMore(mockArticles[0])} />
+                    {!isDashboard && <Hero article={mockArticles[0]} onReadMore={() => handleReadMore(mockArticles[0])} />}
                     <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
                     
-                    <div className="mt-8">
+                    <div className={isDashboard ? "mt-4" : "mt-8"}>
                         <FilterBar 
                             categories={categories} 
                             currentCategory={currentCategory} 
@@ -280,6 +304,7 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        {isDashboard && <h1 className="text-3xl font-extrabold mb-6">Your Dashboard</h1>}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2">
                                 <GlobalHighlights
@@ -295,6 +320,7 @@ const App: React.FC = () => {
                                     offlineArticleIds={offlineArticleIds}
                                     downloadingArticleId={downloadingArticleId}
                                     onDownloadArticle={handleDownloadArticle}
+                                    layout={isDashboard ? 'grid' : 'default'}
                                 />
                                 <LiveStream />
                                 <Mahama360 articles={mockArticles.slice(2, 5)} />
@@ -342,6 +368,7 @@ const App: React.FC = () => {
                                     onExpertAnalysis={(a) => openModal('expertAnalysis', a)}
                                     onAskAuthor={(a) => openModal('askAuthor', a)}
                                     onFactCheckPage={(a) => openModal('factCheckPage', a)}
+                                    onDeepDive={(a) => openModal('deepDive', a)}
                                     settings={settings}
                                     onPremiumClick={() => openModal('subscribe')}
                                 />
@@ -407,6 +434,7 @@ const App: React.FC = () => {
             <AskAuthorModal isOpen={activeModal === 'askAuthor'} onClose={closeModal} article={modalArticle} settings={settings} />
             <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={mockArticles} onPlayBriefing={handlePlayBriefing} />
             <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={modalArticle?.content || ''} />
+            <DeepDiveModal isOpen={activeModal === 'deepDive'} onClose={closeModal} article={modalArticle} settings={settings} />
             
             <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={mockArticles} onArticleSelect={handleReadMore} />
             <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={() => { setIsAuthenticated(true); closeModal(); }} />

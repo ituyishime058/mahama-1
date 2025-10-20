@@ -5,13 +5,21 @@ import UserIcon from './icons/UserIcon';
 import GlobeIcon from './icons/GlobeIcon';
 import DataIcon from './icons/DataIcon';
 import SearchIcon from './icons/SearchIcon';
+import GpsIcon from './icons/GpsIcon';
+import DnaIcon from './icons/DnaIcon';
+import SocialIcon from './icons/SocialIcon';
+import SmartphoneIcon from './icons/SmartphoneIcon';
 
 const iconMap: { [key: string]: React.FC<any> } = {
   SparklesIcon,
   UserIcon,
   GlobeIcon,
   DataIcon,
-  SearchIcon
+  SearchIcon,
+  GpsIcon,
+  DnaIcon,
+  SocialIcon,
+  SmartphoneIcon,
 };
 
 

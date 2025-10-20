@@ -20,6 +20,7 @@ interface GlobalHighlightsProps {
   offlineArticleIds: number[];
   downloadingArticleId: number | null;
   onDownloadArticle: (article: Article) => void;
+  layout?: 'default' | 'grid';
 }
 
 const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({ 
@@ -34,13 +35,38 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   onToggleBookmark,
   offlineArticleIds,
   downloadingArticleId,
-  onDownloadArticle
+  onDownloadArticle,
+  layout = 'default'
 }) => {
   if (!articles || articles.length === 0) {
     return (
       <section className="text-center py-10">
         <h2 className="text-2xl font-bold">No articles to display.</h2>
         <p>Please check your content preferences in the settings.</p>
+      </section>
+    );
+  }
+
+  if (layout === 'grid') {
+    return (
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {articles.map(article => (
+           <ArticleCard 
+            key={article.id} 
+            article={article} 
+            onSummarize={onSummarize}
+            onExplainSimply={onExplainSimply}
+            onTextToSpeech={onTextToSpeech}
+            onTranslate={onTranslate}
+            onReadMore={onReadMore}
+            audioState={audioState}
+            isBookmarked={bookmarkedArticleIds.includes(article.id)}
+            onToggleBookmark={onToggleBookmark}
+            offlineArticleIds={offlineArticleIds}
+            downloadingArticleId={downloadingArticleId}
+            onDownloadArticle={onDownloadArticle}
+          />
+        ))}
       </section>
     );
   }

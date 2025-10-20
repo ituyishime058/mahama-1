@@ -12,6 +12,7 @@ import MagicWandIcon from './icons/MagicWandIcon';
 import CrownIcon from './icons/CrownIcon';
 import AuthorIcon from './icons/AuthorIcon';
 import ShieldCheckIcon from './icons/ShieldCheckIcon';
+import DeepDiveIcon from './icons/DeepDiveIcon';
 
 interface FloatingActionbarProps {
   article: Article;
@@ -25,6 +26,7 @@ interface FloatingActionbarProps {
   onExpertAnalysis: (article: Article) => void;
   onAskAuthor: (article: Article) => void;
   onFactCheckPage: (article: Article) => void;
+  onDeepDive: (article: Article) => void;
   showCounterpoint: boolean;
   isZenMode: boolean;
   activeLens: ReadingLens;
@@ -45,6 +47,7 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onExpertAnalysis,
   onAskAuthor,
   onFactCheckPage,
+  onDeepDive,
   showCounterpoint,
   isZenMode,
   activeLens,
@@ -119,8 +122,8 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
             <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
             <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
             <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
+            <ActionButton onClick={() => handlePremiumFeature(onDeepDive)} icon={<DeepDiveIcon className="w-5 h-5" />} label="Deep Dive" isPremiumFeature={true} />
             <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
-            <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Translate" />
             <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
             <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
             {showCounterpoint && <ActionButton onClick={() => handlePremiumFeature(onCounterpoint)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" isPremiumFeature={true} />}

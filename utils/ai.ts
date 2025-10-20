@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Content, Type, Modality } from "@google/genai";
-import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, StreamingContent, HomepageLayout } from '../types';
+import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment } from '../types';
 
 const getSpeedConfig = () => ({
     model: 'gemini-2.5-flash',
@@ -187,7 +187,7 @@ export const generateTags = async (article: Article, settings: Settings): Promis
 // 9. factCheckArticle
 export const factCheckArticle = async (article: Article, settings: Settings): Promise<{ status: string; summary: string }> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const model = 'gemini-2.5-flash';
+    const { model, config } = getSpeedConfig();
 
     const prompt = `Fact-check the key claims in this article excerpt using Google Search. Provide a one-sentence summary of your findings and a status of "Verified", "Mixed", or "Unverified".
     
@@ -197,6 +197,7 @@ export const factCheckArticle = async (article: Article, settings: Settings): Pr
         model: model,
         contents: prompt,
         config: {
+            ...config,
             tools: [{ googleSearch: {} }],
         },
     });
@@ -418,13 +419,13 @@ export async function* askAboutArticle(article: Article, question: string, histo
 }
 
 // 17. summarizeComments
-export const summarizeComments = async (comments: any[], settings: Settings): Promise<CommunityHighlight[]> => {
+export const summarizeComments = async (comments: Comment[], settings: Settings): Promise<CommunityHighlight[]> => {
     if (comments.length < 3) return [];
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getSpeedConfig();
     
     const commentsText = comments.map(c => `${c.user.name}: "${c.text}"`).join("\n");
-    const prompt = `Analyze the following comment thread. Identify 2-3 distinct viewpoints or themes. For each, provide a one-sentence summary of the viewpoint and a representative quote summary. Return a JSON array. Each object should have "viewpoint" (string) and "summary" (string).\n\nComments:\n${commentsText}`;
+    const prompt = `Analyze the following comment thread. Identify 2-3 distinct viewpoints or themes. For each, provide a one-sentence summary of the viewpoint. Return a JSON array. Each object should have "viewpoint" (string) and "summary" (string).\n\nComments:\n${commentsText}`;
 
     const response = await ai.models.generateContent({
         model: model,
@@ -482,7 +483,7 @@ export async function* generateAuthorResponse(article: Article, question: string
 // 19. generateNewsBriefing
 export const generateNewsBriefing = async (articles: Article[], settings: Settings): Promise<string> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const model = 'gemini-2.5-flash';
+    const { model, config } = getSpeedConfig();
 
     const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
 
@@ -498,7 +499,7 @@ export const generateNewsBriefing = async (articles: Article[], settings: Settin
     const response = await ai.models.generateContent({
         model: model,
         contents: prompt,
-        config: getSpeedConfig().config,
+        config: config,
     });
     
     return response.text;
@@ -507,7 +508,7 @@ export const generateNewsBriefing = async (articles: Article[], settings: Settin
 // 20. factCheckPageContent
 export const factCheckPageContent = async (content: string, settings: Settings): Promise<{ summary: string; sources: { uri: string, title: string }[] }> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const model = 'gemini-2.5-flash';
+    const { model, config } = getSpeedConfig();
 
     const prompt = `Fact-check the key claims in the following content using Google Search. Provide a brief summary of your findings and list the top 3-5 web sources you used.
 
@@ -521,6 +522,7 @@ export const factCheckPageContent = async (content: string, settings: Settings):
         model: model,
         contents: prompt,
         config: {
+            ...config,
             tools: [{ googleSearch: {} }],
         },
     });
@@ -539,13 +541,64 @@ export const factCheckPageContent = async (content: string, settings: Settings):
     };
 };
 
-// 21. determineOptimalLayout
-export const determineOptimalLayout = async (bookmarkedArticles: Article[], settings: Settings): Promise<HomepageLayout> => {
-    const hasDiverseBookmarks = new Set(bookmarkedArticles.map(a => a.category)).size > 3;
-    const prefersDataHeavyTopics = bookmarkedArticles.some(a => ['Economy', 'Technology', 'Science'].includes(a.category));
+// 21. NEW: generateDeepDive
+export async function* generateDeepDive(article: Article, settings: Settings): AsyncGenerator<string> {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getSpeedConfig(); // Use speed for faster streaming start
+    const prompt = `Provide a comprehensive "Deep Dive" into the topic of the following news article. Go beyond the text to provide extensive background. Structure your response with these detailed markdown sections:
     
-    if (hasDiverseBookmarks && prefersDataHeavyTopics) {
-        return 'Dashboard';
+    ## Comprehensive Background
+    Explain the broader historical, social, or technological context that this news event fits into. What led up to this moment?
+    
+    ## Profiles of Key Entities
+    Detail the most important individuals, organizations, or nations involved. What are their histories, motivations, and roles in this story?
+    
+    ## Data & Statistics
+    Provide relevant data points, statistics, or quantitative analysis that helps to understand the scale and scope of the issue.
+    
+    ## Future Outlook & Projections
+    Based on the information, discuss the potential long-term consequences, future trends, and expert predictions related to this topic.
+    
+    Article Title: ${article.title}
+    Article Excerpt: ${article.excerpt}`;
+    
+    const response = await ai.models.generateContentStream({
+        model,
+        contents: prompt,
+        config,
+    });
+
+    for await (const chunk of response) {
+        yield chunk.text;
     }
-    return 'Standard';
+}
+
+// 22. NEW: determineOptimalLayout
+export const determineOptimalLayout = async (bookmarkedArticles: Article[], settings: Settings): Promise<HomepageLayout | null> => {
+    if (bookmarkedArticles.length < 3) return null;
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getSpeedConfig();
+
+    const bookmarkSummary = bookmarkedArticles.map(a => `- ${a.title} (Category: ${a.category})`).join('\n');
+
+    const prompt = `Based on this user's list of bookmarked articles, should their homepage layout be "Standard" or "Dashboard"?
+    - "Standard" is a traditional, comfortable news layout.
+    - "Dashboard" is a dense, multi-column layout for power users who follow many diverse topics or data-heavy subjects (like Economy, Technology).
+    
+    User's Bookmarks:
+    ${bookmarkSummary}
+    
+    Respond with only a single word: "Standard" or "Dashboard".`;
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config,
+    });
+
+    const layout = response.text.trim();
+    if (layout === 'Dashboard' || layout === 'Standard') {
+        return layout;
+    }
+    return null;
 };
