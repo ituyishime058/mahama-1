@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Content, Type, Modality } from "@google/genai";
-import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData } from '../types';
+import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData, AiSearchResult } from '../types';
 
 const getModelConfig = (settings: Settings) => {
     if (settings.subscriptionTier === 'Premium' && settings.aiModelPreference === 'Quality') {
@@ -680,4 +680,70 @@ export const getThisDayInHistory = async (): Promise<string> => {
     });
 
     return response.text;
+};
+
+// 25. getAutocompleteSuggestions
+export const getAutocompleteSuggestions = async (query: string, settings: Settings): Promise<string[]> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const prompt = `Based on the user's typing, provide 3-4 likely search query completions. The user has typed: "${query}". Return as a simple JSON array of strings.`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            thinkingConfig: { thinkingBudget: 0 },
+            responseMimeType: "application/json",
+            responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } },
+        }
+    });
+
+    try {
+        return JSON.parse(response.text.trim());
+    } catch {
+        return [];
+    }
+};
+
+// 26. performAiSearch
+export const performAiSearch = async (query: string, articles: Article[], settings: Settings): Promise<AiSearchResult> => {
+    const { model, config } = getModelConfig(settings);
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    
+    const articleList = articles.map(a => ({ id: a.id, title: a.title, excerpt: a.excerpt }));
+
+    const prompt = `You are an AI search assistant for a news website. The user's query is: "${query}".
+    Your task is three-fold:
+    1.  Provide a concise, direct summary or answer to the user's query. If the query is broad, summarize the general topic. Use markdown for formatting if needed.
+    2.  From the provided list of articles, identify the top 3-5 most relevant articles. Return only their integer IDs.
+    3.  Suggest 3 insightful follow-up questions the user might have.
+
+    Here is the list of available articles:
+    ${JSON.stringify(articleList)}
+
+    Return a single, valid JSON object that strictly follows this schema.`;
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            ...config,
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    summary: { type: Type.STRING },
+                    relatedArticleIds: { type: Type.ARRAY, items: { type: Type.INTEGER } },
+                    suggestedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                },
+                required: ["summary", "relatedArticleIds", "suggestedQuestions"]
+            }
+        }
+    });
+
+    try {
+        return JSON.parse(response.text.trim());
+    } catch (e) {
+        console.error("Failed to parse AI search result", e, "Response text:", response.text);
+        throw new Error("AI search returned an invalid format.");
+    }
 };

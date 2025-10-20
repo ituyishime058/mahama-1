@@ -82,6 +82,11 @@ export type StreamingContent = {
   description: string;
   isNew?: boolean;
   genre: 'Sci-Fi' | 'Drama' | 'Action' | 'Thriller' | 'Animation' | 'Comedy' | 'History';
+  rating: string;
+  year: number;
+  duration: string;
+  isTrending?: boolean;
+  isAwardWinner?: boolean;
 };
 
 export type SubscriptionPlan = {
@@ -177,4 +182,10 @@ export type WeatherData = {
     temperature: number;
     condition: 'Sunny' | 'Cloudy' | 'Rainy';
     icon: React.FC<React.SVGProps<SVGSVGElement>>;
+};
+
+export type AiSearchResult = {
+  summary: string;
+  relatedArticleIds: number[];
+  suggestedQuestions: string[];
 };
