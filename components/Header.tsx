@@ -4,25 +4,31 @@ import MenuIcon from './icons/MenuIcon';
 import SettingsIcon from './icons/SettingsIcon';
 import UserIcon from './icons/UserIcon';
 import SearchIcon from './icons/SearchIcon';
+import UserMenu from './UserMenu';
+import type { User } from '../types';
 
 interface HeaderProps {
   onMenuClick: () => void;
   onSearchClick: () => void;
   onSettingsClick: () => void;
+  onProfileClick: () => void;
   onLogoClick: () => void;
   isAuthenticated: boolean;
   onLoginClick: () => void;
   onLogout: () => void;
+  user: User;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   onMenuClick,
   onSearchClick,
   onSettingsClick,
+  onProfileClick,
   onLogoClick,
   isAuthenticated,
   onLoginClick,
   onLogout,
+  user,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -69,14 +75,19 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={onSettingsClick} aria-label="Open settings" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SettingsIcon />
             </button>
-            <button 
-              onClick={isAuthenticated ? onLogout : onLoginClick} 
-              aria-label={isAuthenticated ? "Logout" : "Login or sign up"} 
-              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
-            >
-                <UserIcon className="w-5 h-5" />
-                <span className="hidden md:inline">{isAuthenticated ? 'Logout' : 'Login'}</span>
-            </button>
+            
+            {isAuthenticated ? (
+                <UserMenu user={user} onLogout={onLogout} onProfileClick={onProfileClick} />
+            ) : (
+                <button 
+                onClick={onLoginClick} 
+                aria-label="Login or sign up" 
+                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
+                >
+                    <UserIcon className="w-5 h-5" />
+                    <span className="hidden md:inline">Login</span>
+                </button>
+            )}
           </div>
         </div>
       </div>

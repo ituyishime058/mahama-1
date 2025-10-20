@@ -39,12 +39,21 @@ export type Podcast = {
 export type User = {
   id: string;
   name: string;
+  email: string;
   avatar: string;
+  handle: string;
+  bio: string;
+  joinDate: string;
+  isProfilePublic: boolean;
 };
 
 export type Comment = {
   id: string;
-  user: User;
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
   text: string;
   timestamp: string;
   likes: number;

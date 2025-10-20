@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData } from './types';
+import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser } from './constants';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { determineOptimalLayout } from './utils/ai';
 import { fetchWeather } from './utils/weather';
@@ -51,6 +50,7 @@ import DeepDiveModal from './components/DeepDiveModal';
 import InfographicModal from './components/InfographicModal';
 import PaymentModal from './components/PaymentModal';
 import InfoPage from './components/InfoPage';
+import ProfilePage from './components/ProfilePage';
 
 
 const defaultSettings: Settings = {
@@ -103,6 +103,7 @@ const App: React.FC = () => {
     const [currentCategory, setCurrentCategory] = useState('For You');
     const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeInfoPage, setActiveInfoPage] = useState<string | null>(null);
 
     // Modal states
@@ -118,8 +119,9 @@ const App: React.FC = () => {
     const hiddenArticlesRef = useRef([...hiddenArticles]);
 
 
-    // Authentication
+    // Authentication & User
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User>(mockCurrentUser);
 
     // Bookmarks & Offline
     const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
@@ -258,10 +260,17 @@ const App: React.FC = () => {
 
 
     const openModal = (modal: string, article?: Article) => {
-        if (aiModals.includes(modal) && !isAuthenticated) {
+        if ((aiModals.includes(modal) || modal === 'settings') && !isAuthenticated) {
             setActiveModal('login');
             return;
         }
+
+        // Handle settings page separately as it's a full-page overlay now
+        if (modal === 'settings') {
+            setIsSettingsOpen(true);
+            return;
+        }
+
         if (premiumModals.includes(modal) && settings.subscriptionTier !== 'Premium') {
             if (!isAuthenticated) {
                 setActiveModal('login');
@@ -308,6 +317,7 @@ const App: React.FC = () => {
         setActiveArticle(null);
         setActiveMovie(null);
         setIsSettingsOpen(false);
+        setIsProfileOpen(false);
         setIsMoviesPage(false);
         setCurrentCategory('For You');
         setCurrentSubCategory(null);
@@ -528,11 +538,13 @@ const App: React.FC = () => {
             <Header
                 onMenuClick={() => openModal('menu')}
                 onSearchClick={() => openModal('search')}
-                onSettingsClick={() => isAuthenticated ? setIsSettingsOpen(true) : setActiveModal('login')}
+                onSettingsClick={() => openModal('settings')}
+                onProfileClick={() => setIsProfileOpen(true)}
                 onLogoClick={handleCloseContent}
                 isAuthenticated={isAuthenticated}
                 onLoginClick={() => openModal('login')}
                 onLogout={() => setIsAuthenticated(false)}
+                user={currentUser}
             />
             
             <main className="pt-20">
@@ -556,14 +568,22 @@ const App: React.FC = () => {
                     onManageSubscription={() => openModal('subscribe')}
                 />
             )}
+
+            {isProfileOpen && (
+                <ProfilePage
+                    isOpen={isProfileOpen}
+                    onClose={() => setIsProfileOpen(false)}
+                    user={currentUser}
+                    onUserChange={setCurrentUser}
+                    settings={settings}
+                    onManageSubscription={() => openModal('subscribe')}
+                    readingHistory={allArticles.slice(0, 5)}
+                />
+            )}
             
-            {/* FIX: Add missing 'isOpen' prop */}
             {activeInfoPage === 'about' && <InfoPage isOpen={true} title="About Us" onClose={() => setActiveInfoPage(null)}><p>Mahama News Hub is a global news organization dedicated to delivering fast, accurate, and insightful reporting. We leverage cutting-edge technology to bring you closer to the stories that shape our world.</p></InfoPage>}
-            {/* FIX: Add missing 'isOpen' prop */}
             {activeInfoPage === 'careers' && <InfoPage isOpen={true} title="Careers" onClose={() => setActiveInfoPage(null)}><p>Join our team of world-class journalists, engineers, and storytellers. Explore open positions and help us build the future of news.</p></InfoPage>}
-            {/* FIX: Add missing 'isOpen' prop */}
             {activeInfoPage === 'contact' && <InfoPage isOpen={true} title="Contact Us" onClose={() => setActiveInfoPage(null)}><p>For general inquiries, please reach out to contact@mahamanews.com. For press inquiries, contact press@mahamanews.com.</p></InfoPage>}
-            {/* FIX: Add missing 'isOpen' prop */}
             {activeInfoPage === 'advertise' && <InfoPage isOpen={true} title="Advertise" onClose={() => setActiveInfoPage(null)}><p>Partner with Mahama News Hub to reach a global audience of engaged and informed readers. Contact our sales team at advertise@mahamanews.com to learn more about our advertising solutions.</p></InfoPage>}
 
 
@@ -586,7 +606,7 @@ const App: React.FC = () => {
             <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
-            <CategoryExplorerPage isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={handleSelectCategory} onSubCategorySelect={handleSelectSubCategory} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => { closeModal(); isAuthenticated ? setIsSettingsOpen(true) : setActiveModal('login'); }} />
+            <CategoryExplorerPage isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={handleSelectCategory} onSubCategorySelect={handleSelectSubCategory} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => { closeModal(); openModal('settings'); }} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             

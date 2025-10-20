@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Comment, User } from '../types';
-import { mockUsers } from '../constants';
+// FIX: Import mockCurrentUser which is a separate export, not a property of mockUsers.
+import { mockUsers, mockCurrentUser } from '../constants';
 import HeartIcon from './icons/HeartIcon';
 import ReplyIcon from './icons/ReplyIcon';
 import ShareIcon from './icons/ShareIcon';
@@ -92,7 +93,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) =>
         if (comment) {
             comment.replies.push({
                 id: `c${Date.now()}`,
-                user: mockUsers.currentUser,
+                // FIX: Use mockCurrentUser as it's the correct exported variable for the current user.
+                user: mockCurrentUser,
                 text,
                 timestamp: 'Just now',
                 likes: 0,
@@ -108,7 +110,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) =>
     if (newComment.trim()) {
       const newCommentObject: Comment = {
         id: `c${Date.now()}`,
-        user: mockUsers.currentUser,
+        // FIX: Use mockCurrentUser as it's the correct exported variable for the current user.
+        user: mockCurrentUser,
         text: newComment,
         timestamp: 'Just now',
         likes: 0,
@@ -128,7 +131,8 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) =>
       <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
         {/* New Comment Form */}
         <form onSubmit={handleAddComment} className="flex items-start gap-4 mb-8">
-            <img src={mockUsers.currentUser.avatar} alt="Your avatar" className="w-10 h-10 rounded-full" />
+            {/* FIX: Use mockCurrentUser as it's the correct exported variable for the current user. */}
+            <img src={mockCurrentUser.avatar} alt="Your avatar" className="w-10 h-10 rounded-full" />
             <div className="flex-grow relative">
                  <textarea
                     value={newComment}

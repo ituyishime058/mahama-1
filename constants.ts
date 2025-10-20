@@ -19,13 +19,18 @@ import ArtIcon from './components/icons/ArtIcon';
 import MusicIcon from './components/icons/MusicIcon';
 import InvestigatesIcon from './components/icons/InvestigatesIcon';
 
+export const mockCurrentUser: User = {
+  id: 'user-0',
+  name: 'Eleanor Vance',
+  email: 'eleanor.v@example.com',
+  avatar: 'https://i.pravatar.cc/150?u=currentuser',
+  handle: 'evance',
+  bio: 'Lead political correspondent and AI enthusiast. Following the intersection of technology and global policy.',
+  joinDate: '2023-01-15',
+  isProfilePublic: true,
+};
 
-export const mockUsers: { currentUser: User; otherUsers: User[] } = {
-  currentUser: {
-    id: 'user-0',
-    name: 'You',
-    avatar: 'https://i.pravatar.cc/150?u=currentuser',
-  },
+export const mockUsers: { otherUsers: { id: string; name: string; avatar: string }[] } = {
   otherUsers: [
     { id: 'user-1', name: 'Alex Doe', avatar: 'https://i.pravatar.cc/150?u=alexdoe' },
     { id: 'user-2', name: 'Jane Smith', avatar: 'https://i.pravatar.cc/150?u=janesmith' },
