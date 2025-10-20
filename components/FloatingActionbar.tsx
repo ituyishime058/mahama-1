@@ -13,6 +13,7 @@ import CrownIcon from './icons/CrownIcon';
 import AuthorIcon from './icons/AuthorIcon';
 import ShieldCheckIcon from './icons/ShieldCheckIcon';
 import DeepDiveIcon from './icons/DeepDiveIcon';
+import ChartBarIcon from './icons/ChartBarIcon';
 
 interface FloatingActionbarProps {
   article: Article;
@@ -27,6 +28,7 @@ interface FloatingActionbarProps {
   onAskAuthor: (article: Article) => void;
   onFactCheckPage: (article: Article) => void;
   onDeepDive: (article: Article) => void;
+  onInfographic: (article: Article) => void;
   showCounterpoint: boolean;
   isZenMode: boolean;
   activeLens: ReadingLens;
@@ -48,6 +50,7 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onAskAuthor,
   onFactCheckPage,
   onDeepDive,
+  onInfographic,
   showCounterpoint,
   isZenMode,
   activeLens,
@@ -124,6 +127,7 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
             <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
             <ActionButton onClick={() => handlePremiumFeature(onDeepDive)} icon={<DeepDiveIcon className="w-5 h-5" />} label="Deep Dive" isPremiumFeature={true} />
             <ActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
+            <ActionButton onClick={() => handlePremiumFeature(onInfographic)} icon={<ChartBarIcon className="w-5 h-5" />} label="Infographic" isPremiumFeature={true} />
             <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
             <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
             {showCounterpoint && <ActionButton onClick={() => handlePremiumFeature(onCounterpoint)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" isPremiumFeature={true} />}

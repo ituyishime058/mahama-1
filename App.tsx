@@ -45,6 +45,7 @@ import FloatingActionButton from './components/FloatingActionButton';
 import FactCheckPageModal from './components/FactCheckPageModal';
 import TextToSpeechModal from './components/TextToSpeechModal';
 import DeepDiveModal from './components/DeepDiveModal';
+import InfographicModal from './components/InfographicModal';
 
 
 const defaultSettings: Settings = {
@@ -58,6 +59,9 @@ const defaultSettings: Settings = {
     preferredLanguage: 'English',
     showCounterpoint: true,
     showInnovationTimelines: true,
+    showMahama360: true,
+    showNewsMap: true,
+    showDataInsights: true,
     showNowStreaming: true,
     interactiveGlossary: true,
     aiReadingLens: 'None',
@@ -78,7 +82,7 @@ const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
             const savedSettings = localStorage.getItem('mahamaNewsSettings');
-            return savedSettings ? JSON.parse(savedSettings) : defaultSettings;
+            return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
         } catch (error) {
             return defaultSettings;
         }
@@ -319,9 +323,9 @@ const App: React.FC = () => {
                                 layout={isDashboard ? 'grid' : 'default'}
                             />
                             <LiveStream />
-                            <Mahama360 articles={mockArticles.slice(2, 5)} />
-                            <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />
-                            <DataDrivenInsights />
+                            {settings.showMahama360 && <Mahama360 articles={mockArticles.slice(2, 5)} />}
+                            {settings.showNewsMap && <NewsMap articles={mockArticles} onArticleClick={handleReadMore} />}
+                            {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts} />
                             {settings.showInnovationTimelines && <InnovationTimeline />}
                         </div>
@@ -360,6 +364,7 @@ const App: React.FC = () => {
                             onAskAuthor={(a) => openModal('askAuthor', a)}
                             onFactCheckPage={(a) => openModal('factCheckPage', a)}
                             onDeepDive={(a) => openModal('deepDive', a)}
+                            onInfographic={(a) => openModal('infographic', a)}
                             settings={settings}
                             onPremiumClick={() => openModal('subscribe')}
                         />
@@ -424,6 +429,7 @@ const App: React.FC = () => {
             <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={mockArticles} onPlayBriefing={handlePlayBriefing} />
             <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={modalArticle?.content || ''} />
             <DeepDiveModal isOpen={activeModal === 'deepDive'} onClose={closeModal} article={modalArticle} settings={settings} />
+            <InfographicModal isOpen={activeModal === 'infographic'} onClose={closeModal} article={modalArticle} settings={settings} />
             
             <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={mockArticles} onArticleSelect={handleReadMore} />
             <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={() => { setIsAuthenticated(true); closeModal(); }} />

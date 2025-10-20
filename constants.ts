@@ -487,7 +487,7 @@ export const stockData: Stock[] = [
 
 export const LANGUAGES: string[] = [
     "English", "Spanish", "French", "German", "Mandarin Chinese", "Japanese", "Russian", "Arabic", "Hindi", "Portuguese", 
-    "Kinyarwanda", "Kiswahili", "Lingala", "Italian", "Korean", "Dutch", "Turkish", "Polish", "Swedish", "Norwegian", 
+    "Kinyarwanda", "Swahili", "Italian", "Korean", "Dutch", "Turkish", "Polish", "Swedish", "Norwegian", 
     "Danish", "Finnish", "Greek", "Hebrew", "Thai", "Vietnamese", "Indonesian", "Malay", "Czech", "Hungarian", 
     "Romanian", "Ukrainian", "Slovak", "Croatian", "Serbian", "Bulgarian", "Lithuanian", "Latvian", "Estonian", 
     "Slovenian", "Icelandic", "Irish", "Welsh", "Scottish Gaelic", "Basque", "Catalan", "Galician", "Afrikaans", "Zulu", "Xhosa"
@@ -502,6 +502,8 @@ export const LANGUAGE_VOICE_MAP: { [key: string]: AiTtsVoice } = {
     "Russian": "ru-RU-B",
     "Italian": "it-IT-B",
     "Korean": "ko-KR-B",
+    "Kinyarwanda": "rw-RW-A",
+    "Swahili": "sw-KE-A",
 };
 
 
@@ -546,10 +548,10 @@ export const TTS_VOICES: { name: string; value: AiTtsVoice, label: string }[] = 
     { name: 'cmn-CN-A (Female)', value: 'cmn-CN-A', label: 'CN' },
     { name: 'cmn-CN-B (Male)', value: 'cmn-CN-B', label: 'CN' },
     { name: 'cmn-CN-C (Male)', value: 'cmn-CN-C', label: 'CN' },
-    { name: 'rw-RW-A (Female, Mock)', value: 'rw-RW-A', label: 'RW' },
-    { name: 'rw-RW-B (Male, Mock)', value: 'rw-RW-B', label: 'RW' },
-    { name: 'sw-KE-A (Female, Mock)', value: 'sw-KE-A', label: 'KE' },
-    { name: 'sw-KE-B (Male, Mock)', value: 'sw-KE-B', label: 'KE' },
+    { name: 'rw-RW-A (Female)', value: 'rw-RW-A', label: 'RW' },
+    { name: 'rw-RW-B (Male)', value: 'rw-RW-B', label: 'RW' },
+    { name: 'sw-KE-A (Female)', value: 'sw-KE-A', label: 'KE' },
+    { name: 'sw-KE-B (Male)', value: 'sw-KE-B', label: 'KE' },
     { name: 'ar-XA-A (Female)', value: 'ar-XA-A', label: 'AR' },
     { name: 'ar-XA-B (Male)', value: 'ar-XA-B', label: 'AR' },
     { name: 'it-IT-A (Female)', value: 'it-IT-A', label: 'IT' },
@@ -592,7 +594,7 @@ export const innovations: Innovation[] = [
 
 export const mockStreamingContent: StreamingContent[] = [
   { id: 1, title: 'Dune: Part Two', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/8b8R8l88Qje9dn9OE8soXRmfddl.jpg', trailerUrl: 'https://www.youtube.com/embed/U2Qp5pL3ovA?autoplay=1', description: 'Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.' },
-  { id: 2, title: 'Oppenheimer', genre: 'Drama', posterUrl: 'https://image.tmdb.org/t/p/w400/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', trailerUrl: 'https://www.youtube.com/embed/uYPbbksJxIg?autoplay=1', description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.' },
+  { id: 2, title: 'Oppenheimer', genre: 'History', posterUrl: 'https://image.tmdb.org/t/p/w400/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', trailerUrl: 'https://www.youtube.com/embed/uYPbbksJxIg?autoplay=1', description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.' },
   { id: 3, title: 'Blade Runner 2049', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', trailerUrl: 'https://www.youtube.com/embed/gCcx85zbxz4?autoplay=1', description: 'Young Blade Runner K\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard, who\'s been missing for thirty years.' },
   { id: 4, title: 'Spider-Man: Across the Spider-Verse', genre: 'Animation', posterUrl: 'https://image.tmdb.org/t/p/w400/8Vt6mWEReuy4Of61Lp5CKmWknaV.jpg', trailerUrl: 'https://www.youtube.com/embed/shW9i6k8cB0?autoplay=1', description: 'Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.' },
   { id: 5, title: 'The Creator', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/vB8o2p4ETnrfiWEgVxHmHWP9yRl.jpg', trailerUrl: 'https://www.youtube.com/embed/ex3C1-5Dhb8?autoplay=1', description: 'Against the backdrop of a war between humans and robots with artificial intelligence, a former special forces agent finds the AI has created a mysterious weapon with the power to end the war…and mankind itself.' },
@@ -601,11 +603,14 @@ export const mockStreamingContent: StreamingContent[] = [
   { id: 8, title: 'Mad Max: Fury Road', genre: 'Action', posterUrl: 'https://image.tmdb.org/t/p/w400/8tZYtuWezp8JbcsvHYO0O46tFbo.jpg', trailerUrl: 'https://www.youtube.com/embed/hEJnMQG9ev8?autoplay=1', description: 'In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland with the help of a group of female prisoners, a psychotic worshiper, and a drifter named Max.' },
   { id: 9, title: 'Dune: Prophecy', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/sKAt80i0n3l34iV4iCbHFo5H263.jpg', trailerUrl: 'https://www.youtube.com/embed/t_Bf3xQ4p_8?autoplay=1', description: 'A prequel series set 10,000 years before the birth of Paul Atreides, exploring the origins of the Bene Gesserit.', isNew: true },
   { id: 10, title: 'Blade Runner 2099', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/u3bQo6w5nB5yEw2n4sE2osM6wU.jpg', trailerUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1', description: 'A new chapter in the Blade Runner saga, set fifty years after the events of Blade Runner 2049.', isNew: true },
-  { id: 11, title: 'Project Artemis', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/o16s2eEWKY29I3s2mfl229i69a.jpg', trailerUrl: 'https://www.youtube.com/embed/zMo2cTUy_eQ?autoplay=1', description: 'A high-stakes sci-fi thriller about the race to establish a new human colony on the moon.', isNew: true },
+  { id: 11, title: 'Project Artemis', genre: 'Comedy', posterUrl: 'https://image.tmdb.org/t/p/w400/o16s2eEWKY29I3s2mfl229i69a.jpg', trailerUrl: 'https://www.youtube.com/embed/zMo2cTUy_eQ?autoplay=1', description: 'A high-stakes sci-fi thriller about the race to establish a new human colony on the moon.', isNew: true },
   { id: 12, title: 'Arrival', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/x2FJsf1ElAgr63Y3PNs7GkKzJrZ.jpg', trailerUrl: 'https://www.youtube.com/embed/tFMo3UJ4B4g?autoplay=1', description: 'A linguist works with the military to communicate with alien lifeforms after twelve mysterious spacecraft appear around the world.'},
   { id: 13, title: 'Parasite', genre: 'Thriller', posterUrl: 'https://image.tmdb.org/t/p/w400/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', trailerUrl: 'https://www.youtube.com/embed/5xH0HfJHsaY?autoplay=1', description: 'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.'},
   { id: 14, title: 'Interstellar', genre: 'Sci-Fi', posterUrl: 'https://image.tmdb.org/t/p/w400/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', trailerUrl: 'https://www.youtube.com/embed/zSWdZVtXT7E?autoplay=1', description: 'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.'},
   { id: 15, title: 'Civil War', genre: 'Action', posterUrl: 'https://image.tmdb.org/t/p/w400/sh7Rg8Er3tFcN9AuqSrJYDALpVS.jpg', trailerUrl: 'https://www.youtube.com/embed/aDyQxtg0V2w?autoplay=1', description: 'A journey across a dystopian future America, following a team of military-embedded journalists as they race against time to reach DC before rebel factions descend upon the White House.', isNew: true },
+  { id: 16, title: 'The Holdovers', genre: 'Comedy', posterUrl: 'https://image.tmdb.org/t/p/w400/5L3c5l2MqqY3U3jIBwM3M6C2Ojl.jpg', trailerUrl: 'https://www.youtube.com/embed/AhKLpJmHhIg?autoplay=1', description: 'A cranky history teacher at a remote prep school is forced to remain on campus over the holidays with a troubled student who has no place to go.'},
+  { id: 17, title: 'Anatomy of a Fall', genre: 'Thriller', posterUrl: 'https://image.tmdb.org/t/p/w400/kCs22dC8AEeTOxA24uVmYv9IMe.jpg', trailerUrl: 'https://www.youtube.com/embed/fTrsp5BMloA?autoplay=1', description: 'A woman is suspected of her husband\'s murder, and their blind son faces a moral dilemma as the sole witness.'},
+  { id: 18, title: 'Poor Things', genre: 'Comedy', posterUrl: 'https://image.tmdb.org/t/p/w400/kCGlIMrg8iVj2V4uBawZ4WhvQ2B.jpg', trailerUrl: 'https://www.youtube.com/embed/R-_a2AMlIjs?autoplay=1', description: 'Brought back to life by an unorthodox scientist, a young woman runs off with a debauched lawyer on a whirlwind adventure across the continents. Free from the prejudices of her times, she grows steadfast in her purpose to stand for equality and liberation.'},
 ];
 
 export const subscriptionPlans: SubscriptionPlan[] = [

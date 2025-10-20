@@ -71,7 +71,7 @@ export type StreamingContent = {
   trailerUrl: string;
   description: string;
   isNew?: boolean;
-  genre: 'Sci-Fi' | 'Drama' | 'Action' | 'Thriller' | 'Animation';
+  genre: 'Sci-Fi' | 'Drama' | 'Action' | 'Thriller' | 'Animation' | 'Comedy' | 'History';
 };
 
 export type SubscriptionPlan = {
@@ -104,6 +104,9 @@ export interface Settings {
     preferredLanguage: string;
     showCounterpoint: boolean;
     showInnovationTimelines: boolean;
+    showMahama360: boolean;
+    showNewsMap: boolean;
+    showDataInsights: boolean;
     showNowStreaming: boolean;
     interactiveGlossary: boolean;
     aiReadingLens: ReadingLens;
@@ -152,4 +155,9 @@ export type AudioPlayerState = {
     article: Article;
     playlist?: Article[];
     voiceOverride?: AiTtsVoice;
+};
+
+export type InfographicData = {
+  title: string;
+  items: { label: string; value: number }[];
 };

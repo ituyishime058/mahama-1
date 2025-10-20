@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Content, Type, Modality } from "@google/genai";
-import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment } from '../types';
+import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData } from '../types';
 
 const getModelConfig = (settings: Settings) => {
     if (settings.subscriptionTier === 'Premium' && settings.aiModelPreference === 'Quality') {
@@ -550,7 +550,7 @@ export const factCheckPageContent = async (content: string, settings: Settings):
     };
 };
 
-// 21. NEW: generateDeepDive
+// 21. generateDeepDive
 export async function* generateDeepDive(article: Article, settings: Settings): AsyncGenerator<string> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings);
@@ -582,7 +582,7 @@ export async function* generateDeepDive(article: Article, settings: Settings): A
     }
 }
 
-// 22. NEW: determineOptimalLayout
+// 22. determineOptimalLayout
 export const determineOptimalLayout = async (bookmarkedArticles: Article[], settings: Settings): Promise<HomepageLayout | null> => {
     if (bookmarkedArticles.length < 3) return null;
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -610,4 +610,56 @@ export const determineOptimalLayout = async (bookmarkedArticles: Article[], sett
         return layout;
     }
     return null;
+};
+
+// 23. generateInfographicData
+export const generateInfographicData = async (article: Article, settings: Settings): Promise<InfographicData> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings);
+
+    const prompt = `Analyze the following article to extract key numerical data or quantifiable concepts that can be represented in a simple bar chart.
+    Identify a suitable title for the chart and up to 5 data points with labels and numerical values.
+    Return the result as a single JSON object with a "title" (string) and an "items" array. Each object in "items" should have a "label" (string) and a "value" (number).
+    If no suitable data is found, return an empty items array.
+
+    Article:
+    ---
+    ${article.content}
+    ---
+    `;
+
+    const response = await ai.models.generateContent({
+        model: model,
+        contents: prompt,
+        config: {
+            ...config,
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    title: { type: Type.STRING },
+                    items: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                label: { type: Type.STRING },
+                                value: { type: Type.NUMBER }
+                            },
+                            required: ["label", "value"]
+                        }
+                    }
+                },
+                required: ["title", "items"]
+            }
+        }
+    });
+
+    try {
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText) as InfographicData;
+    } catch (e) {
+        console.error("Failed to parse infographic JSON:", e, "Received text:", response.text);
+        throw new Error("Could not generate valid infographic data.");
+    }
 };
