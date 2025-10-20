@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A cutting-edge, interactive, and elegant news website.",
   "scripts": {
-    "build": "echo \"No build step required for this ESM-based project.\"",
+    "build": "echo \"Build step placeholder for Netlify. No actual build needed for this setup.\"",
     "start": "echo \"Serve index.html using a local server.\""
   },
   "dependencies": {

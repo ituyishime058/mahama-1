@@ -13,11 +13,20 @@ interface SubscriptionModalProps {
 
 const PlanCard: React.FC<{ plan: SubscriptionPlan, onSelect: () => void, billingCycle: 'monthly' | 'annually' }> = ({ plan, onSelect, billingCycle }) => {
     const isPremium = plan.name === 'Premium';
-    const price = billingCycle === 'annually' && isPremium ? plan.priceYearly : plan.price;
-    const priceSuffix = isPremium ? (billingCycle === 'annually' ? ' / year' : ' / month') : '';
+    
+    // Parse prices to numbers for calculation
+    const monthlyPriceNum = parseFloat(plan.price.replace('$', ''));
+    const yearlyPriceNum = parseFloat(plan.priceYearly.replace('$', ''));
+    
+    const price = billingCycle === 'annually' && isPremium 
+        ? `$${(yearlyPriceNum / 12).toFixed(2)}` 
+        : plan.price;
+
+    const priceSuffix = isPremium ? ' / month' : '';
+    const originalPrice = isPremium && billingCycle === 'annually' ? <span className="line-through text-slate-400 text-lg ml-2">{plan.price}</span> : null;
 
     return (
-        <div className={`border-2 rounded-xl p-6 relative h-full flex flex-col ${plan.isRecommended ? 'border-gold' : 'border-slate-200 dark:border-slate-700'}`}>
+        <div className={`border-2 rounded-xl p-6 relative h-full flex flex-col transition-all duration-300 ${plan.isRecommended ? 'border-gold shadow-gold/20 shadow-lg' : 'border-slate-200 dark:border-slate-700'}`}>
             {plan.isRecommended && (
                 <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-gold text-white px-3 py-1 text-sm font-bold rounded-full flex items-center gap-1">
                     <CrownIcon className="w-4 h-4" />
@@ -26,7 +35,12 @@ const PlanCard: React.FC<{ plan: SubscriptionPlan, onSelect: () => void, billing
             )}
             <div className="flex-grow">
                 <h3 className="text-2xl font-bold">{plan.name}</h3>
-                <p className="text-4xl font-extrabold my-4">{price}<span className="text-base font-normal text-slate-500">{priceSuffix}</span></p>
+                <div className="flex items-baseline my-4">
+                    <span className="text-4xl font-extrabold">{price}</span>
+                    <span className="text-base font-normal text-slate-500">{priceSuffix}</span>
+                    {originalPrice}
+                </div>
+                {isPremium && billingCycle === 'annually' && <p className="text-sm text-slate-500 -mt-3 mb-4">Billed as {plan.priceYearly} annually.</p>}
                 <ul className="my-6 space-y-3">
                     {plan.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-3">
@@ -36,7 +50,7 @@ const PlanCard: React.FC<{ plan: SubscriptionPlan, onSelect: () => void, billing
                     ))}
                 </ul>
             </div>
-            <button onClick={onSelect} className={`w-full py-3 font-bold rounded-lg transition-colors ${plan.isRecommended ? 'bg-gold text-white hover:bg-amber-500' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'}`}>
+            <button onClick={onSelect} className={`w-full py-3 font-bold rounded-lg transition-transform transform ${plan.isRecommended ? 'bg-gold text-white hover:bg-amber-500 hover:scale-105' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600'}`}>
                 {plan.name === 'Free' ? 'Current Plan' : 'Upgrade to Premium'}
             </button>
         </div>
