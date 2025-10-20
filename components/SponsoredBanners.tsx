@@ -38,9 +38,11 @@ const SponsoredBanners: React.FC = () => {
                 .group {
                     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
                 }
-                .group:hover {
-                    transform: rotateX(5deg) rotateY(-5deg) scale(1.05) translateZ(10px);
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+                @media (min-width: 768px) {
+                    .group:hover {
+                        transform: rotateX(5deg) rotateY(-5deg) scale(1.05) translateZ(10px);
+                        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+                    }
                 }
              `}</style>
         </div>

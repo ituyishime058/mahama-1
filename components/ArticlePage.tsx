@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
@@ -140,7 +141,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
       // FIX: Add type assertions to fix type mismatch from Promise.allSettled results.
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value as string[]);
-      if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value as { status: string; summary: string });
+      if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value as { status: string; summary: string; });
       if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value as string[]);
       if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value as KeyConcept[]);
       if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value as CommunityHighlight[]);

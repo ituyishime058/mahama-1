@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
@@ -34,6 +36,7 @@ interface ArticlePageProps {
   onAskAuthor: (article: Article) => void;
   onFactCheckPage: (article: Article) => void;
   onDeepDive: (article: Article) => void;
+  onInfographic: (article: Article) => void;
   settings: Settings;
   onPremiumClick: () => void;
 }
@@ -55,6 +58,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onAskAuthor,
     onFactCheckPage,
     onDeepDive,
+    onInfographic,
     settings,
     onPremiumClick,
 }) => {
@@ -135,11 +139,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
       
       const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled(promises);
 
-      if (tagsResult.status === 'fulfilled') setTags(tagsResult.value);
-      if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value);
-      if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value);
-      if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value);
-      if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value);
+      // FIX: Add type assertions to fix type mismatch from Promise.allSettled results.
+      if (tagsResult.status === 'fulfilled') setTags(tagsResult.value as string[]);
+      if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value as { status: string; summary: string; });
+      if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value as string[]);
+      if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value as KeyConcept[]);
+      if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value as CommunityHighlight[]);
       
       setTagsLoading(false);
       setFactCheckLoading(false);
@@ -154,7 +159,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     };
 
     fetchAIData();
-  }, [article, settings]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [article, settings.autoTranslate, settings.preferredLanguage]);
 
   useEffect(() => {
     setActiveLens(isZenMode ? settings.aiReadingLens : 'None');
@@ -317,7 +323,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
-            onTranslate={() => onTranslate(article)}
+            onTranslate={onTranslate}
             onQuiz={onQuiz}
             onCounterpoint={onCounterpoint}
             onBehindTheNews={onBehindTheNews}
@@ -325,6 +331,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onAskAuthor={onAskAuthor}
             onFactCheckPage={onFactCheckPage}
             onDeepDive={onDeepDive}
+            onInfographic={onInfographic}
             showCounterpoint={settings.showCounterpoint}
             isZenMode={isZenMode}
             activeLens={activeLens}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const LayoutStandardIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (

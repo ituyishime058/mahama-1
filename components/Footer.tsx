@@ -4,8 +4,11 @@ import TwitterIcon from './icons/TwitterIcon';
 import InstagramIcon from './icons/InstagramIcon';
 import YoutubeIcon from './icons/YoutubeIcon';
 
+interface FooterProps {
+    onInfoPageClick: (page: 'about' | 'careers' | 'contact' | 'advertise') => void;
+}
 
-const Footer: React.FC = () => {
+const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
   return (
     <footer className="bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -26,37 +29,37 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">News</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">World</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Politics</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Economy</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Technology</a></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">World</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Politics</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Economy</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Technology</button></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">Features</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Mahama 360°</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Podcasts & Video</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Mahama Investigates</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Community Forum</a></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Mahama 360°</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Podcasts & Video</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Mahama Investigates</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Community Forum</button></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">About</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">About Us</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Careers</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Contact</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Advertise</a></li>
+              <li><button onClick={() => onInfoPageClick('about')} className="hover:text-deep-red dark:hover:text-gold">About Us</button></li>
+              <li><button onClick={() => onInfoPageClick('careers')} className="hover:text-deep-red dark:hover:text-gold">Careers</button></li>
+              <li><button onClick={() => onInfoPageClick('contact')} className="hover:text-deep-red dark:hover:text-gold">Contact</button></li>
+              <li><button onClick={() => onInfoPageClick('advertise')} className="hover:text-deep-red dark:hover:text-gold">Advertise</button></li>
             </ul>
           </div>
            <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Terms of Use</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Cookie Policy</a></li>
-              <li><a href="#" className="hover:text-deep-red dark:hover:text-gold">Accessibility</a></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Terms of Use</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Privacy Policy</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Cookie Policy</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">Accessibility</button></li>
             </ul>
           </div>
         </div>

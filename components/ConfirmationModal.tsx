@@ -1,3 +1,4 @@
+
 import React from 'react';
 import CloseIcon from './icons/CloseIcon';
 import AlertIcon from './icons/AlertIcon';
@@ -15,18 +16,18 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, 
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 transform transition-all duration-300"
+        className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 transform transition-all duration-300 animate-slide-up"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-start">
+        <div className="sm:flex sm:items-start">
             <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10">
                 <AlertIcon className="h-6 w-6 text-deep-red" />
             </div>
-            <div className="ml-4 text-left">
+            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <h3 className="text-lg leading-6 font-bold text-slate-900 dark:text-white" id="modal-title">
                     {title}
                 </h3>

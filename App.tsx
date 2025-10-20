@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData } from './constants';
 import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData } from './types';
@@ -24,7 +25,7 @@ import ScrollProgressBar from './components/ScrollProgressBar';
 import MoviesTVPage from './components/MoviesTVPage';
 import SponsoredBanners from './components/SponsoredBanners';
 
-// Modal Imports
+// Modal & Page Imports
 import SummarizerModal from './components/SummarizerModal';
 import ExplainSimplyModal from './components/ExplainSimplyModal';
 import QuizModal from './components/QuizModal';
@@ -33,7 +34,7 @@ import BehindTheNewsModal from './components/BehindTheNewsModal';
 import ExpertAnalysisModal from './components/ExpertAnalysisModal';
 import AskAuthorModal from './components/AskAuthorModal';
 import SearchModal from './components/SearchModal';
-import MegaMenu from './components/CategoryMenu';
+import CategoryExplorerPage from './components/CategoryExplorerPage';
 import BookmarksModal from './components/BookmarksModal';
 import OfflineModal from './components/OfflineModal';
 import SettingsPage from './components/SettingsPage';
@@ -49,6 +50,7 @@ import TextToSpeechModal from './components/TextToSpeechModal';
 import DeepDiveModal from './components/DeepDiveModal';
 import InfographicModal from './components/InfographicModal';
 import PaymentModal from './components/PaymentModal';
+import InfoPage from './components/InfoPage';
 
 
 const defaultSettings: Settings = {
@@ -80,6 +82,7 @@ const defaultSettings: Settings = {
     informationDensity: 'Comfortable',
 };
 
+const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live'];
 const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic'];
 
 
@@ -100,6 +103,7 @@ const App: React.FC = () => {
     const [currentCategory, setCurrentCategory] = useState('For You');
     const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [activeInfoPage, setActiveInfoPage] = useState<string | null>(null);
 
     // Modal states
     const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -163,6 +167,20 @@ const App: React.FC = () => {
         };
         fetchOfflineData();
 
+        const fetchDefaultWeather = async () => {
+            console.warn("Geolocation failed or was denied. Fetching weather for a default location.");
+            try {
+              // Default to New York City
+              const data = await fetchWeather(40.7128, -74.0060);
+              // Manually override location name for clarity in the UI
+              setWeatherData({ ...data, locationName: "New York, NY" });
+            } catch (e) {
+              console.error("Failed to fetch default weather", e);
+            } finally {
+              setIsWeatherLoading(false);
+            }
+        };
+
         // Geolocation & Weather
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -171,16 +189,22 @@ const App: React.FC = () => {
                 try {
                   const data = await fetchWeather(latitude, longitude);
                   setWeatherData(data);
-                } catch (e) { console.error("Failed to fetch weather"); } 
-                finally { setIsWeatherLoading(false); }
+                } catch (e) { 
+                    console.error("Failed to fetch weather for current location.", e);
+                    fetchDefaultWeather();
+                } 
+                finally { 
+                  setIsWeatherLoading(false); 
+                }
               },
-              () => {
-                console.error("Geolocation permission denied.");
-                setIsWeatherLoading(false);
+              (error) => {
+                console.error(`Geolocation error: ${error.message}`);
+                fetchDefaultWeather();
               }
             );
         } else {
-            setIsWeatherLoading(false);
+            console.warn("Geolocation is not supported by this browser.");
+            fetchDefaultWeather();
         }
 
     }, []);
@@ -234,13 +258,30 @@ const App: React.FC = () => {
 
 
     const openModal = (modal: string, article?: Article) => {
-        if (premiumModals.includes(modal) && !isAuthenticated) {
+        if (aiModals.includes(modal) && !isAuthenticated) {
             setActiveModal('login');
+            return;
+        }
+        if (premiumModals.includes(modal) && settings.subscriptionTier !== 'Premium') {
+            if (!isAuthenticated) {
+                setActiveModal('login');
+            } else {
+                setActiveModal('subscribe');
+            }
             return;
         }
         setModalArticle(article || activeArticle || null);
         setActiveModal(modal);
     };
+
+    const handleOpenTtsModal = (article: Article) => {
+        if (!isAuthenticated) {
+            setActiveModal('login');
+            return;
+        }
+        setTtsModalArticle(article);
+    };
+
 
     const closeModal = () => {
         setActiveModal(null);
@@ -356,10 +397,13 @@ const App: React.FC = () => {
         }
         setCurrentCategory(category);
         setCurrentSubCategory(null);
+        handleCloseContent();
+        closeModal(); // Close category explorer on selection
     };
 
     const handleSelectSubCategory = (subCategory: string) => {
         setCurrentSubCategory(subCategory);
+        closeModal(); // Close category explorer on selection
     };
     
     const isDashboard = settings.homepageLayout === 'Dashboard';
@@ -370,7 +414,6 @@ const App: React.FC = () => {
             
             <div className="sticky top-20 z-30">
                 <NewsTicker headlines={stockData.map(s => `${s.symbol} ${s.price.toFixed(2)} ${s.change.startsWith('+') ? '▲' : '▼'}`)} />
-                 <SponsoredBanners />
                 <FilterBar 
                     categories={categories} 
                     currentCategory={currentCategory} 
@@ -381,6 +424,7 @@ const App: React.FC = () => {
                     subscriptionTier={settings.subscriptionTier}
                 />
             </div>
+             <SponsoredBanners />
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {newArticlesQueue.length > 0 && (
                     <div className="-mt-4 mb-8">
@@ -402,8 +446,8 @@ const App: React.FC = () => {
                                 articles={filteredArticles}
                                 onSummarize={(a) => openModal('summarize', a)}
                                 onExplainSimply={(a) => openModal('explain', a)}
-                                onTextToSpeech={(a) => setTtsModalArticle(a)}
-                                onTranslate={(a) => setTtsModalArticle(a)} // Re-using TTS modal for translate & listen
+                                onTextToSpeech={handleOpenTtsModal}
+                                onTranslate={handleOpenTtsModal}
                                 onReadMore={handleReadMore}
                                 audioState={{playingArticleId: audioPlayerState?.article.id ?? null, isGenerating: false}}
                                 bookmarkedArticleIds={bookmarkedArticleIds}
@@ -448,8 +492,8 @@ const App: React.FC = () => {
                             onReadMore={handleReadMore}
                             onSummarize={(a) => openModal('summarize', a)}
                             onExplainSimply={(a) => openModal('explain', a)}
-                            onTextToSpeech={(a) => setTtsModalArticle(a)}
-                            onTranslate={(a) => setTtsModalArticle(a)}
+                            onTextToSpeech={handleOpenTtsModal}
+                            onTranslate={handleOpenTtsModal}
                             onQuiz={(a) => openModal('quiz', a)}
                             onCounterpoint={(a) => openModal('counterpoint', a)}
                             onBehindTheNews={(a) => openModal('behindTheNews', a)}
@@ -484,7 +528,7 @@ const App: React.FC = () => {
             <Header
                 onMenuClick={() => openModal('menu')}
                 onSearchClick={() => openModal('search')}
-                onSettingsClick={() => setIsSettingsOpen(true)}
+                onSettingsClick={() => isAuthenticated ? setIsSettingsOpen(true) : setActiveModal('login')}
                 onLogoClick={handleCloseContent}
                 isAuthenticated={isAuthenticated}
                 onLoginClick={() => openModal('login')}
@@ -492,26 +536,36 @@ const App: React.FC = () => {
             />
             
             <main className="pt-20">
-                {isSettingsOpen ? (
-                     <SettingsPage 
-                        settings={settings} 
-                        onSettingsChange={handleSettingsChange} 
-                        onClose={() => setIsSettingsOpen(false)}
-                        onClearBookmarks={() => { setBookmarkedArticleIds([]); localStorage.removeItem('mahamaNewsBookmarks'); }} 
-                        onClearOffline={async () => { await clearAllOfflineArticles(); setOfflineArticleIds([]); setOfflineArticles([]); }} 
-                    />
-                ) : activeArticle || activeMovie ? (
-                    renderContentPage()
-                ) : (
-                    renderHomePage()
-                )}
+                {activeArticle || activeMovie ? renderContentPage() : renderHomePage()}
             </main>
             
-            <Footer />
+            <Footer onInfoPageClick={setActiveInfoPage} />
 
             {isAuthenticated && <FloatingActionButton onClick={() => openModal('live')} />}
             
             <ScrollProgressBar />
+            
+            {/* Full-screen overlays */}
+            {isSettingsOpen && (
+                 <SettingsPage 
+                    settings={settings} 
+                    onSettingsChange={handleSettingsChange} 
+                    onClose={() => setIsSettingsOpen(false)}
+                    onClearBookmarks={() => { setBookmarkedArticleIds([]); localStorage.removeItem('mahamaNewsBookmarks'); }} 
+                    onClearOffline={async () => { await clearAllOfflineArticles(); setOfflineArticleIds([]); setOfflineArticles([]); }} 
+                    onManageSubscription={() => openModal('subscribe')}
+                />
+            )}
+            
+            {/* FIX: Add missing 'isOpen' prop */}
+            {activeInfoPage === 'about' && <InfoPage isOpen={true} title="About Us" onClose={() => setActiveInfoPage(null)}><p>Mahama News Hub is a global news organization dedicated to delivering fast, accurate, and insightful reporting. We leverage cutting-edge technology to bring you closer to the stories that shape our world.</p></InfoPage>}
+            {/* FIX: Add missing 'isOpen' prop */}
+            {activeInfoPage === 'careers' && <InfoPage isOpen={true} title="Careers" onClose={() => setActiveInfoPage(null)}><p>Join our team of world-class journalists, engineers, and storytellers. Explore open positions and help us build the future of news.</p></InfoPage>}
+            {/* FIX: Add missing 'isOpen' prop */}
+            {activeInfoPage === 'contact' && <InfoPage isOpen={true} title="Contact Us" onClose={() => setActiveInfoPage(null)}><p>For general inquiries, please reach out to contact@mahamanews.com. For press inquiries, contact press@mahamanews.com.</p></InfoPage>}
+            {/* FIX: Add missing 'isOpen' prop */}
+            {activeInfoPage === 'advertise' && <InfoPage isOpen={true} title="Advertise" onClose={() => setActiveInfoPage(null)}><p>Partner with Mahama News Hub to reach a global audience of engaged and informed readers. Contact our sales team at advertise@mahamanews.com to learn more about our advertising solutions.</p></InfoPage>}
+
 
             {/* Modals */}
             <SummarizerModal isOpen={activeModal === 'summarize'} onClose={closeModal} article={modalArticle} settings={settings} />
@@ -532,7 +586,7 @@ const App: React.FC = () => {
             <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             
-            <MegaMenu isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={(c) => { handleSelectCategory(c); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => setIsSettingsOpen(true)} />
+            <CategoryExplorerPage isOpen={activeModal === 'menu'} onClose={closeModal} categories={categories} onCategorySelect={handleSelectCategory} onSubCategorySelect={handleSelectSubCategory} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => { closeModal(); isAuthenticated ? setIsSettingsOpen(true) : setActiveModal('login'); }} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore} />
             

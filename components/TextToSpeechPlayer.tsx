@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef, useState } from 'react';
 import { decode, decodeAudioData } from '../utils/audio';
 import { textToSpeech } from '../utils/ai';
@@ -27,8 +28,8 @@ const TextToSpeechPlayer: React.FC<TextToSpeechPlayerProps> = ({ article, voice,
             setIsGenerating(true);
             setError('');
             try {
-                // FIX: Corrected textToSpeech call to pass article content, not the whole object.
-                const text = `Title: ${article.title}. By ${article.author}. ${article.excerpt}`;
+                // FIX: Use full article content instead of just the excerpt for a complete read-aloud experience.
+                const text = `Title: ${article.title}. By ${article.author}. ${article.content}`;
                 const b64 = await textToSpeech(text, voice);
                 setAudioBase64(b64);
             } catch(e: any) {
