@@ -8,6 +8,7 @@ import CheckIcon from './icons/CheckIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import SentimentIndicator from './SentimentIndicator';
 import TextToSpeechIcon from './icons/TextToSpeechIcon';
+import CompareIcon from './icons/CompareIcon';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface ArticleCardProps {
@@ -25,6 +26,8 @@ interface ArticleCardProps {
   offlineArticleIds: number[];
   downloadingArticleId: number | null;
   onDownloadArticle: (article: Article) => void;
+  comparisonList: number[];
+  onAddToCompare: (articleId: number) => void;
   featured?: boolean;
   layout?: 'default' | 'grid';
 }
@@ -41,23 +44,26 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   offlineArticleIds,
   downloadingArticleId,
   onDownloadArticle,
+  comparisonList,
+  onAddToCompare,
   featured = false,
   layout = 'default',
 }) => {
   const isOffline = offlineArticleIds.includes(article.id);
   const isDownloading = downloadingArticleId === article.id;
   const { t } = useTranslation();
+  const isInCompare = comparisonList.includes(article.id);
 
   const handleReadMore = (e: React.MouseEvent) => {
     e.preventDefault();
     onReadMore(article);
   };
 
-  const ActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; disabled?: boolean; }> = ({ onClick, icon, label, disabled }) => (
+  const ActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; disabled?: boolean; isActive?: boolean; }> = ({ onClick, icon, label, disabled, isActive }) => (
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-deep-red dark:hover:text-gold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      className={`flex items-center gap-2 text-sm font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? 'text-deep-red dark:text-gold' : 'text-slate-600 dark:text-slate-300 hover:text-deep-red dark:hover:text-gold'}`}
     >
       {icon}
       <span>{label}</span>
@@ -93,6 +99,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label={t('summarize')} />
             <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label={t('explain')} />
             <ActionButton onClick={() => onTextToSpeech(article)} icon={<TextToSpeechIcon className="w-5 h-5" />} label={t('listen')} />
+            <ActionButton 
+                onClick={() => onAddToCompare(article.id)} 
+                icon={<CompareIcon className="w-5 h-5" />} 
+                label={isInCompare ? t('removeFromCompare') : t('compare')}
+                isActive={isInCompare}
+                disabled={!isInCompare && comparisonList.length >= 2}
+            />
           </div>
           <div className={`flex items-center gap-2 ${isGridLayout ? 'order-1 self-end mb-2' : ''}`}>
             <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? t('removeBookmark') : t('bookmark')}>

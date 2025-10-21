@@ -139,6 +139,8 @@ export interface Settings {
     informationDensity: 'Comfortable' | 'Compact';
     highContrast: boolean;
     reduceMotion: boolean;
+    dyslexiaFont: boolean;
+    aiAnalysisDepth: 'Concise' | 'Balanced' | 'InDepth';
 }
 
 export type TimelineEvent = {

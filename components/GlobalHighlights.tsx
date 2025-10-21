@@ -18,6 +18,8 @@ interface GlobalHighlightsProps {
   offlineArticleIds: number[];
   downloadingArticleId: number | null;
   onDownloadArticle: (article: Article) => void;
+  comparisonList: number[];
+  onAddToCompare: (articleId: number) => void;
   layout?: 'default' | 'grid';
 }
 
@@ -33,6 +35,8 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   offlineArticleIds,
   downloadingArticleId,
   onDownloadArticle,
+  comparisonList,
+  onAddToCompare,
   layout = 'default'
 }) => {
   const { t } = useTranslation();
@@ -62,6 +66,8 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             offlineArticleIds={offlineArticleIds}
             downloadingArticleId={downloadingArticleId}
             onDownloadArticle={onDownloadArticle}
+            comparisonList={comparisonList}
+            onAddToCompare={onAddToCompare}
             layout="grid"
           />
         ))}
@@ -88,6 +94,8 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           offlineArticleIds={offlineArticleIds}
           downloadingArticleId={downloadingArticleId}
           onDownloadArticle={onDownloadArticle}
+          comparisonList={comparisonList}
+          onAddToCompare={onAddToCompare}
         />
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -105,6 +113,8 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             offlineArticleIds={offlineArticleIds}
             downloadingArticleId={downloadingArticleId}
             onDownloadArticle={onDownloadArticle}
+            comparisonList={comparisonList}
+            onAddToCompare={onAddToCompare}
           />
         ))}
       </div>

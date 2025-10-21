@@ -9,6 +9,7 @@ import LanguageDropdown from './LanguageDropdown';
 import type { User, Notification, Settings, Language } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import UserIcon from './icons/UserIcon';
+import RingLoader from './RingLoader';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -24,6 +25,7 @@ interface HeaderProps {
   notifications: Notification[];
   settings: Settings;
   onSettingsChange: (newSettings: Settings) => void;
+  isTranslating: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -40,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({
   notifications,
   settings,
   onSettingsChange,
+  isTranslating,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
@@ -104,8 +107,9 @@ const Header: React.FC<HeaderProps> = ({
             </button>
             
             <div className="relative" ref={langDropdownRef}>
-              <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} aria-label={t('selectLanguage')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} aria-label={t('selectLanguage')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1">
                   <GlobeIcon />
+                  {isTranslating && <RingLoader />}
               </button>
               {isLangDropdownOpen && (
                 <LanguageDropdown

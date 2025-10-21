@@ -36,7 +36,14 @@ export const translations: Partial<Record<Language, Translations>> = {
     'publishedOn': 'Published on',
     'minRead': 'min read',
     'applyingLens': 'Applying AI Reading Lens...',
-
+    'compare': 'Compare',
+    'addToCompare': 'Add to Compare',
+    'removeFromCompare': 'Remove from Compare',
+    'compareNow': 'Compare Now',
+    'clearComparison': 'Clear',
+    'comparisonTitle': 'AI Article Comparison',
+    'comparisonPrompt': 'Select up to 2 articles to compare.',
+    
     // Homepage Sections
     'trendingNow': 'Trending Now',
     'viewAllTrending': 'View All Trending',
@@ -342,6 +349,11 @@ export const translations: Partial<Record<Language, Translations>> = {
     'accessibilityDesc': 'Customize the experience to meet your needs.',
     'highContrastMode': 'High Contrast Mode',
     'reduceMotion': 'Reduce Motion',
+    'dyslexiaFont': 'Dyslexia-Friendly Font',
+    'aiAnalysisDepth': 'AI Analysis Depth',
+    'concise': 'Concise',
+    'balanced': 'Balanced',
+    'inDepth': 'In-Depth',
     'confirm': 'Confirm',
     'confirmClearBookmarksTitle': 'Clear All Bookmarks?',
     'confirmClearOfflineTitle': 'Clear All Offline Articles?',
@@ -377,7 +389,7 @@ export const translations: Partial<Record<Language, Translations>> = {
     'tourCompanion': 'When reading an article, this powerful sidebar appears. Chat with an AI about the text, get key concepts, and see historical timelines.',
     'tourFinishTitle': 'You\'re All Set!',
     'tourFinish': 'Enjoy your enhanced news experience. You can always customize everything in the Settings menu.',
-    'back': 'Back',
+    // FIX: Removed duplicate key 'back'. It is already defined in the 'Subscription & Payment' section.
     'next': 'Next',
     'finish': 'Finish',
   },
@@ -416,4 +428,5 @@ export const translations: Partial<Record<Language, Translations>> = {
     'makeItYoursDesc': 'Hindura insanganyamatsiko, imyandikire, n\'imiterere kugira ngo ugire uburambe bwo gusoma bukunogeye.',
     'aiPower': 'Imbaraga za AI',
     'aiPowerDesc': 'Hindura kuri modeli y\' "Ubuziranenge" kugirango ubone isesengura ryimbitse niba uri umunyamuryango wa Premium.',
-    
+  },
+};

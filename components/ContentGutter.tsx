@@ -7,6 +7,7 @@ import CopyLinkIcon from './icons/CopyLinkIcon';
 import TwitterIcon from './icons/TwitterIcon';
 import ShareIcon from './icons/ShareIcon';
 import MagicWandIcon from './icons/MagicWandIcon';
+import CompareIcon from './icons/CompareIcon';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface ContentGutterProps {
@@ -17,14 +18,16 @@ interface ContentGutterProps {
   onToggleZenMode: () => void;
   activeLens: ReadingLens;
   onSetLens: (lens: ReadingLens) => void;
+  comparisonList: number[];
+  onAddToCompare: (articleId: number) => void;
 }
 
-const ActionButton: React.FC<{ onClick?: () => void; title: string; children: React.ReactNode; isActive?: boolean; href?: string }> = ({ onClick, title, children, isActive = false, href }) => {
+const ActionButton: React.FC<{ onClick?: () => void; title: string; children: React.ReactNode; isActive?: boolean; href?: string; disabled?: boolean; }> = ({ onClick, title, children, isActive = false, href, disabled = false }) => {
     const commonClasses = `group relative flex items-center justify-center w-12 h-12 rounded-full text-slate-600 dark:text-slate-300 transition-all duration-200 ${
       isActive
         ? 'bg-deep-red dark:bg-gold text-white'
         : 'bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700'
-    }`;
+    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
     
     const content = (
         <>
@@ -39,13 +42,14 @@ const ActionButton: React.FC<{ onClick?: () => void; title: string; children: Re
         return <a href={href} target="_blank" rel="noopener noreferrer" className={commonClasses}>{content}</a>;
     }
 
-    return <button onClick={onClick} title={title} className={commonClasses}>{content}</button>;
+    return <button onClick={onClick} title={title} className={commonClasses} disabled={disabled}>{content}</button>;
 }
 
-const ContentGutter: React.FC<ContentGutterProps> = ({ article, isBookmarked, onToggleBookmark, isZenMode, onToggleZenMode, activeLens, onSetLens }) => {
+const ContentGutter: React.FC<ContentGutterProps> = ({ article, isBookmarked, onToggleBookmark, isZenMode, onToggleZenMode, activeLens, onSetLens, comparisonList, onAddToCompare }) => {
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const pageUrl = window.location.href;
   const { t } = useTranslation();
+  const isInCompare = comparisonList.includes(article.id);
 
   const shareActions = {
     twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(article.title)}`,
@@ -65,6 +69,15 @@ const ContentGutter: React.FC<ContentGutterProps> = ({ article, isBookmarked, on
                 <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 ${isBookmarked ? 'text-white' : ''}`} />
             </ActionButton>
             
+            <ActionButton 
+              onClick={() => onAddToCompare(article.id)} 
+              title={isInCompare ? t('removeFromCompare') : t('addToCompare')}
+              isActive={isInCompare}
+              disabled={!isInCompare && comparisonList.length >= 2}
+            >
+              <CompareIcon className="w-5 h-5" />
+            </ActionButton>
+
             <ActionButton onClick={onToggleZenMode} title={isZenMode ? t('exitZenMode') : t('zenMode')} isActive={isZenMode}>
                 <GlassesIcon className="w-5 h-5" />
             </ActionButton>

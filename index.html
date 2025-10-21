@@ -20,6 +20,7 @@
             fontFamily: {
               sans: ['Inter', 'ui-sans-serif', 'system-ui'],
               serif: ['"Playfair Display"', 'ui-serif', 'Georgia'],
+              dyslexic: ['"Atkinson Hyperlegible"', 'ui-sans-serif', 'system-ui'],
             },
             animation: {
                 'ken-burns': 'ken-burns 20s ease-out infinite',
@@ -124,10 +125,10 @@
       }
     </script>
     
-    <!-- Google Fonts for Inter and Playfair Display -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
     
     <script type="importmap">
     {
@@ -144,17 +145,20 @@
     <script>
       // Pre-emptive theme and font script to prevent FOUC (Flash of Unstyled Content)
       try {
-        const settingsRaw = localStorage.getItem('mahama-settings');
+        const settingsRaw = localStorage.getItem('mahamaNewsSettings');
         if (settingsRaw) {
           const settings = JSON.parse(settingsRaw);
           const theme = settings.theme;
           const fontFamily = settings.fontFamily;
+          const dyslexiaFont = settings.dyslexiaFont;
           
           if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
           }
 
-          if (fontFamily === 'serif') {
+          if (dyslexiaFont) {
+            document.documentElement.classList.add('font-dyslexic');
+          } else if (fontFamily === 'serif') {
             document.documentElement.classList.add('font-serif');
           } else {
             document.documentElement.classList.add('font-sans');
@@ -174,6 +178,11 @@
       .animation-delay-200 { animation-delay: 200ms; }
       .animation-delay-400 { animation-delay: 400ms; }
       .animation-delay-600 { animation-delay: 600ms; }
+
+      /* Dyslexia-friendly font override */
+      .font-dyslexic, .font-dyslexic * {
+        font-family: 'Atkinson Hyperlegible', sans-serif !important;
+      }
 
       /* Accessibility Overrides */
       .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {

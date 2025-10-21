@@ -959,3 +959,32 @@ export const translateArticleContent = async (article: Article, language: Langua
         throw new Error(`Could not get a valid article translation from the AI for ${language}.`);
     }
 };
+
+// 32. compareArticles
+export async function* compareArticles(article1: Article, article2: Article, settings: Settings): AsyncGenerator<string> {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'complex');
+    const prompt = `You are an expert news analyst. Compare and contrast the following two articles. Structure your response with the following markdown sections:
+    
+    ## Key Theme Comparison: What are the core topics and how do they overlap or differ?
+    ## Tone & Perspective: Analyze the tone (e.g., neutral, optimistic, critical) and any potential author biases in each article.
+    ## Factual Overlap & Discrepancies: Identify key facts that are present in both, or where they present differing information.
+    ## Synthesis: Provide a concluding paragraph that synthesizes the information from both articles into a broader understanding for the reader.
+
+    Article 1: "${article1.title}"
+    Excerpt 1: ${article1.excerpt}
+
+    Article 2: "${article2.title}"
+    Excerpt 2: ${article2.excerpt}
+    `;
+
+    const response = await ai.models.generateContentStream({
+        model,
+        contents: prompt,
+        config,
+    });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}

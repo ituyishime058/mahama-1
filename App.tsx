@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent, mockNotifications } from './constants';
 import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, Notification, Language } from './types';
@@ -63,6 +64,8 @@ import MahamaInvestigatesPage from './components/MahamaInvestigatesPage';
 import NotificationCenter from './components/NotificationCenter';
 import OnboardingTour from './components/OnboardingTour';
 import { mockComments } from './constants';
+import ComparisonModal from './components/ComparisonModal';
+import CompareNowButton from './components/CompareNowButton';
 
 
 type ArticleAiData = {
@@ -143,6 +146,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
     const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
     const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
+    const [comparisonList, setComparisonList] = useState<number[]>([]);
     
     const { t, isTranslating } = useTranslation();
 
@@ -161,11 +165,14 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
         // Accessibility
         root.classList.toggle('high-contrast', settings.highContrast);
         root.classList.toggle('reduce-motion', settings.reduceMotion);
+        root.classList.toggle('font-dyslexic', settings.dyslexiaFont);
 
         // Font & Density
         root.style.fontSize = `${settings.fontSize}px`;
-        root.classList.remove('font-sans', 'font-serif');
-        root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
+        if (!settings.dyslexiaFont) {
+          root.classList.remove('font-sans', 'font-serif');
+          root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
+        }
         document.body.classList.remove('density-comfortable', 'density-compact');
         document.body.classList.add(`density-${settings.informationDensity.toLowerCase()}`);
     }, [settings]);
@@ -310,7 +317,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
         };
         const timer = setTimeout(optimizeLayout, 2000); // Debounce
         return () => clearTimeout(timer);
-    }, [bookmarkedArticles, settings.subscriptionTier]);
+    }, [bookmarkedArticles, settings.subscriptionTier, settings, onSettingsChange]);
 
 
     const openModal = (modal: string, article?: Article) => {
@@ -516,6 +523,26 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
 
+    const handleAddToCompare = (articleId: number) => {
+        setComparisonList(prev => {
+            if (prev.includes(articleId)) {
+                return prev.filter(id => id !== articleId);
+            }
+            if (prev.length < 2) {
+                return [...prev, articleId];
+            }
+            return prev;
+        });
+    };
+
+    const handleClearComparison = () => {
+        setComparisonList([]);
+    };
+
+    const comparisonArticles = useMemo(() => {
+        return allArticles.filter(a => comparisonList.includes(a.id));
+    }, [comparisonList, allArticles]);
+
     const filteredArticles = useMemo(() => {
         let articlesToFilter = allArticles;
 
@@ -554,6 +581,8 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                         onInfographic={(article) => openModal('infographic', article)}
                         settings={settings}
                         onPremiumClick={() => setActiveModal('subscribe')}
+                        comparisonList={comparisonList}
+                        onAddToCompare={handleAddToCompare}
                         {...articleAiData}
                     />;
         }
@@ -590,7 +619,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                         <>
                            <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>
                            <div className="mt-8 space-y-12">
-                               <GlobalHighlights articles={filteredArticles.slice(0,5)} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} layout={layout} />
+                               <GlobalHighlights articles={filteredArticles.slice(0,5)} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} layout={layout} />
                                <LiveStream />
                                {settings.showMahama360 && <Mahama360 articles={allArticles.slice(7, 10)} />}
                                <DataDrivenInsights />
@@ -604,7 +633,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                      return (
                         <>
                             {settings.showNewsMap && <InteractiveGlobe articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />}
-                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} />
                         </>
                      );
                 case 'Mahama Investigates':
@@ -612,7 +641,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                 case 'Economy':
                     return (
                         <>
-                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} />
                             {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
                         </>
@@ -620,7 +649,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                 case 'Technology':
                     return (
                         <>
-                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} />
                             {settings.showInnovationTimelines && <InnovationTimeline />}
                             <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
                         </>
@@ -631,12 +660,12 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                 case 'Entertainment':
                     return (
                         <>
-                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} />
                             <PodcastHub podcasts={mockPodcasts} />
                         </>
                     );
                 default:
-                    return <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} layout={layout} />;
+                    return <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} layout={layout} />;
             }
         };
 
@@ -648,16 +677,6 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
 
     return (
         <div className="min-h-screen">
-            {isTranslating && (
-                <div className="fixed top-0 left-0 right-0 h-1 z-[9999] bg-gold/30">
-                    <div 
-                        className="h-1 bg-gradient-to-r from-gold to-deep-red animate-shimmer-bg"
-                        style={{ backgroundSize: '200% 100%' }}
-                    />
-                </div>
-            )}
-            {isCategoryLoading && <CategoryLoadingOverlay />}
-            {activeArticle && <ScrollProgressBar />}
             <Header
                 onMenuClick={() => openModal('categoryExplorer')}
                 onSearchClick={() => openModal('search')}
@@ -672,6 +691,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
                 notifications={notifications}
                 settings={settings}
                 onSettingsChange={onSettingsChange}
+                isTranslating={isTranslating}
             />
 
             <NotificationCenter 
@@ -760,9 +780,11 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
             <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
             <TextToSpeechModal isOpen={!!ttsModalArticle} article={ttsModalArticle} settings={settings} onClose={() => setTtsModalArticle(null)} onPlay={(originalArticle, translatedText, voice) => setAudioPlayerState({ article: {...originalArticle, content: translatedText}, voiceOverride: voice })} />
             <TrailerModal isOpen={!!activeTrailer} onClose={() => setActiveTrailer(null)} trailerUrl={activeTrailer} />
+            <ComparisonModal isOpen={activeModal === 'compare'} onClose={closeModal} articles={comparisonArticles} settings={settings} />
 
             <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
             {isHomePage && <FloatingActionButton onClick={() => openModal('live')} />}
+            <CompareNowButton articles={comparisonArticles} onCompare={() => setActiveModal('compare')} onRemove={handleAddToCompare} onClear={handleClearComparison} />
         </div>
     );
 };
@@ -796,6 +818,8 @@ const defaultSettings: Settings = {
     informationDensity: 'Comfortable',
     highContrast: false,
     reduceMotion: false,
+    dyslexiaFont: false,
+    aiAnalysisDepth: 'Balanced',
 };
 
 const App: React.FC = () => {
