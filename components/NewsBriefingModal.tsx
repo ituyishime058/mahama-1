@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import type { Article, Settings } from '../types';
 import { generateNewsBriefing } from '../utils/ai';
@@ -5,6 +6,7 @@ import CloseIcon from './icons/CloseIcon';
 import BriefingIcon from './icons/BriefingIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import PlayCircleIcon from './icons/PlayCircleIcon';
+import VideoCameraIcon from './icons/VideoCameraIcon';
 
 interface NewsBriefingModalProps {
   isOpen: boolean;
@@ -12,9 +14,10 @@ interface NewsBriefingModalProps {
   settings: Settings;
   articles: Article[];
   onPlayBriefing: (briefingArticle: Article) => void;
+  onGenerateVideo: (script: string) => void;
 }
 
-const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, settings, articles, onPlayBriefing }) => {
+const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, settings, articles, onPlayBriefing, onGenerateVideo }) => {
   const [briefingScript, setBriefingScript] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,7 +63,7 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
       const briefingArticle: Article = {
           id: -1, 
           title: "Your Daily News Briefing",
-          author: "Mahama News AI",
+          author: "Kirehe TV AI",
           content: briefingScript,
           category: "Briefing",
           date: new Date().toLocaleDateString(),
@@ -71,6 +74,12 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
           sentiment: 'Neutral',
       };
       onPlayBriefing(briefingArticle);
+      onClose();
+  }
+
+  const handleGenerateVideo = () => {
+      if (!briefingScript) return;
+      onGenerateVideo(briefingScript);
       onClose();
   }
 
@@ -104,11 +113,17 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
             ) : briefingScript ? (
                 <div className="text-center">
                     <h4 className="text-xl font-bold">Your Briefing is Ready!</h4>
-                    <p className="text-slate-600 dark:text-slate-400 my-4">Listen to a summary of today's top stories based on your interests.</p>
-                    <button onClick={handlePlay} className="flex items-center gap-3 mx-auto px-6 py-3 bg-deep-red text-white font-bold rounded-full text-lg transform hover:scale-105 transition-transform">
-                        <PlayCircleIcon className="w-8 h-8"/>
-                        Play Now
-                    </button>
+                    <p className="text-slate-600 dark:text-slate-400 my-4">Listen to a summary of today's top stories based on your interests, or watch an AI news anchor deliver your briefing.</p>
+                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onClick={handlePlay} className="flex items-center justify-center gap-3 px-6 py-3 bg-deep-red text-white font-bold rounded-full text-lg transform hover:scale-105 transition-transform">
+                            <PlayCircleIcon className="w-8 h-8"/>
+                            Listen Now
+                        </button>
+                        <button onClick={handleGenerateVideo} className="flex items-center justify-center gap-3 px-6 py-3 bg-slate-600 text-white font-bold rounded-full text-lg transform hover:scale-105 transition-transform">
+                            <VideoCameraIcon className="w-8 h-8"/>
+                            Watch with AI Anchor
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <div className="text-center w-full max-w-sm">

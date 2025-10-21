@@ -1,3 +1,4 @@
+
 import React from 'react';
 import InfoPage from './InfoPage';
 import { useTranslation } from '../hooks/useTranslation';

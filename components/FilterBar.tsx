@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { Category, SubscriptionTier } from '../types';
 import BriefingIcon from './icons/BriefingIcon';
@@ -112,7 +113,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       "Art": "art",
       "Music": "music",
       "History": "history",
-      "Mahama Investigates": "mahamaInvestigates"
+      "Kirehe TV Investigates": "kireheInvestigates"
   };
 
   return (

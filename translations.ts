@@ -1,3 +1,4 @@
+
 export const translations = {
   English: {
     logoText: 'Kirehe TV',
@@ -25,7 +26,7 @@ export const translations = {
     viewAllTrending: 'View All Trending',
     liveCoverage: 'Live Coverage',
     breakingG7: 'Breaking: G7 Summit Concludes',
-    mahama360Desc: "A panoramic view of the world's most pivotal stories, offering diverse perspectives and in-depth analysis.",
+    kirehe360Desc: "A panoramic view of the world's most pivotal stories, offering diverse perspectives and in-depth analysis.",
     stayAhead: 'Stay Ahead of the Curve',
     newsletterDesc: 'Subscribe to our newsletter for daily insights and top stories.',
     subscribe: 'Subscribe',
@@ -36,11 +37,11 @@ export const translations = {
     economy: 'Economy',
     technology: 'Technology',
     features: 'Features',
-    'maham_360': 'Kirehe 360°',
+    kirehe_360: 'Kirehe 360°',
     podcastsAndVideo: 'Podcasts & Video',
-    mahamaInvestigates: 'Kirehe TV Investigates',
+    kireheInvestigates: 'Kirehe TV Investigates',
     communityForum: 'Community Forum',
-    aboutMNH: 'About KTV',
+    aboutKTV: 'About KTV',
     aboutUs: 'About Us',
     careers: 'Careers',
     contact: 'Contact',

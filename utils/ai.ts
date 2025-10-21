@@ -1,6 +1,8 @@
+
+
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
 // FIX: Added AiSearchResult to the import list from types.
-import type { Article, Settings, QuizQuestion, ExpertPersona, InfographicData, ChatMessage, Language, AiTtsVoice, StreamingContent, KeyConcept, TimelineEvent, FactCheckResult, CommunityHighlight, AiSearchResult } from './types';
+import type { Article, Settings, QuizQuestion, ExpertPersona, InfographicData, ChatMessage, Language, AiTtsVoice, StreamingContent, KeyConcept, TimelineEvent, FactCheckResult, CommunityHighlight, AiSearchResult } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
@@ -16,7 +18,7 @@ async function* streamToGenerator(stream: AsyncGenerator<GenerateContentResponse
 
 export async function summarizeArticle(article: Article, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Summarize the following article in a ${settings.summaryLength} paragraph. Article title: "${article.title}". Content: ${article.content}`;
+    const prompt = `Summarize the following article in a ${settings.summaryLength} paragraph. The summary must be in ${settings.preferredLanguage}. Article title: "${article.title}". Content: ${article.content}`;
     
     const response = await ai.models.generateContentStream({
         model,
@@ -28,7 +30,7 @@ export async function summarizeArticle(article: Article, settings: Settings): Pr
 
 export async function explainSimply(article: Article, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Explain the following article in simple terms, as if for a 10-year-old. Article title: "${article.title}". Content: ${article.content}`;
+    const prompt = `Explain the following article in simple terms, as if for a 10-year-old. The explanation must be in ${settings.preferredLanguage}. Article title: "${article.title}". Content: ${article.content}`;
     
     const response = await ai.models.generateContentStream({
         model,
@@ -40,7 +42,7 @@ export async function explainSimply(article: Article, settings: Settings): Promi
 
 export async function generateQuiz(article: Article, settings: Settings): Promise<QuizQuestion[]> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Create a 3-question multiple-choice quiz based on this article. For each question, provide 4 options and indicate the correct answer. Article: ${article.content}`;
+    const prompt = `Create a 3-question multiple-choice quiz based on this article. For each question, provide 4 options and indicate the correct answer. The entire quiz (question, options, and correctAnswer fields) must be in ${settings.preferredLanguage}. Article: ${article.content}`;
 
     const response = await ai.models.generateContent({
         model,
@@ -67,28 +69,28 @@ export async function generateQuiz(article: Article, settings: Settings): Promis
 
 export async function generateCounterpoint(article: Article, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Provide a well-reasoned counterpoint or alternative perspective to the main argument of this article. Article: ${article.content}`;
+    const prompt = `Provide a well-reasoned counterpoint or alternative perspective to the main argument of this article. The response must be in ${settings.preferredLanguage}. Article: ${article.content}`;
     const response = await ai.models.generateContentStream({ model, contents: prompt });
     return streamToGenerator(response);
 }
 
 export async function generateBehindTheNews(article: Article, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Provide historical context, relevant background information, and key players related to this news article. Format with markdown headings. Article: ${article.content}`;
+    const prompt = `Provide historical context, relevant background information, and key players related to this news article. The response must be in ${settings.preferredLanguage}. Format with markdown headings. Article: ${article.content}`;
     const response = await ai.models.generateContentStream({ model, contents: prompt });
     return streamToGenerator(response);
 }
 
 export async function generateExpertAnalysis(article: Article, persona: ExpertPersona, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Analyze this article from the perspective of a professional ${persona}. What are the key implications, potential consequences, and important details an expert would notice? Format with markdown. Article: ${article.content}`;
+    const prompt = `Analyze this article from the perspective of a professional ${persona}. What are the key implications, potential consequences, and important details an expert would notice? The analysis must be in ${settings.preferredLanguage}. Format with markdown. Article: ${article.content}`;
     const response = await ai.models.generateContentStream({ model, contents: prompt });
     return streamToGenerator(response);
 }
 
 export async function generateAuthorResponse(article: Article, question: string, history: ChatMessage[], settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const systemInstruction = `You are an AI persona of ${article.author}, the author of the article titled "${article.title}". You will answer questions from a reader based on your article and your likely knowledge and perspective as the author. Do not break character.`;
+    const systemInstruction = `You are an AI persona of ${article.author}, the author of the article titled "${article.title}". You will answer questions from a reader based on your article and your likely knowledge and perspective as the author. Your response must be in ${settings.preferredLanguage}. Do not break character.`;
     
     // Simple history construction for context
     const fullHistory = history.map(m => `${m.role}: ${m.content}`).join('\n');
@@ -104,7 +106,7 @@ export async function generateAuthorResponse(article: Article, question: string,
 
 export async function askAboutArticle(article: Article, question: string, history: ChatMessage[], settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const systemInstruction = `You are a helpful AI assistant knowledgeable about the provided news article titled "${article.title}". Answer the user's questions based on the article's content. Be concise and helpful.`;
+    const systemInstruction = `You are a helpful AI assistant knowledgeable about the provided news article titled "${article.title}". Answer the user's questions based on the article's content. Your response must be in ${settings.preferredLanguage}. Be concise and helpful.`;
     
     const fullHistory = history.map(m => `${m.role}: ${m.content}`).join('\n');
     const prompt = `Article Content for Context: ${article.content}\n\nPrevious Conversation:\n${fullHistory}\n\nUser's new question: ${question}\n\nYour response:`;
@@ -127,10 +129,10 @@ export async function performAiSearch(query: string, articles: Article[], movies
         ${movies.map(m => `ID: ${m.id}, Title: ${m.title}, Description: ${m.description}, Genre: ${m.genre}`).join('\n')}
     `;
     const prompt = `Based on the available content below, answer the user's query: "${query}". 
-    1. Provide a concise summary answer.
+    1. Provide a concise summary answer in ${settings.preferredLanguage}.
     2. List the IDs of the most relevant articles (up to 5).
     3. List the IDs of the most relevant movies/TV shows (up to 5).
-    4. Suggest 3 follow-up questions.
+    4. Suggest 3 follow-up questions in ${settings.preferredLanguage}.
     ${context}`;
 
     const response = await ai.models.generateContent({
@@ -193,9 +195,9 @@ export async function applyReadingLens(content: string, lens: 'Simplify' | 'Defi
     const model = getModelForPreference(settings.aiModelPreference);
     let prompt = '';
     if (lens === 'Simplify') {
-        prompt = `Rewrite the following text in simpler, more accessible language: ${content}`;
+        prompt = `Rewrite the following text in simpler, more accessible language, and translate the entire output to ${settings.preferredLanguage}: ${content}`;
     } else if (lens === 'DefineTerms') {
-        prompt = `Identify key technical or complex terms in the following text and provide brief definitions in parentheses after each term. Text: ${content}`;
+        prompt = `Identify key technical or complex terms in the following text and provide brief definitions in parentheses after each term. Translate the entire output to ${settings.preferredLanguage}. Text: ${content}`;
     }
     const response = await ai.models.generateContent({ model, contents: prompt });
     return response.text;
@@ -252,13 +254,13 @@ export async function findRelatedArticles(currentArticle: Article, allArticles: 
 export async function generateNewsBriefing(articles: Article[], settings: Settings): Promise<string> {
     const model = getModelForPreference(settings.aiModelPreference);
     const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
-    const prompt = `You are a news anchor for Kirehe TV. Create a concise, engaging news briefing script based on the following articles. The tone should be ${settings.aiVoicePersonality}. Start with a greeting and end with a sign-off.\n\n${articleSummaries}`;
+    const prompt = `You are a news anchor for Kirehe TV. Create a concise, engaging news briefing script based on the following articles. The script must be in ${settings.preferredLanguage}. The tone should be ${settings.aiVoicePersonality}. Start with a greeting and end with a sign-off.\n\n${articleSummaries}`;
     const response = await ai.models.generateContent({ model, contents: prompt });
     return response.text;
 }
 
-export async function getThisDayInHistory(): Promise<string> {
-    const prompt = "What are 2-3 significant historical events that happened on this day, " + new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) + "? Provide the year and a brief description for each. Format each event with '## [Year]' on one line and the description on the next.";
+export async function getThisDayInHistory(settings: Settings): Promise<string> {
+    const prompt = `What are 2-3 significant historical events that happened on this day, ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}? Provide the year and a brief description for each. The entire response must be in ${settings.preferredLanguage}. Format each event with '## [Year]' on one line and the description on the next.`;
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     return response.text;
 }
@@ -267,7 +269,7 @@ export async function factCheckPageContent(pageContent: string, settings: Settin
     const model = getModelForPreference(settings.aiModelPreference);
     const response = await ai.models.generateContent({
         model,
-        contents: `Fact check the claims in the following text. Provide a summary of your findings and list the sources you used. Text: ${pageContent}`,
+        contents: `Fact check the claims in the following text. Provide a summary of your findings in ${settings.preferredLanguage} and list the sources you used. Text: ${pageContent}`,
         config: {
             tools: [{ googleSearch: {} }],
         },
@@ -285,14 +287,14 @@ export async function factCheckPageContent(pageContent: string, settings: Settin
 
 export async function generateDeepDive(article: Article, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Provide a deep dive into the topic of the article "${article.title}". Elaborate on the key concepts, explore related issues, and discuss future implications. Format with markdown headings. Article content for context: ${article.content}`;
+    const prompt = `Provide a deep dive into the topic of the article "${article.title}". Elaborate on the key concepts, explore related issues, and discuss future implications. The response must be in ${settings.preferredLanguage}. Format with markdown headings. Article content for context: ${article.content}`;
     const response = await ai.models.generateContentStream({ model, contents: prompt });
     return streamToGenerator(response);
 }
 
 export async function generateInfographicData(article: Article, settings: Settings): Promise<InfographicData> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Extract key statistics or quantifiable data from the article "${article.title}" and present it as data for a bar chart. The data should be relevant to the main topic. Article: ${article.content}`;
+    const prompt = `Extract key statistics or quantifiable data from the article "${article.title}" and present it as data for a bar chart. The 'title' and all 'label' fields in the response must be in ${settings.preferredLanguage}. The data should be relevant to the main topic. Article: ${article.content}`;
     const response = await ai.models.generateContent({
         model,
         contents: prompt,
@@ -321,7 +323,7 @@ export async function generateInfographicData(article: Article, settings: Settin
 
 export async function compareArticles(article1: Article, article2: Article, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
     const model = getModelForPreference(settings.aiModelPreference);
-    const prompt = `Compare and contrast the following two articles. Identify common themes, differing viewpoints, and unique information in each. Format with markdown.
+    const prompt = `Compare and contrast the following two articles. Identify common themes, differing viewpoints, and unique information in each. The response must be in ${settings.preferredLanguage}. Format with markdown.
     Article 1: "${article1.title}" - ${article1.excerpt}
     Article 2: "${article2.title}" - ${article2.excerpt}`;
     const response = await ai.models.generateContentStream({ model, contents: prompt });
@@ -360,10 +362,10 @@ export async function batchTranslate(englishStrings: { [key: string]: string }, 
     }
 }
 
-export async function getKireheInfo(query: string, location: { latitude: number; longitude: number } | null): Promise<string> {
+export async function getKireheInfo(query: string, location: { latitude: number; longitude: number } | null, settings: Settings): Promise<string> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `The user is asking about Kirehe District, Rwanda. Their query is: "${query}". Answer them as a helpful local guide.`,
+        contents: `The user is asking about Kirehe District, Rwanda. Their query is: "${query}". Answer them as a helpful local guide in ${settings.preferredLanguage}.`,
         config: {
             tools: [{ googleMaps: {} }],
             toolConfig: location ? {

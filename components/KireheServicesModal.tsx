@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState, useRef } from 'react';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, Settings } from '../types';
 import { getKireheInfo } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
 import SendIcon from './icons/SendIcon';
@@ -10,9 +11,10 @@ import { useTranslation } from '../hooks/useTranslation';
 interface KireheServicesModalProps {
   isOpen: boolean;
   onClose: () => void;
+  settings: Settings;
 }
 
-const KireheServicesModal: React.FC<KireheServicesModalProps> = ({ isOpen, onClose }) => {
+const KireheServicesModal: React.FC<KireheServicesModalProps> = ({ isOpen, onClose, settings }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +64,7 @@ const KireheServicesModal: React.FC<KireheServicesModalProps> = ({ isOpen, onClo
     setError('');
 
     try {
-      const response = await getKireheInfo(question, location);
+      const response = await getKireheInfo(question, location, settings);
       const modelMessage: ChatMessage = { role: 'model', content: response, id: Date.now() + 1 };
       setMessages(prev => [...prev, modelMessage]);
     } catch (err: any) {

@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { generateAnchorVideo } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
@@ -28,7 +27,6 @@ const AiAnchorVideoModal: React.FC<AiAnchorVideoModalProps> = ({ isOpen, onClose
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0]);
-  // FIX: In a browser environment, setInterval returns a number, not a NodeJS.Timeout object.
   const messageIntervalRef = useRef<number | undefined>();
   const { t } = useTranslation();
 

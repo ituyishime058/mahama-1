@@ -1,1 +1,4 @@
-full contents of FloatingActionbar.tsx
+// This file is deprecated. The active component is located at /components/FloatingActionbar.tsx
+import React from 'react';
+const Placeholder = () => null;
+export default Placeholder;

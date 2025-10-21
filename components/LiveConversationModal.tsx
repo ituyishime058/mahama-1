@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
@@ -101,7 +102,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
                 inputAudioTranscription: {},
                 outputAudioTranscription: {},
-                systemInstruction: 'You are a helpful and friendly news assistant for Mahama News Hub. You are a world-class AI. Keep your answers concise and informative.',
+                systemInstruction: 'You are a helpful and friendly news assistant for Kirehe TV. You are a world-class AI. Keep your answers concise and informative.',
             },
             callbacks: {
                 onopen: () => {

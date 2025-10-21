@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
@@ -16,7 +17,8 @@ import RightAside from './RightAside';
 import NewsTicker from './NewsTicker';
 import FilterBar from './FilterBar';
 import ArticlePage from './ArticlePage';
-import Mahama360 from './Mahama360';
+// FIX: Corrected import path for Kirehe360 component.
+import Kirehe360 from './Mahama360';
 import DataDrivenInsights from './DataDrivenInsights';
 import PodcastHub from './PodcastHub';
 import InnovationTimeline from './InnovationTimeline';
@@ -25,7 +27,7 @@ import ScrollProgressBar from './ScrollProgressBar';
 import MoviesTVPage from './MoviesTVPage';
 import SponsoredBanners from './SponsoredBanners';
 import InteractiveGlobe from './InteractiveGlobe';
-import KireheInvestigatesPage from './MahamaInvestigatesPage';
+import KireheInvestigatesPage from './KireheInvestigatesPage';
 import NowStreaming from './NowStreaming';
 
 // Modal & Page Imports
@@ -78,7 +80,7 @@ const defaultSettings: Settings = {
     preferredLanguage: 'English',
     showCounterpoint: true,
     showInnovationTimelines: true,
-    showMahama360: true,
+    showKirehe360: true,
     showNewsMap: true,
     showDataInsights: true,
     showNowStreaming: true,
@@ -543,7 +545,7 @@ const App: React.FC = () => {
                            <div className="mt-8">
                                 <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article?.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList.map(a => a.id)} onAddToCompare={addToCompare} layout={settings.homepageLayout === 'Dashboard' ? 'grid' : 'default'} />
                            </div>
-                            {settings.showMahama360 && <Mahama360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore}/>}
+                            {settings.showKirehe360 && <Kirehe360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore}/>}
                             {settings.showNewsMap && <InteractiveGlobe articles={allArticles} onArticleClick={handleReadMore} />}
                             {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts} />
@@ -577,7 +579,7 @@ const App: React.FC = () => {
         <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
         <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={allArticles} onPlayBriefing={(briefing) => setAudioPlayerState({ article: briefing })} onGenerateVideo={(script) => {setVideoScript(script); openModal('aiAnchorVideo');}} />
         <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
-        <KireheServicesModal isOpen={activeModal === 'kirehe'} onClose={closeModal} />
+        <KireheServicesModal isOpen={activeModal === 'kirehe'} onClose={closeModal} settings={settings} />
         <TextToSpeechModal isOpen={!!ttsModalArticle} article={ttsModalArticle} settings={settings} onClose={() => setTtsModalArticle(null)} onPlay={(originalArticle, translatedText, voice) => setAudioPlayerState({ article: {...originalArticle, content: translatedText}, voiceOverride: voice })} />
         <TrailerModal isOpen={!!activeTrailer} onClose={() => setActiveTrailer(null)} trailerUrl={activeTrailer} />
         <NotificationCenter isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} onMarkAsRead={() => {}} onMarkAllAsRead={() => {}} />
