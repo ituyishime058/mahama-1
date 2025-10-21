@@ -530,7 +530,7 @@ export const generateNewsBriefing = async (articles: Article[], settings: Settin
 
     const articlesSummary = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
 
-    const prompt = `You are an AI news anchor for Mahama News Hub. Your personality is ${settings.aiVoicePersonality}. Create a concise, engaging news briefing script summarizing the following articles. Start with a friendly greeting, then smoothly transition between each story. End with a warm sign-off.
+    const prompt = `You are an AI news anchor for Kirehe TV. Your personality is ${settings.aiVoicePersonality}. Create a concise, engaging news briefing script summarizing the following articles. Start with a friendly greeting, then smoothly transition between each story. End with a warm sign-off.
     
     Articles:
     ${articlesSummary}`;
@@ -918,4 +918,32 @@ export const generateInvestigationSummary = async (topic: string, settings: Sett
     } catch(e) {
         throw new Error("Could not generate investigation summary.");
     }
+};
+
+// 32. generateAnchorVideo
+export const generateAnchorVideo = async (script: string) => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    
+    let operation = await ai.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
+        prompt: `A professional news anchor in a modern, sleek news studio with digital backdrops. The anchor is delivering the following news report. The tone should be authoritative yet engaging. Script: "${script.substring(0, 1500)}"`,
+        config: {
+            numberOfVideos: 1,
+            resolution: '720p',
+            aspectRatio: '16:9'
+        }
+    });
+
+    while (!operation.done) {
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Poll every 10 seconds
+        operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+
+    if (!downloadLink) {
+        throw new Error("Video generation completed, but no download link was provided.");
+    }
+    
+    return downloadLink;
 };
