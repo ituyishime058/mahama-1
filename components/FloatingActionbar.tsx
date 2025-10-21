@@ -3,7 +3,6 @@ import type { Article, ReadingLens, SubscriptionTier } from '../types';
 import SummarizeIcon from './icons/SummarizeIcon';
 import BrainIcon from './icons/BrainIcon';
 import ReadAloudIcon from './icons/ReadAloudIcon';
-import TranslateIcon from './icons/TranslateIcon';
 import QuizIcon from './icons/QuizIcon';
 import BalanceIcon from './icons/BalanceIcon';
 import InfoIcon from './icons/InfoIcon';
@@ -20,7 +19,6 @@ interface FloatingActionbarProps {
   onSummarize: (article: Article) => void;
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
-  onTranslate: (article: Article) => void;
   onQuiz: (article: Article) => void;
   onCounterpoint: (article: Article) => void;
   onBehindTheNews: (article: Article) => void;
@@ -42,7 +40,6 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
   onSummarize,
   onExplainSimply,
   onTextToSpeech,
-  onTranslate,
   onQuiz,
   onCounterpoint,
   onBehindTheNews,

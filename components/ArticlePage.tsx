@@ -167,7 +167,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   
   // Insert pull quotes into the article content
   const contentWithPullQuotes = useMemo(() => {
-    let contentParts = processedContent.split('<br />');
+    let contentParts = processedContent.split('\n');
     if (pullQuotes.length > 0 && contentParts.length > 4) {
         const firstQuoteIndex = Math.floor(contentParts.length / 3);
         contentParts.splice(firstQuoteIndex, 0, `PULLQUOTE_0`);
