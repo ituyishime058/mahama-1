@@ -1,5 +1,7 @@
 import React from 'react';
 
+export type Language = 'English' | 'French' | 'Swahili' | 'Kinyarwanda';
+
 export type Article = {
   id: number;
   title: string;
@@ -116,7 +118,7 @@ export interface Settings {
     summaryLength: AiSummaryLength;
     contentPreferences: string[];
     autoTranslate: boolean;
-    preferredLanguage: string;
+    preferredLanguage: Language;
     showCounterpoint: boolean;
     showInnovationTimelines: boolean;
     showMahama360: boolean;

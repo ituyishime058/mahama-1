@@ -1,17 +1,18 @@
-
 import React from 'react';
 import type { Article } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface Mahama360Props {
   articles: Article[];
 }
 
 const Mahama360: React.FC<Mahama360Props> = ({ articles }) => {
+  const { t } = useTranslation();
   return (
     <section className="my-16 p-8 md:p-12 bg-navy rounded-lg shadow-2xl bg-cover bg-center" style={{backgroundImage: "url('https://picsum.photos/1200/400?blur=5&random=30')"}}>
         <div className="bg-navy/80 p-8 rounded-md">
-            <h2 className="text-4xl font-extrabold mb-2 text-white">Mahama <span className="text-gold">360°</span></h2>
-            <p className="text-slate-300 mb-8 max-w-2xl">Experience the news like never before. Dive into our interactive stories, virtual tours, and live data dashboards.</p>
+            <h2 className="text-4xl font-extrabold mb-2 text-white">{t('maham_360')}</h2>
+            <p className="text-slate-300 mb-8 max-w-2xl">{t('maham_360_desc')}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {articles.map(article => (
                     <div key={article.id} className="group relative rounded-lg overflow-hidden shadow-lg h-80">

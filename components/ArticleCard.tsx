@@ -8,6 +8,7 @@ import CheckIcon from './icons/CheckIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import SentimentIndicator from './SentimentIndicator';
 import TextToSpeechIcon from './icons/TextToSpeechIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ArticleCardProps {
   article: Article;
@@ -46,6 +47,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const isAudioPlaying = audioState.playingArticleId === article.id;
   const isOffline = offlineArticleIds.includes(article.id);
   const isDownloading = downloadingArticleId === article.id;
+  const { t } = useTranslation();
 
   const handleReadMore = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -89,9 +91,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         <div className={`border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 ${isGridLayout ? 'flex-col items-start' : ''}`}>
           <div className={`flex items-center gap-4 flex-wrap ${isGridLayout ? 'order-2 w-full justify-start' : ''}`}>
-            <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
-            <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-            <ActionButton onClick={() => onTextToSpeech(article)} icon={<TextToSpeechIcon className="w-5 h-5" />} label="Listen" />
+            <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label={t('summarize')} />
+            <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label={t('explain')} />
+            <ActionButton onClick={() => onTextToSpeech(article)} icon={<TextToSpeechIcon className="w-5 h-5" />} label={t('listen')} />
           </div>
           <div className={`flex items-center gap-2 ${isGridLayout ? 'order-1 self-end mb-2' : ''}`}>
             <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}>

@@ -3,31 +3,33 @@ import FacebookIcon from './icons/FacebookIcon';
 import TwitterIcon from './icons/TwitterIcon';
 import InstagramIcon from './icons/InstagramIcon';
 import YoutubeIcon from './icons/YoutubeIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface FooterProps {
     onInfoPageClick: (page: 'about' | 'careers' | 'contact' | 'advertise') => void;
 }
 
 const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
+  const { t } = useTranslation();
   return (
     <footer className="bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Newsletter Section */}
         <div className="bg-slate-100 dark:bg-navy p-8 rounded-lg mb-12 flex flex-col md:flex-row items-center justify-between">
             <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Stay Ahead of the Curve</h3>
-                <p className="text-slate-600 dark:text-slate-300">Subscribe to our newsletter for daily headlines and breaking news alerts.</p>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{t('stayAhead')}</h3>
+                <p className="text-slate-600 dark:text-slate-300">{t('newsletterDesc')}</p>
             </div>
             <form className="mt-4 md:mt-0 flex w-full max-w-md">
                 <input type="email" placeholder="Enter your email" className="w-full px-4 py-2 rounded-l-md border-0 focus:ring-2 focus:ring-deep-red dark:bg-slate-800 dark:text-white" />
-                <button type="submit" className="bg-deep-red text-white font-semibold px-6 py-2 rounded-r-md hover:bg-red-700 transition-colors">Subscribe</button>
+                <button type="submit" className="bg-deep-red text-white font-semibold px-6 py-2 rounded-r-md hover:bg-red-700 transition-colors">{t('subscribe')}</button>
             </form>
         </div>
         
         {/* Footer Links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4">News</h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('news')}</h4>
             <ul className="space-y-2 text-sm">
               <li><button className="hover:text-deep-red dark:hover:text-gold">World</button></li>
               <li><button className="hover:text-deep-red dark:hover:text-gold">Politics</button></li>
@@ -36,7 +38,7 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4">Features</h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('features')}</h4>
             <ul className="space-y-2 text-sm">
               <li><button className="hover:text-deep-red dark:hover:text-gold">Mahama 360°</button></li>
               <li><button className="hover:text-deep-red dark:hover:text-gold">Podcasts & Video</button></li>
@@ -45,7 +47,7 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4">About</h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('about')}</h4>
             <ul className="space-y-2 text-sm">
               <li><button onClick={() => onInfoPageClick('about')} className="hover:text-deep-red dark:hover:text-gold">About Us</button></li>
               <li><button onClick={() => onInfoPageClick('careers')} className="hover:text-deep-red dark:hover:text-gold">Careers</button></li>
@@ -54,7 +56,7 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
             </ul>
           </div>
            <div>
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4">Legal</h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('legal')}</h4>
             <ul className="space-y-2 text-sm">
               <li><button className="hover:text-deep-red dark:hover:text-gold">Terms of Use</button></li>
               <li><button className="hover:text-deep-red dark:hover:text-gold">Privacy Policy</button></li>

@@ -3,6 +3,7 @@ import type { Podcast } from '../types';
 import PlayIcon from './icons/PlayIcon';
 import EqualizerIcon from './icons/EqualizerIcon';
 import PauseIcon from './icons/PauseIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface PodcastHubProps {
   podcasts: Podcast[];
@@ -27,10 +28,11 @@ const PodcastCard: React.FC<{ podcast: Podcast, onPlay: () => void }> = ({ podca
 )
 
 const PodcastHub: React.FC<PodcastHubProps> = ({ podcasts }) => {
+  const { t } = useTranslation();
   return (
     <section className="my-16">
       <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
-        Podcast & Video Hub
+        {t('podcastHub')}
       </h2>
       <div className="grid grid-cols-1 gap-8">
         {podcasts.map(podcast => (

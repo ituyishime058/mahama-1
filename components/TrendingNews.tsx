@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Article } from '../types';
 import ChevronRightIcon from './icons/ChevronRightIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface TrendingNewsProps {
   articles: Article[];
@@ -8,10 +9,11 @@ interface TrendingNewsProps {
 }
 
 const TrendingNews: React.FC<TrendingNewsProps> = ({ articles, onArticleClick }) => {
+  const { t } = useTranslation();
   return (
     <aside className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-extrabold mb-4 border-l-4 border-gold pl-3">
-        Trending Now
+        {t('trendingNow')}
       </h2>
       <div className="space-y-4">
         {articles.map((article) => (
@@ -32,7 +34,7 @@ const TrendingNews: React.FC<TrendingNewsProps> = ({ articles, onArticleClick })
         ))}
       </div>
        <button className="w-full mt-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline flex items-center justify-center gap-1">
-        <span>View All Trending</span>
+        <span>{t('viewAllTrending')}</span>
         <ChevronRightIcon className="w-4 h-4" />
       </button>
     </aside>

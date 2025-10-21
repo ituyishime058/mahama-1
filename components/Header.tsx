@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Logo from './Logo';
 import MenuIcon from './icons/MenuIcon';
 import SettingsIcon from './icons/SettingsIcon';
 import UserIcon from './icons/UserIcon';
 import SearchIcon from './icons/SearchIcon';
+import GlobeIcon from './icons/GlobeIcon';
 import UserMenu from './UserMenu';
 import BellIcon from './icons/BellIcon';
-import type { User, Notification } from '../types';
+import LanguageDropdown from './LanguageDropdown';
+import type { User, Notification, Settings } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -20,6 +23,8 @@ interface HeaderProps {
   user: User;
   onNotificationsClick: () => void;
   notifications: Notification[];
+  settings: Settings;
+  onSettingsChange: (newSettings: Settings) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -34,8 +39,13 @@ const Header: React.FC<HeaderProps> = ({
   user,
   onNotificationsClick,
   notifications,
+  settings,
+  onSettingsChange,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
   const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
@@ -43,7 +53,18 @@ const Header: React.FC<HeaderProps> = ({
       setIsScrolled(window.scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
+        setIsLangDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+        window.removeEventListener('scroll', handleScroll);
+        document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, []);
   
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -63,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({
              </button>
              <a href="#" onClick={handleLogoClick} className="hidden md:flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white ml-4">
                 <Logo className="h-10 w-10" />
-                <span>Mahama News Hub</span>
+                <span>{t('logoText')}</span>
              </a>
           </div>
 
@@ -78,6 +99,18 @@ const Header: React.FC<HeaderProps> = ({
                 <SearchIcon />
             </button>
             
+            <div className="relative" ref={langDropdownRef}>
+              <button onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)} aria-label="Select language" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                  <GlobeIcon />
+              </button>
+              {isLangDropdownOpen && (
+                <LanguageDropdown
+                  onLanguageChange={(lang) => onSettingsChange({ ...settings, preferredLanguage: lang })}
+                  onClose={() => setIsLangDropdownOpen(false)}
+                />
+              )}
+            </div>
+
             {isAuthenticated && (
               <button onClick={onNotificationsClick} aria-label="Open notifications" className="relative p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                   <BellIcon />
@@ -100,14 +133,14 @@ const Header: React.FC<HeaderProps> = ({
                         className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full p-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
                     >
                         <UserIcon className="w-5 h-5" />
-                        <span className="hidden sm:inline">Login</span>
+                        <span className="hidden sm:inline">{t('login')}</span>
                     </button>
                     <button 
                         onClick={onLoginClick}
                         aria-label="Register" 
                         className="hidden sm:block bg-deep-red text-white font-semibold px-4 py-2 rounded-full text-sm hover:bg-red-700 transition-colors"
                     >
-                        Register
+                        {t('register')}
                     </button>
                 </div>
             )}

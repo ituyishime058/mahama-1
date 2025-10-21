@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 const chartData = {
   labels: ['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'],
@@ -23,6 +24,7 @@ const chartData = {
 
 const DataDrivenInsights: React.FC = () => {
   const [hoveredSet, setHoveredSet] = useState<string | null>(null);
+  const { t } = useTranslation();
   const maxValue = 100;
 
   const pointsToString = (data: number[]) => {
@@ -32,12 +34,12 @@ const DataDrivenInsights: React.FC = () => {
   return (
     <section className="my-16">
       <h2 className="text-3xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
-        Data-Driven Insights
+        {t('interactiveData')}
       </h2>
       <div className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold mb-2">Global Investment Trends</h3>
+        <h3 className="text-xl font-bold mb-2">{t('investmentTrends')}</h3>
         <p className="text-slate-600 dark:text-slate-400 mb-6">
-          Year-over-year growth in key investment sectors, showing accelerated interest in Green Tech and AI.
+          {t('investmentTrendsDesc')}
         </p>
         <div className="h-64 relative">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">

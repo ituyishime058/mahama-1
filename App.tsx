@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent, mockNotifications } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, Notification } from './types';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, Notification, Language } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { determineOptimalLayout, extractKeyConcepts, generateArticleTimeline, generatePullQuotes, generateTags, factCheckArticle, generateKeyTakeaways, summarizeComments } from './utils/ai';
 import { fetchWeather } from './utils/weather';
+import { TranslationProvider } from './contexts/TranslationContext';
+import { useTranslation } from './hooks/useTranslation';
 
 // Component Imports
 import Header from './components/Header';
@@ -71,7 +73,7 @@ const defaultSettings: Settings = {
     summaryLength: 'medium',
     contentPreferences: [],
     autoTranslate: false,
-    preferredLanguage: 'English',
+    preferredLanguage: 'Kinyarwanda',
     showCounterpoint: true,
     showInnovationTimelines: true,
     showMahama360: true,
@@ -115,7 +117,7 @@ type ArticleAiData = {
     highlightsLoading: boolean;
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
             const savedSettings = localStorage.getItem('mahamaNewsSettings');
@@ -176,6 +178,8 @@ const App: React.FC = () => {
     const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
     
+    const { t } = useTranslation();
+
     // Apply theme and accessibility
     useEffect(() => {
         localStorage.setItem('mahamaNewsSettings', JSON.stringify(settings));
@@ -694,6 +698,8 @@ const App: React.FC = () => {
                 user={currentUser}
                 onNotificationsClick={() => setIsNotificationCenterOpen(!isNotificationCenterOpen)}
                 notifications={notifications}
+                settings={settings}
+                onSettingsChange={handleSettingsChange}
             />
 
             <NotificationCenter 
@@ -719,7 +725,7 @@ const App: React.FC = () => {
                 {newArticlesQueue.length > 0 && isHomePage && (
                      <div className="fixed top-40 left-1/2 -translate-x-1/2 z-40">
                          <button onClick={loadNewArticles} className="px-4 py-2 bg-deep-red text-white font-semibold rounded-full shadow-lg animate-bounce">
-                             {newArticlesQueue.length} New Article{newArticlesQueue.length > 1 ? 's' : ''}
+                             {newArticlesQueue.length} {t('newArticles')}{newArticlesQueue.length > 1 ? 's' : ''}
                          </button>
                      </div>
                 )}
@@ -787,5 +793,24 @@ const App: React.FC = () => {
         </div>
     );
 };
+
+
+const App: React.FC = () => {
+    // A small wrapper to extract settings logic for the provider
+    const [settings] = useState<Settings>(() => {
+        try {
+            const savedSettings = localStorage.getItem('mahamaNewsSettings');
+            return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
+        } catch (error) {
+            return defaultSettings;
+        }
+    });
+
+    return (
+        <TranslationProvider language={settings.preferredLanguage}>
+            <AppContent />
+        </TranslationProvider>
+    )
+}
 
 export default App;
