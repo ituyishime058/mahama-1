@@ -7,7 +7,7 @@ import Carousel from './Carousel';
 import AdjustmentsHorizontalIcon from './icons/AdjustmentsHorizontalIcon';
 import CalendarDaysIcon from './icons/CalendarDaysIcon';
 import ArrowDownUpIcon from './icons/ArrowDownUpIcon';
-
+import MovieCard from './MovieCard';
 
 interface MoviesTVPageProps {
   onWatchMovie: (movie: StreamingContent) => void;
@@ -27,7 +27,7 @@ const FilterControls: React.FC<{
                 <select 
                     value={value} 
                     onChange={e => onChange(e.target.value)}
-                    className="appearance-none w-full sm:w-auto bg-slate-800/50 backdrop-blur-sm border border-slate-700 hover:bg-slate-700/70 text-white font-semibold py-2 pl-10 pr-4 rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold"
+                    className="appearance-none w-full sm:w-auto bg-slate-800/50 backdrop-blur-sm border border-slate-700 hover:border-gold text-white font-semibold py-2 pl-10 pr-4 rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-gold"
                 >
                     {options.map(opt => <option key={opt} value={opt} className="bg-navy text-white font-semibold">{opt}</option>)}
                 </select>
@@ -54,14 +54,23 @@ const FilterControls: React.FC<{
 
 const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTrailer }) => {
     const [filters, setFilters] = useState({ genre: 'All Genres', year: 'All Years', sortBy: 'Popularity' });
+    const [visibleCount, setVisibleCount] = useState(12);
 
     const genres = useMemo(() => [...Array.from(new Set(mockStreamingContent.map(item => item.genre)))], []);
 
     const handleFilterChange = (newFilters: Partial<typeof filters>) => {
         setFilters(prev => ({...prev, ...newFilters}));
+        setVisibleCount(12); // Reset pagination on filter change
     };
     
-    const clearFilters = () => setFilters({ genre: 'All Genres', year: 'All Years', sortBy: 'Popularity' });
+    const clearFilters = () => {
+        setFilters({ genre: 'All Genres', year: 'All Years', sortBy: 'Popularity' });
+        setVisibleCount(12);
+    };
+
+    const handleLoadMore = () => {
+        setVisibleCount(prev => prev + 12);
+    };
 
     const filteredContent = useMemo(() => {
         return mockStreamingContent
@@ -79,7 +88,6 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
             .sort((a, b) => {
                 if (filters.sortBy === 'Newest First') return b.year - a.year;
                 if (filters.sortBy === 'A-Z') return a.title.localeCompare(b.title);
-                // Default is 'Popularity', which we'll base on the 'isTrending' flag and original order
                 if (a.isTrending && !b.isTrending) return -1;
                 if (!a.isTrending && b.isTrending) return 1;
                 return a.id - b.id;
@@ -87,21 +95,20 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
     }, [filters]);
     
     const trending = useMemo(() => filteredContent.filter(item => item.isTrending).sort((a,b) => b.id - a.id), [filteredContent]);
-    const newReleases = useMemo(() => filteredContent.filter(item => item.isNew || (filters.year === 'Latest Releases' && item.year >= 2023)).sort((a,b) => b.year - a.year || b.id - a.id), [filteredContent, filters.year]);
-    const awardWinners = useMemo(() => filteredContent.filter(item => item.isAwardWinner).sort((a,b) => b.id - a.id), [filteredContent]);
     
-    const featuredMovie = mockStreamingContent.find(m => m.id === 1) || mockStreamingContent[0];
+    const featuredMovie = mockStreamingContent.find(m => m.id === 19) || mockStreamingContent[0]; // Furiosa
 
     return (
-        <div className="animate-fade-in text-white -mx-4 sm:-mx-6 lg:-mx-8 bg-gradient-to-b from-navy via-slate-900 to-black">
-            <div className="relative rounded-lg overflow-hidden aspect-video group mb-8" >
+        <div className="animate-fade-in text-white -mx-4 sm:-mx-6 lg:-mx-8 bg-black" style={{ background: 'radial-gradient(circle at 50% 0%, #0a192f 0%, #000000 70%), linear-gradient(to bottom, #0a192f, #000000)'}}>
+            <div className="relative rounded-lg overflow-hidden h-[60vh] md:h-[80vh] group mb-8" >
                 <div 
-                    className="absolute inset-0 bg-cover animate-hero-bg-parallax" 
-                    style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg)`}}
+                    className="absolute inset-0 bg-cover bg-center animate-hero-bg-parallax" 
+                    style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original/shrRraKjYlV2sL0zT3tKgsg4O0J.jpg)`}}
                 ></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/50 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
                 <div className="relative h-full flex flex-col justify-center sm:justify-end p-4 sm:p-8 md:p-12">
-                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold max-w-2xl drop-shadow-lg">{featuredMovie.title}</h1>
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold max-w-2xl drop-shadow-[0_4px_4px_rgba(0,0,0,0.7)]">{featuredMovie.title}</h1>
                     <p className="max-w-xl mt-4 text-slate-300 hidden md:block text-lg drop-shadow-md">{featuredMovie.description}</p>
                     <div className="mt-6 flex gap-4">
                         <button onClick={() => onWatchMovie(featuredMovie)} className="flex items-center gap-2 bg-deep-red hover:bg-red-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full transition-transform transform hover:scale-105 duration-300">
@@ -114,15 +121,33 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
                 </div>
             </div>
 
-            <div className="px-4 sm:px-6 lg:px-8 space-y-12">
+            <div className="px-4 sm:px-6 lg:px-8 space-y-12 pb-12">
                 <FilterControls genres={genres} filters={filters} onFilterChange={handleFilterChange} onClear={clearFilters} />
 
                 {filteredContent.length > 0 ? (
                     <>
                         <Carousel title="Trending Now" items={trending} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                        <Carousel title="New Releases" items={newReleases} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                        <Carousel title="Award Winners" items={awardWinners} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                        <Carousel title="Browse All" items={filteredContent} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                        
+                        <section>
+                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-white">Browse All</h2>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                                {filteredContent.slice(0, visibleCount).map(item => (
+                                    <MovieCard 
+                                        key={item.id}
+                                        item={item}
+                                        onWatchMovie={onWatchMovie}
+                                        onWatchTrailer={onWatchTrailer}
+                                    />
+                                ))}
+                            </div>
+                            {visibleCount < filteredContent.length && (
+                                <div className="text-center mt-12">
+                                    <button onClick={handleLoadMore} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+                                        Load More
+                                    </button>
+                                </div>
+                            )}
+                        </section>
                     </>
                 ) : (
                     <div className="text-center py-16">
