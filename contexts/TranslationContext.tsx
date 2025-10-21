@@ -10,6 +10,7 @@ type Translations = {
 interface TranslationContextType {
   t: (key: string) => string;
   language: Language;
+  isTranslating: boolean;
 }
 
 export const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ interface TranslationProviderProps {
 
 export const TranslationProvider: React.FC<TranslationProviderProps> = ({ children, language, settings }) => {
   const [currentTranslations, setCurrentTranslations] = useState<Translations>(translations.English!);
+  const [isTranslating, setIsTranslating] = useState(false);
   
   // Initialize cache from localStorage for speed
   const cache = useRef<Partial<Record<Language, Translations>>>(() => {
@@ -50,6 +52,7 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
 
       // Non-blocking: Show English text as a fallback while translating.
       setCurrentTranslations(translations.English);
+      setIsTranslating(true);
       
       try {
         const translatedStrings = await batchTranslate(translations.English, language, settings);
@@ -67,6 +70,8 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
       } catch (error) {
         console.error(`Failed to translate to ${language}:`, error);
         // On error, the UI remains in English, which is better than showing keys.
+      } finally {
+        setIsTranslating(false);
       }
     };
 
@@ -74,11 +79,12 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
   }, [language, settings]);
   
   const t = (key: string): string => {
+    // Fallback logic: return the English version if a key is missing in the current language
     return currentTranslations?.[key] || translations.English?.[key] || key;
   };
 
   return (
-    <TranslationContext.Provider value={{ t, language }}>
+    <TranslationContext.Provider value={{ t, language, isTranslating }}>
       {children}
     </TranslationContext.Provider>
   );

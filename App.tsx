@@ -144,7 +144,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
     const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
     
-    const { t } = useTranslation();
+    const { t, isTranslating } = useTranslation();
 
     // Apply theme and accessibility
     useEffect(() => {
@@ -648,6 +648,14 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
 
     return (
         <div className="min-h-screen">
+            {isTranslating && (
+                <div className="fixed top-0 left-0 right-0 h-1 z-[9999] bg-gold/30">
+                    <div 
+                        className="h-1 bg-gradient-to-r from-gold to-deep-red animate-shimmer-bg"
+                        style={{ backgroundSize: '200% 100%' }}
+                    />
+                </div>
+            )}
             {isCategoryLoading && <CategoryLoadingOverlay />}
             {activeArticle && <ScrollProgressBar />}
             <Header
