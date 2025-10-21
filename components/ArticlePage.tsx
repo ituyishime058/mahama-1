@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { generateTags, factCheckArticle, generateKeyTakeaways, translateArticle, applyReadingLens, summarizeComments } from '../utils/ai';
+import { translateArticle, applyReadingLens } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import ContentGutter from './ContentGutter';
@@ -11,20 +11,12 @@ import FactCheck from './FactCheck';
 import CommentsSection from './CommentsSection';
 import FloatingActionbar from './FloatingActionbar';
 import RelatedArticles from './RelatedArticles';
-import ArticleTimeline from './ArticleTimeline';
 import TranslateIcon from './icons/TranslateIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import GlossaryPopup from './GlossaryPopup';
 import CommunityHighlights from './CommunityHighlights';
-
-// New PullQuote component defined internally for simplicity
-const PullQuote: React.FC<{ quote: string }> = ({ quote }) => (
-    <blockquote className="my-8 md:my-12 p-4 border-l-4 border-gold bg-slate-100 dark:bg-slate-800/50 rounded-r-lg relative text-center animate-fade-in-up">
-        <p className="text-xl md:text-2xl font-semibold italic text-slate-800 dark:text-slate-200">
-            “{quote}”
-        </p>
-    </blockquote>
-);
+import PullQuote from './PullQuote';
+import ArticleTimeline from './ArticleTimeline';
 
 
 interface ArticlePageProps {
@@ -49,8 +41,17 @@ interface ArticlePageProps {
   onPremiumClick: () => void;
   keyConcepts: KeyConcept[];
   timelineEvents: TimelineEvent[];
+  timelineLoading: boolean;
   pullQuotes: string[];
   pullQuotesLoading: boolean;
+  tags: string[];
+  tagsLoading: boolean;
+  factCheckResult: { status: string; summary: string } | null;
+  factCheckLoading: boolean;
+  aiTakeaways: string[];
+  takeawaysLoading: boolean;
+  communityHighlights: CommunityHighlight[];
+  highlightsLoading: boolean;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ 
@@ -78,14 +79,16 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     timelineLoading,
     pullQuotes,
     pullQuotesLoading,
+    tags,
+    tagsLoading,
+    factCheckResult,
+    factCheckLoading,
+    aiTakeaways,
+    takeawaysLoading,
+    communityHighlights,
+    highlightsLoading,
 }) => {
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagsLoading, setTagsLoading] = useState(true);
-  const [factCheckResult, setFactCheckResult] = useState<{ status: string; summary: string } | null>(null);
-  const [factCheckLoading, setFactCheckLoading] = useState(true);
   const [isZenMode, setIsZenMode] = useState(false);
-  const [aiTakeaways, setAiTakeaways] = useState<string[]>([]);
-  const [takeawaysLoading, setTakeawaysLoading] = useState(true);
   
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -96,9 +99,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [isModifyingContent, setIsModifyingContent] = useState(false);
 
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
-
-  const [communityHighlights, setCommunityHighlights] = useState<CommunityHighlight[]>([]);
-  const [highlightsLoading, setHighlightsLoading] = useState(true);
   
   const articleRef = useRef<HTMLDivElement>(null);
 
@@ -118,10 +118,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Reset non-lifted state
-    setTags([]);
-    setFactCheckResult(null);
-    setAiTakeaways([]);
+    // Reset state on article change
     setGlossaryTerm(null);
     setTranslatedContent(null);
     setShowOriginal(true);
@@ -129,39 +126,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setActiveLens('None');
     setModifiedContent(null);
     setIsModifyingContent(false);
-    setCommunityHighlights([]);
-
-    setTagsLoading(true);
-    setFactCheckLoading(true);
-    setTakeawaysLoading(true);
-    setHighlightsLoading(true);
 
     if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
         handleManualTranslate();
     }
-
-    const fetchNonLiftedAIData = async () => {
-      const promises = [
-        generateTags(article, settings),
-        factCheckArticle(article, settings),
-        generateKeyTakeaways(article, settings),
-        summarizeComments(mockComments, settings)
-      ];
-      
-      const [tagsResult, factCheckData, takeawaysResult, commentsResult] = await Promise.allSettled(promises);
-
-      if (tagsResult.status === 'fulfilled') setTags(tagsResult.value as string[]);
-      if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value as { status: string; summary: string; });
-      if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value as string[]);
-      if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value as CommunityHighlight[]);
-      
-      setTagsLoading(false);
-      setFactCheckLoading(false);
-      setTakeawaysLoading(false);
-      setHighlightsLoading(false);
-    };
-
-    fetchNonLiftedAIData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [article, settings.autoTranslate, settings.preferredLanguage]);
 
@@ -247,7 +215,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             line-height: 1.5;
           }
         `}</style>
-        <div className={`transition-all duration-300 ${isZenMode ? '' : 'max-w-4xl'}`}>
+        <div className={`transition-all duration-300 max-w-4xl mx-auto`}>
             <div className="relative">
                 <ContentGutter 
                     article={article}
@@ -291,9 +259,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                     <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                     <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
                     
-                    {!pullQuotesLoading && pullQuotes.map((quote, index) => (
-                        <PullQuote key={index} quote={quote} />
-                    ))}
+                    {!pullQuotesLoading && pullQuotes[0] && <PullQuote quote={pullQuotes[0]} />}
                     
                      {isModifyingContent && (
                         <div className="flex justify-center items-center my-8 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
@@ -305,6 +271,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                         <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: processedContent.replace(/\n/g, '<br />') }} />
                     </div>
                     
+                    {!pullQuotesLoading && pullQuotes[1] && <PullQuote quote={pullQuotes[1]} />}
+
                     {article.hasTimeline && <ArticleTimeline events={timelineEvents} isLoading={timelineLoading} />}
 
                     <AITags tags={tags} isLoading={tagsLoading} />

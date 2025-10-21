@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent } from './types';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
-import { determineOptimalLayout, extractKeyConcepts, generateArticleTimeline, generatePullQuotes } from './utils/ai';
+import { determineOptimalLayout, extractKeyConcepts, generateArticleTimeline, generatePullQuotes, generateTags, factCheckArticle, generateKeyTakeaways, summarizeComments } from './utils/ai';
 import { fetchWeather } from './utils/weather';
 
 // Component Imports
@@ -56,6 +56,7 @@ import AdvertisePage from './components/AdvertisePage';
 import ProfilePage from './components/ProfilePage';
 import TrailerModal from './components/TrailerModal';
 import CategoryLoadingOverlay from './components/CategoryLoadingOverlay';
+import { mockComments } from './constants';
 
 
 const defaultSettings: Settings = {
@@ -98,6 +99,14 @@ type ArticleAiData = {
     timelineLoading: boolean;
     pullQuotes: string[];
     pullQuotesLoading: boolean;
+    tags: string[];
+    tagsLoading: boolean;
+    factCheckResult: { status: string; summary: string } | null;
+    factCheckLoading: boolean;
+    aiTakeaways: string[];
+    takeawaysLoading: boolean;
+    communityHighlights: CommunityHighlight[]; 
+    highlightsLoading: boolean;
 };
 
 const App: React.FC = () => {
@@ -135,7 +144,8 @@ const App: React.FC = () => {
     const hiddenArticlesRef = useRef([...hiddenArticles]);
     
     // AI data for active article
-    const [articleAiData, setArticleAiData] = useState<ArticleAiData>({ keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true });
+    const initialAiData = { keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true, tags: [], tagsLoading: true, factCheckResult: null, factCheckLoading: true, aiTakeaways: [], takeawaysLoading: true, communityHighlights: [], highlightsLoading: true };
+    const [articleAiData, setArticleAiData] = useState<ArticleAiData>(initialAiData);
 
 
     // Authentication & User
@@ -233,31 +243,35 @@ const App: React.FC = () => {
     // Fetch AI data when an article is active
     useEffect(() => {
         if (activeArticle) {
-            setArticleAiData({ keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true });
+            setArticleAiData(initialAiData);
             const fetchArticleAiData = async () => {
-                const promises: Promise<any>[] = [
+                const promises = [
                     extractKeyConcepts(activeArticle, settings),
-                    generatePullQuotes(activeArticle, settings)
+                    generatePullQuotes(activeArticle, settings),
+                    generateTags(activeArticle, settings),
+                    factCheckArticle(activeArticle, settings),
+                    generateKeyTakeaways(activeArticle, settings),
+                    summarizeComments(mockComments, settings),
+                    activeArticle.hasTimeline ? generateArticleTimeline(activeArticle, settings) : Promise.resolve([])
                 ];
-                if (activeArticle.hasTimeline) {
-                    promises.push(generateArticleTimeline(activeArticle, settings));
-                } else {
-                    promises.push(Promise.resolve([])); // Add placeholder for timeline
-                }
 
-                const [conceptsResult, pullQuotesResult, timelineResult] = await Promise.allSettled(promises);
-
-                const concepts = conceptsResult.status === 'fulfilled' ? conceptsResult.value : [];
-                const pullQuotes = pullQuotesResult.status === 'fulfilled' ? pullQuotesResult.value : [];
-                const timeline = timelineResult.status === 'fulfilled' ? timelineResult.value : [];
+                const [conceptsResult, pullQuotesResult, tagsResult, factCheckResult, takeawaysResult, highlightsResult, timelineResult] = await Promise.allSettled(promises);
 
                 setArticleAiData({
-                    keyConcepts: concepts,
+                    keyConcepts: conceptsResult.status === 'fulfilled' ? conceptsResult.value : [],
                     conceptsLoading: false,
-                    timelineEvents: timeline,
-                    timelineLoading: false,
-                    pullQuotes: pullQuotes,
+                    pullQuotes: pullQuotesResult.status === 'fulfilled' ? pullQuotesResult.value : [],
                     pullQuotesLoading: false,
+                    tags: tagsResult.status === 'fulfilled' ? tagsResult.value : [],
+                    tagsLoading: false,
+                    factCheckResult: factCheckResult.status === 'fulfilled' ? factCheckResult.value : null,
+                    factCheckLoading: false,
+                    aiTakeaways: takeawaysResult.status === 'fulfilled' ? takeawaysResult.value : [],
+                    takeawaysLoading: false,
+                    communityHighlights: highlightsResult.status === 'fulfilled' ? highlightsResult.value : [],
+                    highlightsLoading: false,
+                    timelineEvents: timelineResult.status === 'fulfilled' ? timelineResult.value : [],
+                    timelineLoading: false,
                 });
             };
             fetchArticleAiData();
@@ -587,6 +601,7 @@ const App: React.FC = () => {
                         <>
                             <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
                             <DataDrivenInsights />
+                            <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
                         </>
                     );
                 case 'Technology':
@@ -597,6 +612,8 @@ const App: React.FC = () => {
                             <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
                         </>
                     );
+                case 'Health':
+                case 'Science':
                 case 'Culture':
                 case 'Entertainment':
                     return (
@@ -612,6 +629,8 @@ const App: React.FC = () => {
 
         return renderCategoryContent();
     };
+
+    const isAsideVisible = !(activeMovie || isMoviesPage);
 
     return (
         <div className="min-h-screen">
@@ -648,12 +667,12 @@ const App: React.FC = () => {
                 )}
                 
                 <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie ? 'max-w-full' : ''}`}>
-                    <div className="lg:grid lg:grid-cols-3 lg:gap-8">
-                        <div className={`${activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
+                    <div className={`lg:grid ${isAsideVisible ? 'lg:grid-cols-4' : 'lg:grid-cols-1'} lg:gap-8`}>
+                        <div className={isAsideVisible ? 'lg:col-span-3' : 'lg:col-span-1'}>
                             {renderMainContent()}
                         </div>
 
-                        {!(activeMovie || isMoviesPage) && 
+                        {isAsideVisible && 
                             <RightAside 
                                 trendingArticles={allArticles.slice(1, 6)} 
                                 onArticleClick={handleReadMore} 
@@ -665,10 +684,7 @@ const App: React.FC = () => {
                                 isSettingsOpen={isSettingsOpen}
                                 isProfileOpen={isProfileOpen}
                                 user={currentUser}
-                                keyConcepts={articleAiData.keyConcepts}
-                                conceptsLoading={articleAiData.conceptsLoading}
-                                timelineEvents={articleAiData.timelineEvents}
-                                timelineLoading={articleAiData.timelineLoading}
+                                {...articleAiData}
                             />
                         }
                     </div>

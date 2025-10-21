@@ -10,7 +10,7 @@ interface ArticleTimelineProps {
 const ArticleTimeline: React.FC<ArticleTimelineProps> = ({ events, isLoading }) => {
   if (isLoading) {
     return (
-        <div className="p-4 space-y-8 animate-pulse">
+        <div className="my-8 lg:pl-24 p-4 space-y-8 animate-pulse">
             {[...Array(3)].map((_, i) => (
                 <div key={i} className="flex gap-4">
                     <div className="w-16 h-8 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
@@ -25,15 +25,14 @@ const ArticleTimeline: React.FC<ArticleTimelineProps> = ({ events, isLoading }) 
   }
 
   if (events.length === 0) {
-     return (
-        <div className="flex justify-center items-center h-full text-center text-sm text-slate-500 p-4">
-            <p>No timeline data available for this article.</p>
-        </div>
-    );
+     return null;
   }
 
   return (
-    <div className="p-4 h-full overflow-y-auto">
+    <div className="my-8 lg:pl-24 p-4">
+       <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
+        Historical Timeline
+      </h3>
       <div className="relative border-l-4 border-slate-200 dark:border-slate-700 ml-4">
         {events.map((event, index) => (
           <div key={index} className="mb-8 pl-8 relative">

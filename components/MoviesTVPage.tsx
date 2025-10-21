@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import type { StreamingContent } from '../types';
 import { mockStreamingContent } from '../constants';

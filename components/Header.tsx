@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-20">
           
           {/* Left Group */}
-          <div className="flex-1 md:flex-none flex justify-start">
+          <div className="flex-1 flex justify-start">
              <button onClick={onMenuClick} aria-label="Open menu" className="text-slate-600 dark:text-slate-300 p-2 -ml-2">
                 <MenuIcon />
              </button>
@@ -67,12 +67,9 @@ const Header: React.FC<HeaderProps> = ({
            </div>
           
           {/* Right Group */}
-          <div className="flex-1 md:flex-none flex items-center justify-end gap-2">
+          <div className="flex-1 flex items-center justify-end gap-1 sm:gap-2">
             <button onClick={onSearchClick} aria-label="Open search" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SearchIcon />
-            </button>
-            <button onClick={onSettingsClick} aria-label="Open settings" className="hidden sm:block p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                <SettingsIcon />
             </button>
             
             {isAuthenticated ? (
@@ -81,10 +78,10 @@ const Header: React.FC<HeaderProps> = ({
                 <button 
                 onClick={onLoginClick} 
                 aria-label="Login or sign up" 
-                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
+                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full p-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
                 >
                     <UserIcon className="w-5 h-5" />
-                    <span className="hidden md:inline">Login</span>
+                    <span className="hidden sm:inline">Login</span>
                 </button>
             )}
           </div>
