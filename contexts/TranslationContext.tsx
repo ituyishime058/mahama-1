@@ -10,7 +10,6 @@ type Translations = {
 interface TranslationContextType {
   t: (key: string) => string;
   language: Language;
-  isTranslating: boolean;
 }
 
 export const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
@@ -23,12 +22,21 @@ interface TranslationProviderProps {
 
 export const TranslationProvider: React.FC<TranslationProviderProps> = ({ children, language, settings }) => {
   const [currentTranslations, setCurrentTranslations] = useState<Translations>(translations.English!);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const cache = useRef<Partial<Record<Language, Translations>>>({
-      English: translations.English,
-      Kinyarwanda: translations.Kinyarwanda,
-      French: undefined,
-      Swahili: undefined,
+  
+  // Initialize cache from localStorage for speed
+  const cache = useRef<Partial<Record<Language, Translations>>>(() => {
+      try {
+          const storedCache = localStorage.getItem('mahama-translation-cache');
+          // Start with built-in translations as a base
+          const initialCache: Partial<Record<Language, Translations>> = { 
+              English: translations.English,
+              Kinyarwanda: translations.Kinyarwanda 
+          };
+          return storedCache ? { ...initialCache, ...JSON.parse(storedCache) } : initialCache;
+      } catch (e) {
+          console.error("Failed to read translation cache from localStorage", e);
+          return { English: translations.English, Kinyarwanda: translations.Kinyarwanda };
+      }
   });
 
   useEffect(() => {
@@ -40,17 +48,25 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
       
       if (!translations.English) return;
 
-      setIsTranslating(true);
+      // Non-blocking: Show English text as a fallback while translating.
+      setCurrentTranslations(translations.English);
+      
       try {
         const translatedStrings = await batchTranslate(translations.English, language, settings);
         cache.current[language] = translatedStrings;
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('mahama-translation-cache', JSON.stringify(cache.current));
+        } catch (e) {
+            console.error("Failed to save translation cache to localStorage", e);
+        }
+
+        // Update the UI with the new translations once they are ready.
         setCurrentTranslations(translatedStrings);
       } catch (error) {
         console.error(`Failed to translate to ${language}:`, error);
-        // Fallback to English on error
-        setCurrentTranslations(translations.English!);
-      } finally {
-        setIsTranslating(false);
+        // On error, the UI remains in English, which is better than showing keys.
       }
     };
 
@@ -62,7 +78,7 @@ export const TranslationProvider: React.FC<TranslationProviderProps> = ({ childr
   };
 
   return (
-    <TranslationContext.Provider value={{ t, language, isTranslating }}>
+    <TranslationContext.Provider value={{ t, language }}>
       {children}
     </TranslationContext.Provider>
   );

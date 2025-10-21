@@ -144,7 +144,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
     const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
     
-    const { t, isTranslating } = useTranslation();
+    const { t } = useTranslation();
 
     // Apply theme and accessibility
     useEffect(() => {
@@ -649,7 +649,6 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
     return (
         <div className="min-h-screen">
             {isCategoryLoading && <CategoryLoadingOverlay />}
-            {isTranslating && <CategoryLoadingOverlay text={t('translating')} />}
             {activeArticle && <ScrollProgressBar />}
             <Header
                 onMenuClick={() => openModal('categoryExplorer')}

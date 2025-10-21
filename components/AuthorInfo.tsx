@@ -3,7 +3,7 @@ import BookOpenIcon from './icons/BookOpenIcon';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Language } from '../types';
 
-const langToLocale: Record<Language, string> = { English: 'en-US', French: 'fr-FR', Swahili: 'sw-KE', Kinyarwanda: 'rw-RW' };
+const langToLocale: Record<string, string> = { 'English': 'en-US', 'French': 'fr-FR', 'Swahili': 'sw-KE', 'Kinyarwanda': 'rw-RW' };
 
 interface ReadTimeIndicatorProps {
   content: string;
@@ -32,7 +32,9 @@ interface AuthorInfoProps {
 
 const AuthorInfo: React.FC<AuthorInfoProps> = ({ author, date, content }) => {
   const { t, language } = useTranslation();
-  const formattedDate = new Date(date).toLocaleDateString(langToLocale[language] || 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const locale = langToLocale[language] || 'en-US';
+  const formattedDate = new Date(date).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+  
   return (
     <div className="flex items-center my-6 border-y border-slate-200 dark:border-slate-700 py-4">
       <img

@@ -7,10 +7,10 @@ import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface ArticleHeaderProps {
-    article: Article;
+    article: Article; // This can now be the translated article object
     onClose: () => void;
-    onTextToSpeech: (article: Article) => void;
-    onSummarize: (article: Article) => void;
+    onTextToSpeech: () => void;
+    onSummarize: () => void;
     isBookmarked: boolean;
     onToggleBookmark: () => void;
 }
@@ -39,7 +39,7 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
             </div>
 
             <div className="relative z-10 animate-fade-in-up max-w-4xl mx-auto container">
-                <p className="font-semibold uppercase tracking-wider text-gold mb-2">{article.category}</p>
+                <p className="font-semibold uppercase tracking-wider text-gold mb-2">{t(article.category.toLowerCase()) || article.category}</p>
                 <h1 className="text-4xl md:text-6xl font-extrabold !leading-tight tracking-tight mb-4 drop-shadow-lg">
                     {article.title}
                 </h1>
@@ -48,8 +48,8 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
                 </p>
 
                 <div className="mt-6 flex flex-wrap items-center gap-4">
-                    <PrimaryActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label={t('listen')} />
-                    <PrimaryActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label={t('summarize')} />
+                    <PrimaryActionButton onClick={onTextToSpeech} icon={<ReadAloudIcon className="w-5 h-5" />} label={t('listen')} />
+                    <PrimaryActionButton onClick={onSummarize} icon={<SummarizeIcon className="w-5 h-5" />} label={t('summarize')} />
                     <PrimaryActionButton onClick={onToggleBookmark} icon={<BookmarkIcon filled={isBookmarked} className="w-5 h-5" />} label={isBookmarked ? t('bookmarked') : t('bookmark')} />
                 </div>
             </div>

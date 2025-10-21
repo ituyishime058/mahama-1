@@ -6,5 +6,5 @@ export const useTranslation = () => {
   if (context === undefined) {
     throw new Error('useTranslation must be used within a TranslationProvider');
   }
-  return context;
+  return { t: context.t, language: context.language };
 };

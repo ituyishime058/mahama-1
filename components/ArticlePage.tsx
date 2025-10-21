@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
+import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight, Language } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { applyReadingLens } from '../utils/ai';
+import { applyReadingLens, translateArticleContent } from '../utils/ai';
 import { useTranslation } from '../hooks/useTranslation';
 
 import AuthorInfo from './AuthorInfo';
@@ -95,6 +95,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
   
+  const [translatedData, setTranslatedData] = useState<{ title: string; excerpt: string; content: string } | null>(null);
+  const [isArticleTranslating, setIsArticleTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState('');
+
   const articleRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -105,11 +109,45 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setActiveLens('None');
     setModifiedContent(null);
     setIsModifyingContent(false);
-  }, [article]);
+    setTranslatedData(null);
+    setIsArticleTranslating(false);
+    setTranslationError('');
+  }, [article.id]);
+
+  // Automatic Article Translation
+  useEffect(() => {
+    if (settings.preferredLanguage !== 'English') {
+      const fetchTranslation = async () => {
+        setIsArticleTranslating(true);
+        setTranslationError('');
+        setTranslatedData(null);
+        try {
+          const translation = await translateArticleContent(article, settings.preferredLanguage, settings);
+          setTranslatedData(translation);
+        } catch (e: any) {
+          console.error("Failed to translate article content:", e);
+          setTranslationError('Failed to translate article. Displaying original version.');
+        } finally {
+          setIsArticleTranslating(false);
+        }
+      };
+      fetchTranslation();
+    } else {
+      setTranslatedData(null);
+    }
+  }, [article.id, settings.preferredLanguage, settings]);
+
 
   useEffect(() => {
     setActiveLens(isZenMode ? settings.aiReadingLens : 'None');
   }, [isZenMode, settings.aiReadingLens]);
+
+  const displayArticle = useMemo(() => ({
+    ...article,
+    title: translatedData?.title || article.title,
+    excerpt: translatedData?.excerpt || article.excerpt,
+    content: translatedData?.content || article.content,
+  }), [article, translatedData]);
 
   useEffect(() => {
     const modifyContent = async () => {
@@ -119,7 +157,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
         }
         setIsModifyingContent(true);
         try {
-            const result = await applyReadingLens(article.content, activeLens, settings);
+            const result = await applyReadingLens(displayArticle.content, activeLens, settings);
             setModifiedContent(result);
         } catch (e) {
             console.error("Failed to apply reading lens", e);
@@ -128,9 +166,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
         }
     };
     modifyContent();
-  }, [activeLens, article.content, settings]);
+  }, [activeLens, displayArticle.content, settings]);
   
-  const contentToDisplay = modifiedContent ?? article.content;
+  const contentToDisplay = modifiedContent ?? displayArticle.content;
 
   const processedContent = useMemo(() => {
     if (!settings.interactiveGlossary || keyConcepts.length === 0) {
@@ -205,12 +243,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
         `}</style>
 
         <ArticleHeader 
-            article={article}
+            article={displayArticle}
             onClose={onClose}
             isBookmarked={isBookmarked}
             onToggleBookmark={() => onToggleBookmark(article.id)}
-            onTextToSpeech={onTextToSpeech}
-            onSummarize={onSummarize}
+            onTextToSpeech={() => onTextToSpeech(article)} // Pass original article for TTS
+            onSummarize={() => onSummarize(article)}
         />
 
         <div className={`transition-all duration-300 max-w-4xl mx-auto mt-8 container sm:px-6 lg:px-8`}>
@@ -226,7 +264,19 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 />
                 
                 <main className={!isZenMode ? 'lg:pl-24' : ''}>
-                    <AuthorInfo author={article.author} date={article.date} content={article.content} />
+                    <AuthorInfo author={article.author} date={article.date} content={displayArticle.content} />
+
+                    {isArticleTranslating && (
+                        <div className="flex items-center gap-3 p-3 mb-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-sm">
+                            <LoadingSpinner />
+                            <span>{t('translating')} {settings.preferredLanguage}...</span>
+                        </div>
+                    )}
+                    {translationError && (
+                        <div className="p-3 mb-4 bg-red-100 dark:bg-red-900/50 rounded-lg text-sm text-red-700 dark:text-red-300">
+                            {translationError}
+                        </div>
+                    )}
                                        
                     <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                     <FactCheck result={factCheckResult} isLoading={factCheckLoading} />

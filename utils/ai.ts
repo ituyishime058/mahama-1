@@ -884,8 +884,7 @@ export const identifyKeyPlayers = async (topic: string, settings: Settings): Pro
 // 30. batchTranslate
 export const batchTranslate = async (sourceTexts: Record<string, string>, targetLanguage: Language, settings: Settings): Promise<Record<string, string>> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    // Use the fastest model for translation
-    const model = 'gemini-2.5-flash';
+    const { model, config } = getModelConfig(settings, 'simple');
 
     const prompt = `You are a professional translator. Translate the values of the following JSON object from English to ${targetLanguage}.
     Respond ONLY with the resulting JSON object, with the exact same keys. Do not add any explanatory text, markdown formatting, or any characters before or after the JSON object.
@@ -898,9 +897,8 @@ export const batchTranslate = async (sourceTexts: Record<string, string>, target
         model: model,
         contents: prompt,
         config: {
+            ...config,
             responseMimeType: 'application/json',
-            // We can't use responseSchema here because the keys are dynamic.
-            // The prompt is heavily engineered to return only JSON.
         }
     });
 
@@ -912,5 +910,52 @@ export const batchTranslate = async (sourceTexts: Record<string, string>, target
     } catch (e) {
         console.error("Failed to parse batch translation JSON:", e, "Received text:", response.text);
         throw new Error(`Could not get a valid translation from the AI for ${targetLanguage}.`);
+    }
+};
+
+// 31. translateArticleContent
+export const translateArticleContent = async (article: Article, language: Language, settings: Settings): Promise<{ title: string, excerpt: string, content: string }> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'simple');
+    
+    const contentToTranslate = {
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content
+    };
+
+    const prompt = `You are a professional translator for a news website. Translate the values of the following JSON object from English to ${language}.
+    Maintain the original meaning, tone, and formatting (like paragraph breaks).
+    Respond ONLY with the resulting JSON object, with the exact same keys. Do not add any explanatory text, markdown formatting, or any characters before or after the JSON object.
+
+    Source JSON:
+    ${JSON.stringify(contentToTranslate, null, 2)}
+    `;
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            ...config,
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    title: { type: Type.STRING },
+                    excerpt: { type: Type.STRING },
+                    content: { type: Type.STRING }
+                },
+                required: ["title", "excerpt", "content"]
+            }
+        }
+    });
+
+    try {
+        const jsonText = response.text.trim();
+        const cleanedJson = jsonText.replace(/^```json\n/, '').replace(/\n```$/, '');
+        return JSON.parse(cleanedJson) as { title: string, excerpt: string, content: string };
+    } catch (e) {
+        console.error("Failed to parse article translation JSON:", e, "Received text:", response.text);
+        throw new Error(`Could not get a valid article translation from the AI for ${language}.`);
     }
 };
