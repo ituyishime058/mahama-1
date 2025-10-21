@@ -5,7 +5,8 @@ import SettingsIcon from './icons/SettingsIcon';
 import UserIcon from './icons/UserIcon';
 import SearchIcon from './icons/SearchIcon';
 import UserMenu from './UserMenu';
-import type { User } from '../types';
+import BellIcon from './icons/BellIcon';
+import type { User, Notification } from '../types';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -17,6 +18,8 @@ interface HeaderProps {
   onLoginClick: () => void;
   onLogout: () => void;
   user: User;
+  onNotificationsClick: () => void;
+  notifications: Notification[];
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -29,8 +32,11 @@ const Header: React.FC<HeaderProps> = ({
   onLoginClick,
   onLogout,
   user,
+  onNotificationsClick,
+  notifications,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,6 +78,18 @@ const Header: React.FC<HeaderProps> = ({
                 <SearchIcon />
             </button>
             
+            {isAuthenticated && (
+              <button onClick={onNotificationsClick} aria-label="Open notifications" className="relative p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                  <BellIcon />
+                  {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-4 w-4">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-deep-red opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-4 w-4 bg-deep-red text-white text-xs items-center justify-center">{unreadCount}</span>
+                      </span>
+                  )}
+              </button>
+            )}
+
             {isAuthenticated ? (
                 <UserMenu user={user} onLogout={onLogout} onProfileClick={onProfileClick} />
             ) : (

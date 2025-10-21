@@ -1,4 +1,4 @@
-import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent, SubscriptionPlan, AiTtsVoice, Category } from './types';
+import type { Article, Podcast, User, Comment, Stock, Innovation, StreamingContent, SubscriptionPlan, AiTtsVoice, Category, Notification } from './types';
 
 // Icon imports for categories
 import ForYouIcon from './components/icons/ForYouIcon';
@@ -63,6 +63,37 @@ export const mockComments: Comment[] = [
     timestamp: '5 hours ago',
     likes: 8,
     replies: [],
+  },
+];
+
+export const mockNotifications: Notification[] = [
+  {
+    id: 1,
+    type: 'briefing',
+    message: 'Your personalized AI news briefing is ready to listen to.',
+    timestamp: '5m ago',
+    read: false,
+  },
+  {
+    id: 2,
+    type: 'comment',
+    message: 'Jane Smith replied to your comment on "Global Markets React..."',
+    timestamp: '2h ago',
+    read: false,
+  },
+  {
+    id: 3,
+    type: 'news',
+    message: 'New article in Technology: "Breakthrough in Fusion Energy..."',
+    timestamp: '4h ago',
+    read: true,
+  },
+  {
+    id: 4,
+    type: 'mention',
+    message: 'Alex Doe mentioned you in the community poll.',
+    timestamp: '1d ago',
+    read: true,
   },
 ];
 

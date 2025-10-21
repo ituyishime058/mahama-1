@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight } from './types';
+import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent, mockNotifications } from './constants';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, Notification } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { determineOptimalLayout, extractKeyConcepts, generateArticleTimeline, generatePullQuotes, generateTags, factCheckArticle, generateKeyTakeaways, summarizeComments } from './utils/ai';
 import { fetchWeather } from './utils/weather';
@@ -58,6 +58,8 @@ import ProfilePage from './components/ProfilePage';
 import TrailerModal from './components/TrailerModal';
 import CategoryLoadingOverlay from './components/CategoryLoadingOverlay';
 import MahamaInvestigatesPage from './components/MahamaInvestigatesPage';
+import NotificationCenter from './components/NotificationCenter';
+import OnboardingTour from './components/OnboardingTour';
 import { mockComments } from './constants';
 
 
@@ -88,6 +90,8 @@ const defaultSettings: Settings = {
     },
     subscriptionTier: 'Free',
     informationDensity: 'Comfortable',
+    highContrast: false,
+    reduceMotion: false,
 };
 
 const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live'];
@@ -166,16 +170,29 @@ const App: React.FC = () => {
     // Widgets state
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [isWeatherLoading, setIsWeatherLoading] = useState(true);
+
+    // New Features State
+    const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+    const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+    const [showOnboarding, setShowOnboarding] = useState(false);
     
-    // Apply theme
+    // Apply theme and accessibility
     useEffect(() => {
         localStorage.setItem('mahamaNewsSettings', JSON.stringify(settings));
         const root = window.document.documentElement;
+        
+        // Theme
         if (settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             root.classList.add('dark');
         } else {
             root.classList.remove('dark');
         }
+
+        // Accessibility
+        root.classList.toggle('high-contrast', settings.highContrast);
+        root.classList.toggle('reduce-motion', settings.reduceMotion);
+
+        // Font & Density
         root.style.fontSize = `${settings.fontSize}px`;
         root.classList.remove('font-sans', 'font-serif');
         root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
@@ -470,6 +487,11 @@ const App: React.FC = () => {
     const handleLogin = () => {
         setIsAuthenticated(true);
         setActiveModal(null);
+        // Onboarding check
+        const hasOnboarded = localStorage.getItem('mahama-onboarding-complete');
+        if (!hasOnboarded) {
+            setShowOnboarding(true);
+        }
     };
     const handleLogout = () => {
         setIsAuthenticated(false);
@@ -512,6 +534,19 @@ const App: React.FC = () => {
     const handleSelectSubCategory = (subCategory: string) => {
         setCurrentSubCategory(subCategory);
         window.scrollTo(0, 0);
+    };
+
+    const handleOnboardingComplete = () => {
+        setShowOnboarding(false);
+        localStorage.setItem('mahama-onboarding-complete', 'true');
+    };
+
+    const handleMarkAsRead = (id: number) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
+
+    const handleMarkAllAsRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
 
     const filteredArticles = useMemo(() => {
@@ -657,7 +692,18 @@ const App: React.FC = () => {
                 onLoginClick={() => setActiveModal('login')}
                 onLogout={handleLogout}
                 user={currentUser}
+                onNotificationsClick={() => setIsNotificationCenterOpen(!isNotificationCenterOpen)}
+                notifications={notifications}
             />
+
+            <NotificationCenter 
+                isOpen={isNotificationCenterOpen}
+                onClose={() => setIsNotificationCenterOpen(false)}
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllAsRead={handleMarkAllAsRead}
+            />
+            {showOnboarding && <OnboardingTour onClose={handleOnboardingComplete} />}
 
             <main className="pt-20">
                 {!activeMovie && !activeArticle && (

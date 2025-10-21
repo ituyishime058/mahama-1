@@ -22,6 +22,7 @@ import SecurityIcon from './icons/SecurityIcon';
 import ConfirmationModal from './ConfirmationModal';
 import GoogleIcon from './icons/GoogleIcon';
 import AppleIcon from './icons/AppleIcon';
+import AccessibilityIcon from './icons/AccessibilityIcon';
 
 interface SettingsPageProps {
   settings: Settings;
@@ -40,6 +41,7 @@ const settingsNav = [
   { name: 'Account', icon: CrownIcon },
   { name: 'Security', icon: SecurityIcon },
   { name: 'Data & Privacy', icon: ShieldCheckIcon },
+  { name: 'Accessibility', icon: AccessibilityIcon },
 ];
 
 const ToggleSwitch: React.FC<{label: string, enabled: boolean, onChange: (enabled: boolean) => void, isPremium?: boolean, userIsPremium?: boolean}> = ({ label, enabled, onChange, isPremium=false, userIsPremium=false }) => (
@@ -282,6 +284,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                         <TrashIcon className="w-5 h-5 text-red-500" />
                     </button>
                 </div>
+            </div>
+        );
+      case 'Accessibility':
+        return (
+            <div className="space-y-8 animate-fade-in">
+            <h3 className="text-2xl font-bold">Accessibility</h3>
+            <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-1 divide-y divide-slate-200 dark:divide-slate-700">
+                <p className="text-sm text-slate-500 dark:text-slate-400 pb-4">Customize the experience to meet your needs.</p>
+                <ToggleSwitch label="High Contrast Mode" enabled={localSettings.highContrast} onChange={(val) => handleSettingChange('highContrast', val)} />
+                <ToggleSwitch label="Reduce Motion" enabled={localSettings.reduceMotion} onChange={(val) => handleSettingChange('reduceMotion', val)} />
+            </div>
             </div>
         );
       default:

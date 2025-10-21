@@ -135,6 +135,8 @@ export interface Settings {
     };
     subscriptionTier: SubscriptionTier;
     informationDensity: 'Comfortable' | 'Compact';
+    highContrast: boolean;
+    reduceMotion: boolean;
 }
 
 export type TimelineEvent = {
@@ -189,4 +191,13 @@ export type AiSearchResult = {
   relatedArticleIds: number[];
   relatedMovieIds: number[];
   suggestedQuestions: string[];
+};
+
+export type Notification = {
+  id: number;
+  type: 'comment' | 'mention' | 'news' | 'briefing';
+  message: string;
+  timestamp: string;
+  read: boolean;
+  link?: string;
 };
