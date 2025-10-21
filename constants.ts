@@ -542,6 +542,63 @@ export const mockArticles: Article[] = [
             'New technologies like VR are expanding the possibilities of immersive storytelling.'
         ],
         tags: ['Theater', 'VR']
+    },
+    {
+        id: 35,
+        title: "Echoes of a Monarchy: The Enduring Legacy of the Kingdom of Rwanda",
+        excerpt: "Before colonial lines were drawn, the Kingdom of Rwanda stood as a highly centralized state in the Great Rift Valley. This article explores its complex social structure, the divine authority of the Mwami (king), and the traditions that shaped a nation.",
+        content: "For centuries before European colonization, the Kingdom of Rwanda existed as one of the most organized and powerful states in the Great Lakes region of Africa. At its apex was the Mwami, a divine king from the Tutsi lineage, who ruled over a society comprised of Tutsi, Hutu, and Twa groups. The socio-economic fabric was woven through the 'ubuhake' system, a complex patronage relationship where Tutsi lords provided cattle—a symbol of wealth and status—to clients in exchange for service and loyalty. This intricate social hierarchy, while functional for a time, would later be dangerously simplified and exploited by colonial powers, laying the groundwork for future conflicts.",
+        imageUrl: "https://picsum.photos/seed/rwanda-kingdom/1200/800",
+        author: "Dr. Imani Gasana",
+        date: 'November 24, 2023',
+        category: 'History',
+        region: 'Africa',
+        sentiment: 'Neutral',
+        coordinates: { lat: -1.9403, lon: 29.8739 },
+        keyTakeaways: [
+            'The Kingdom of Rwanda was a highly centralized pre-colonial state.',
+            'Society was structured around Tutsi, Hutu, and Twa groups with the Mwami at its apex.',
+            'The Ubuhake patronage system was central to its socio-economic fabric.',
+            'The kingdom\'s history provides crucial context for understanding modern Rwanda.'
+        ]
+    },
+    {
+        id: 36,
+        title: "100 Days of Horror: Remembering the 1994 Genocide Against the Tutsi in Rwanda",
+        excerpt: "In one of history's darkest chapters, an estimated 800,000 people were systematically murdered over 100 days. This solemn report revisits the context, the triggers, and the devastating human cost of the 1994 Genocide Against the Tutsi.",
+        content: "The 1994 Genocide Against the Tutsi in Rwanda stands as a catastrophic failure of the international community and a chilling testament to the speed and brutality of organized violence. Fueled by decades of ethnic tension, exacerbated by colonial policies, and ignited by the assassination of President Juvénal Habyarimana, the genocide was meticulously planned by Hutu extremists. Militias like the Interahamwe, armed with machetes and fueled by hate radio, carried out the majority of the killings. For 100 days, the world watched as neighbor turned against neighbor in a frenzy of violence. The genocide's end only came when the Rwandan Patriotic Front (RPF), a Tutsi-led rebel army, captured Kigali and overthrew the extremist government.",
+        imageUrl: "https://picsum.photos/seed/rwanda-genocide/1200/800",
+        author: "Dr. Imani Gasana",
+        date: 'November 25, 2023',
+        category: 'History',
+        region: 'Africa',
+        sentiment: 'Negative',
+        coordinates: { lat: -1.9441, lon: 30.0619 },
+        keyTakeaways: [
+            'The 1994 Genocide Against the Tutsi resulted in the mass murder of approximately 800,000 people.',
+            'It was fueled by extremist Hutu Power ideology and decades of ethnic tension.',
+            'The international community was widely criticized for its failure to prevent or stop the killings.',
+            'The genocide\'s memory is a central part of Rwanda\'s national identity and path to reconciliation.'
+        ]
+    },
+    {
+        id: 37,
+        title: "Rwanda Reborn: The Path from Devastation to Africa's 'Economic Miracle'",
+        excerpt: "In the decades since 1994, Rwanda has undergone a remarkable transformation. From a nation shattered by violence, it has emerged as a model of stability, economic growth, and technological innovation in Africa. This analysis explores the policies behind the recovery.",
+        content: "Rwanda's post-genocide story is one of astonishing resilience and determined nation-building. Under the leadership of President Paul Kagame and the RPF, the country embarked on a radical path of reconstruction. A key focus was replacing ethnic identity with a unified national identity. Justice was pursued through both a UN tribunal and community-based Gacaca courts, which processed over a million cases. The government has aggressively pursued a vision of turning Rwanda into a knowledge-based, middle-income country, investing heavily in technology, infrastructure, and business-friendly policies. While the 'Singapore of Africa' model has drawn praise for its economic success and low corruption, it has also faced criticism regarding human rights and political freedoms.",
+        imageUrl: "https://picsum.photos/seed/rwanda-reborn/1200/800",
+        author: "Dr. Imani Gasana",
+        date: 'November 26, 2023',
+        category: 'History',
+        region: 'Africa',
+        sentiment: 'Positive',
+        coordinates: { lat: -1.9535, lon: 30.0913 },
+        keyTakeaways: [
+            'Rwanda has experienced significant economic growth and social stability since 1994.',
+            'Key strategies include national unity programs and transitional justice systems like Gacaca courts.',
+            'The country has heavily invested in technology, aiming to become a knowledge-based economy.',
+            'The economic success is sometimes contrasted with concerns about political freedoms.'
+        ]
     }
 ];
 
@@ -1074,7 +1131,7 @@ export const categories: Category[] = [
     { name: "Movies & TV", icon: MoviesTVIcon },
     { name: "Art", icon: ArtIcon },
     { name: "Music", icon: MusicIcon },
-    { name: "History", icon: HistoryIcon },
+    { name: "History", icon: HistoryIcon, subcategories: ["Ancient History", "Modern History", "African History", "Military History"] },
     { name: "Mahama Investigates", icon: InvestigatesIcon },
 ];
 
