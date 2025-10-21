@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { generateTags, factCheckArticle, generateKeyTakeaways, generateArticleTimeline, translateArticle, applyReadingLens, extractKeyConcepts, summarizeComments } from '../utils/ai';
+import { generateTags, factCheckArticle, generateKeyTakeaways, translateArticle, applyReadingLens, summarizeComments } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
-// FIX: Replace SocialShare with ContentGutter as SocialShare.tsx is not a module.
 import ContentGutter from './ContentGutter';
 import KeyTakeaways from './KeyTakeaways';
 import AITags from './AITags';
@@ -17,6 +16,16 @@ import TranslateIcon from './icons/TranslateIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import GlossaryPopup from './GlossaryPopup';
 import CommunityHighlights from './CommunityHighlights';
+
+// New PullQuote component defined internally for simplicity
+const PullQuote: React.FC<{ quote: string }> = ({ quote }) => (
+    <blockquote className="my-8 md:my-12 p-4 border-l-4 border-gold bg-slate-100 dark:bg-slate-800/50 rounded-r-lg relative text-center animate-fade-in-up">
+        <p className="text-xl md:text-2xl font-semibold italic text-slate-800 dark:text-slate-200">
+            “{quote}”
+        </p>
+    </blockquote>
+);
+
 
 interface ArticlePageProps {
   article: Article;
@@ -38,6 +47,10 @@ interface ArticlePageProps {
   onInfographic: (article: Article) => void;
   settings: Settings;
   onPremiumClick: () => void;
+  keyConcepts: KeyConcept[];
+  timelineEvents: TimelineEvent[];
+  pullQuotes: string[];
+  pullQuotesLoading: boolean;
 }
 
 const ArticlePage: React.FC<ArticlePageProps> = ({ 
@@ -60,6 +73,11 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onInfographic,
     settings,
     onPremiumClick,
+    keyConcepts,
+    timelineEvents,
+    timelineLoading,
+    pullQuotes,
+    pullQuotesLoading,
 }) => {
   const [tags, setTags] = useState<string[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
@@ -68,8 +86,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [isZenMode, setIsZenMode] = useState(false);
   const [aiTakeaways, setAiTakeaways] = useState<string[]>([]);
   const [takeawaysLoading, setTakeawaysLoading] = useState(true);
-  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
-  const [timelineLoading, setTimelineLoading] = useState(true);
   
   const [translatedContent, setTranslatedContent] = useState<string | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -79,7 +95,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [modifiedContent, setModifiedContent] = useState<string | null>(null);
   const [isModifyingContent, setIsModifyingContent] = useState(false);
 
-  const [keyConcepts, setKeyConcepts] = useState<KeyConcept[]>([]);
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
 
   const [communityHighlights, setCommunityHighlights] = useState<CommunityHighlight[]>([]);
@@ -103,11 +118,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Reset non-lifted state
     setTags([]);
     setFactCheckResult(null);
     setAiTakeaways([]);
-    setTimelineEvents([]);
-    setKeyConcepts([]);
     setGlossaryTerm(null);
     setTranslatedContent(null);
     setShowOriginal(true);
@@ -120,43 +134,34 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     setTagsLoading(true);
     setFactCheckLoading(true);
     setTakeawaysLoading(true);
-    setTimelineLoading(true);
     setHighlightsLoading(true);
 
     if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
         handleManualTranslate();
     }
 
-    const fetchAIData = async () => {
+    const fetchNonLiftedAIData = async () => {
       const promises = [
         generateTags(article, settings),
         factCheckArticle(article, settings),
         generateKeyTakeaways(article, settings),
-        extractKeyConcepts(article, settings),
         summarizeComments(mockComments, settings)
       ];
       
-      const [tagsResult, factCheckData, takeawaysResult, conceptsResult, commentsResult] = await Promise.allSettled(promises);
+      const [tagsResult, factCheckData, takeawaysResult, commentsResult] = await Promise.allSettled(promises);
 
       if (tagsResult.status === 'fulfilled') setTags(tagsResult.value as string[]);
       if (factCheckData.status === 'fulfilled') setFactCheckResult(factCheckData.value as { status: string; summary: string; });
       if (takeawaysResult.status === 'fulfilled') setAiTakeaways(takeawaysResult.value as string[]);
-      if (conceptsResult.status === 'fulfilled') setKeyConcepts(conceptsResult.value as KeyConcept[]);
       if (commentsResult.status === 'fulfilled') setCommunityHighlights(commentsResult.value as CommunityHighlight[]);
       
       setTagsLoading(false);
       setFactCheckLoading(false);
       setTakeawaysLoading(false);
       setHighlightsLoading(false);
-
-      if (article.hasTimeline) {
-          generateArticleTimeline(article, settings).then(setTimelineEvents).finally(() => setTimelineLoading(false));
-      } else {
-          setTimelineLoading(false);
-      }
     };
 
-    fetchAIData();
+    fetchNonLiftedAIData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [article, settings.autoTranslate, settings.preferredLanguage]);
 
@@ -242,12 +247,8 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             line-height: 1.5;
           }
         `}</style>
-        <button onClick={onClose} className="mb-4 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
-            &larr; Back to Home
-        </button>
         <div className={`transition-all duration-300 ${isZenMode ? '' : 'max-w-4xl'}`}>
             <div className="relative">
-                {/* FIX: Replaced SocialShare with ContentGutter and added required props. */}
                 <ContentGutter 
                     article={article}
                     isBookmarked={isBookmarked}
@@ -289,6 +290,10 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                    
                     <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                     <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
+                    
+                    {!pullQuotesLoading && pullQuotes.map((quote, index) => (
+                        <PullQuote key={index} quote={quote} />
+                    ))}
                     
                      {isModifyingContent && (
                         <div className="flex justify-center items-center my-8 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">

@@ -50,29 +50,28 @@ const Header: React.FC<HeaderProps> = ({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          <div className="flex items-center gap-4">
+          {/* Left Group */}
+          <div className="flex-1 md:flex-none flex justify-start">
              <button onClick={onMenuClick} aria-label="Open menu" className="text-slate-600 dark:text-slate-300 p-2 -ml-2">
                 <MenuIcon />
              </button>
-             <a href="#" onClick={handleLogoClick} className="hidden sm:flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white">
+             <a href="#" onClick={handleLogoClick} className="hidden md:flex items-center gap-2 text-2xl font-black tracking-tighter text-slate-900 dark:text-white ml-4">
                 <Logo className="h-10 w-10" />
                 <span>Mahama News Hub</span>
              </a>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-bold uppercase text-deep-red dark:text-gold">
-              <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-current"></span>
-              </span>
-              LIVE
-          </div>
+          {/* Centered Logo (Mobile) */}
+           <div className="md:hidden">
+                <a href="#" onClick={handleLogoClick}><Logo className="h-10 w-10"/></a>
+           </div>
           
-          <div className="flex items-center justify-end gap-2">
+          {/* Right Group */}
+          <div className="flex-1 md:flex-none flex items-center justify-end gap-2">
             <button onClick={onSearchClick} aria-label="Open search" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SearchIcon />
             </button>
-            <button onClick={onSettingsClick} aria-label="Open settings" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+            <button onClick={onSettingsClick} aria-label="Open settings" className="hidden sm:block p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SettingsIcon />
             </button>
             

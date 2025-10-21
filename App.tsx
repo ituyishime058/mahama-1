@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User } from './types';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
-import { determineOptimalLayout } from './utils/ai';
+import { determineOptimalLayout, extractKeyConcepts, generateArticleTimeline, generatePullQuotes } from './utils/ai';
 import { fetchWeather } from './utils/weather';
 
 // Component Imports
@@ -13,6 +13,7 @@ import RightAside from './components/RightAside';
 import NewsTicker from './components/NewsTicker';
 import FilterBar from './components/FilterBar';
 import ArticlePage from './components/ArticlePage';
+import LiveStream from './components/LiveStream';
 import Mahama360 from './components/Mahama360';
 import NewsMap from './components/NewsMap';
 import DataDrivenInsights from './components/DataDrivenInsights';
@@ -90,6 +91,15 @@ const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews
 const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic'];
 
 
+type ArticleAiData = {
+    keyConcepts: KeyConcept[];
+    conceptsLoading: boolean;
+    timelineEvents: TimelineEvent[];
+    timelineLoading: boolean;
+    pullQuotes: string[];
+    pullQuotesLoading: boolean;
+};
+
 const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
@@ -123,6 +133,9 @@ const App: React.FC = () => {
     const [allArticles, setAllArticles] = useState<Article[]>(mockArticles);
     const [newArticlesQueue, setNewArticlesQueue] = useState<Article[]>([]);
     const hiddenArticlesRef = useRef([...hiddenArticles]);
+    
+    // AI data for active article
+    const [articleAiData, setArticleAiData] = useState<ArticleAiData>({ keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true });
 
 
     // Authentication & User
@@ -216,6 +229,41 @@ const App: React.FC = () => {
         }
 
     }, []);
+    
+    // Fetch AI data when an article is active
+    useEffect(() => {
+        if (activeArticle) {
+            setArticleAiData({ keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true });
+            const fetchArticleAiData = async () => {
+                const promises: Promise<any>[] = [
+                    extractKeyConcepts(activeArticle, settings),
+                    generatePullQuotes(activeArticle, settings)
+                ];
+                if (activeArticle.hasTimeline) {
+                    promises.push(generateArticleTimeline(activeArticle, settings));
+                } else {
+                    promises.push(Promise.resolve([])); // Add placeholder for timeline
+                }
+
+                const [conceptsResult, pullQuotesResult, timelineResult] = await Promise.allSettled(promises);
+
+                const concepts = conceptsResult.status === 'fulfilled' ? conceptsResult.value : [];
+                const pullQuotes = pullQuotesResult.status === 'fulfilled' ? pullQuotesResult.value : [];
+                const timeline = timelineResult.status === 'fulfilled' ? timelineResult.value : [];
+
+                setArticleAiData({
+                    keyConcepts: concepts,
+                    conceptsLoading: false,
+                    timelineEvents: timeline,
+                    timelineLoading: false,
+                    pullQuotes: pullQuotes,
+                    pullQuotesLoading: false,
+                });
+            };
+            fetchArticleAiData();
+        }
+    }, [activeArticle, settings]);
+
 
     // Real-time article simulation
     useEffect(() => {
@@ -481,6 +529,7 @@ const App: React.FC = () => {
                         onInfographic={(article) => openModal('infographic', article)}
                         settings={settings}
                         onPremiumClick={() => setActiveModal('subscribe')}
+                        {...articleAiData}
                     />;
         }
         if (activeMovie) {
@@ -511,6 +560,20 @@ const App: React.FC = () => {
         
         const renderCategoryContent = () => {
              switch(currentCategory) {
+                case 'For You':
+                    return (
+                        <>
+                           <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>
+                           <div className="mt-8 space-y-12">
+                               <GlobalHighlights articles={filteredArticles.slice(0,5)} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} layout={layout} />
+                               <LiveStream />
+                               {settings.showMahama360 && <Mahama360 articles={allArticles.slice(7, 10)} />}
+                               <DataDrivenInsights />
+                               {settings.showNowStreaming && <SponsoredBanners />}
+                               <PodcastHub podcasts={mockPodcasts.slice(0,4)} />
+                           </div>
+                        </>
+                    );
                 case 'World':
                 case 'Politics':
                      return (
@@ -519,12 +582,27 @@ const App: React.FC = () => {
                             <NewsMap articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />
                         </>
                      );
+                case 'Economy':
+                    return (
+                        <>
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <DataDrivenInsights />
+                        </>
+                    );
                 case 'Technology':
                     return (
                         <>
                             <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
                             <InnovationTimeline />
-                            <DataDrivenInsights />
+                            <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
+                        </>
+                    );
+                case 'Culture':
+                case 'Entertainment':
+                    return (
+                        <>
+                            <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onTranslate={article => openModal('translate', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
+                            <PodcastHub podcasts={mockPodcasts} />
                         </>
                     );
                 default:
@@ -532,16 +610,7 @@ const App: React.FC = () => {
             }
         };
 
-        return (
-            <>
-               {currentCategory === 'For You' && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
-               <div className={`${currentCategory === 'For You' ? 'mt-8' : ''}`}>
-                   {renderCategoryContent()}
-               </div>
-                {settings.showMahama360 && currentCategory === 'For You' && <Mahama360 articles={allArticles.slice(7, 10)} />}
-                {settings.showNowStreaming && currentCategory === 'For You' && <SponsoredBanners />}
-            </>
-        )
+        return renderCategoryContent();
     };
 
     return (
@@ -580,11 +649,11 @@ const App: React.FC = () => {
                 
                 <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie ? 'max-w-full' : ''}`}>
                     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
-                        <div className={`${activeMovie ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
+                        <div className={`${activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
                             {renderMainContent()}
                         </div>
 
-                        {!activeMovie && 
+                        {!(activeMovie || isMoviesPage) && 
                             <RightAside 
                                 trendingArticles={allArticles.slice(1, 6)} 
                                 onArticleClick={handleReadMore} 
@@ -596,6 +665,10 @@ const App: React.FC = () => {
                                 isSettingsOpen={isSettingsOpen}
                                 isProfileOpen={isProfileOpen}
                                 user={currentUser}
+                                keyConcepts={articleAiData.keyConcepts}
+                                conceptsLoading={articleAiData.conceptsLoading}
+                                timelineEvents={articleAiData.timelineEvents}
+                                timelineLoading={articleAiData.timelineLoading}
                             />
                         }
                     </div>
