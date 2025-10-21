@@ -1,6 +1,6 @@
 import type { Article } from '../types';
 
-const DB_NAME = 'MahamaNewsDB';
+const DB_NAME = 'KireheTVDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'articles';
 

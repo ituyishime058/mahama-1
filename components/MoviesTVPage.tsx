@@ -7,8 +7,7 @@ import AdjustmentsHorizontalIcon from './icons/AdjustmentsHorizontalIcon';
 import CalendarDaysIcon from './icons/CalendarDaysIcon';
 import ArrowDownUpIcon from './icons/ArrowDownUpIcon';
 import MovieCard from './MovieCard';
-import ChevronLeftIcon from './icons/ChevronLeftIcon';
-import ChevronRightIcon from './icons/ChevronRightIcon';
+import Carousel from './Carousel';
 
 interface MoviesTVPageProps {
   onWatchMovie: (movie: StreamingContent) => void;
@@ -52,30 +51,9 @@ const FilterControls: React.FC<{
     );
 };
 
-const FeaturedTrendingCard: React.FC<{ item: StreamingContent; onWatchMovie: (movie: StreamingContent) => void; onWatchTrailer: (url: string) => void; }> = ({ item, onWatchMovie, onWatchTrailer }) => (
-    <div className="relative w-full h-full rounded-lg overflow-hidden group shadow-lg text-white">
-        <img src={item.posterUrl.replace('/w400/', '/w780/')} alt={item.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-        <div className="relative h-full flex flex-col justify-center p-6 md:p-8 w-full sm:w-2/3">
-            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold drop-shadow-lg">{item.title}</h3>
-            <p className="text-xs md:text-sm text-slate-300 hidden sm:block mt-1 drop-shadow-md line-clamp-2">{item.description}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={() => onWatchMovie(item)} className="flex items-center gap-2 bg-deep-red hover:bg-red-700 font-bold py-2 px-4 rounded-full text-sm">
-                    <PlayCircleIcon className="w-5 h-5"/> Play
-                </button>
-                <button onClick={() => onWatchTrailer(item.trailerUrl)} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 font-bold py-2 px-4 rounded-full text-sm">
-                    Trailer
-                </button>
-            </div>
-        </div>
-    </div>
-);
-
-
 const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTrailer }) => {
     const [filters, setFilters] = useState({ genre: 'All Genres', year: 'All Years', sortBy: 'Popularity' });
     const [visibleCount, setVisibleCount] = useState(12);
-    const scrollRef = useRef<HTMLDivElement>(null);
 
     const genres = useMemo(() => [...Array.from(new Set(mockStreamingContent.map(item => item.genre)))], []);
 
@@ -92,15 +70,6 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
     const handleLoadMore = () => {
         setVisibleCount(prev => prev + 12);
     };
-    
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const { scrollLeft, clientWidth } = scrollRef.current;
-            const scrollTo = direction === 'left' ? scrollLeft - clientWidth * 0.8 : scrollLeft + clientWidth * 0.8;
-            scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
-        }
-    };
-
 
     const filteredContent = useMemo(() => {
         return mockStreamingContent
@@ -126,17 +95,11 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
             });
     }, [filters]);
     
-    const trending = useMemo(() => {
-        let all = [...filteredContent];
-        const duneIndex = all.findIndex(i => i.id === 1); // Prefer Dune as featured
-        if (duneIndex > -1) {
-            const dune = all.splice(duneIndex, 1)[0];
-            all.unshift(dune);
-        }
-        return all.filter(item => item.isTrending || item.id === 1);
-    }, [filteredContent]);
+    const trending = useMemo(() => filteredContent.filter(item => item.isTrending), [filteredContent]);
+    const newReleases = useMemo(() => filteredContent.filter(item => item.isNew), [filteredContent]);
+    const awardWinners = useMemo(() => filteredContent.filter(item => item.isAwardWinner), [filteredContent]);
     
-    const featuredMovie = mockStreamingContent.find(m => m.id === 19) || mockStreamingContent[0]; // Furiosa
+    const featuredMovie = mockStreamingContent.find(m => m.id === 19) || mockStreamingContent[0];
 
     return (
         <div className="animate-fade-in text-white -mx-4 sm:-mx-6 lg:-mx-8 bg-black" style={{ background: 'radial-gradient(circle at 50% 0%, #0a192f 0%, #000000 70%), linear-gradient(to bottom, #0a192f, #000000)'}}>
@@ -162,41 +125,15 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
             </div>
 
             <div className="px-4 sm:px-6 lg:px-8 space-y-12 pb-12">
-                <FilterControls genres={genres} filters={filters} onFilterChange={handleFilterChange} onClear={clearFilters} />
-
-                {filteredContent.length > 0 ? (
-                    <>
-                       <section className="relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 overflow-hidden" style={{ background: 'radial-gradient(circle at 20% 50%, rgba(10, 25, 47, 0.5) 0%, rgba(0,0,0,0) 40%)' }}>
-                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-white">Trending Now</h2>
-                             <div className="relative group/carousel">
-                                <div ref={scrollRef} className="flex items-stretch space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide">
-                                    {trending.map((item, index) => {
-                                        const isFeatured = index === 0;
-                                        if (isFeatured) {
-                                            return (
-                                                <div key={item.id} className="w-4/5 sm:w-2/3 md:w-[55%] lg:w-[45%] flex-shrink-0 aspect-video rounded-lg">
-                                                    <FeaturedTrendingCard item={item} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                                                </div>
-                                            );
-                                        }
-                                        return (
-                                            <div key={item.id} className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5 xl:w-[15%] flex-shrink-0">
-                                                <MovieCard item={item} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <button onClick={() => scroll('left')} aria-label="Scroll left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-0 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-2 z-10 hidden md:block opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300">
-                                    <ChevronLeftIcon className="w-8 h-8 text-white"/>
-                                </button>
-                                <button onClick={() => scroll('right')} aria-label="Scroll right" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-0 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-2 z-10 hidden md:block opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300">
-                                    <ChevronRightIcon className="w-8 h-8 text-white"/>
-                                </button>
-                            </div>
-                        </section>
-                        
-                        <section>
-                            <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-white">Browse All</h2>
+                <Carousel title="Trending Now" items={trending} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                <Carousel title="New Releases" items={newReleases} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                <Carousel title="Award Winners" items={awardWinners} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                
+                <section>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-white">Browse All</h2>
+                    <FilterControls genres={genres} filters={filters} onFilterChange={handleFilterChange} onClear={clearFilters} />
+                    {filteredContent.length > 0 ? (
+                        <>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                                 {filteredContent.slice(0, visibleCount).map(item => (
                                     <MovieCard 
@@ -214,19 +151,15 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
                                     </button>
                                 </div>
                             )}
-                        </section>
-                    </>
-                ) : (
-                    <div className="text-center py-16">
-                        <h3 className="text-2xl font-bold">No Results Found</h3>
-                        <p className="text-slate-400 mt-2">Try adjusting your filters or clearing them to see more content.</p>
-                    </div>
-                )}
+                        </>
+                     ) : (
+                        <div className="text-center py-16">
+                            <h3 className="text-2xl font-bold">No Results Found</h3>
+                            <p className="text-slate-400 mt-2">Try adjusting your filters or clearing them to see more content.</p>
+                        </div>
+                    )}
+                </section>
             </div>
-             <style>{`
-                .scrollbar-hide::-webkit-scrollbar { display: none; }
-                .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-            `}</style>
         </div>
     );
 };

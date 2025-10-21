@@ -1,11 +1,12 @@
 
+
 import React from 'react';
 import type { Article } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import FireIcon from './icons/FireIcon';
 import ArrowRightIcon from './icons/ArrowRightIcon';
 
-interface Mahama360Props {
+interface Kirehe360Props {
   articles: Article[];
   onArticleClick?: (article: Article) => void;
 }
@@ -29,7 +30,7 @@ const Card: React.FC<{ article: Article, onArticleClick?: (article: Article) => 
 );
 
 
-const Mahama360: React.FC<Mahama360Props> = ({ articles, onArticleClick }) => {
+const Kirehe360: React.FC<Kirehe360Props> = ({ articles, onArticleClick }) => {
   const { t } = useTranslation();
 
   if (!articles || articles.length === 0) return null;
@@ -40,7 +41,7 @@ const Mahama360: React.FC<Mahama360Props> = ({ articles, onArticleClick }) => {
     <section className="my-16">
         <div className="text-center mb-8">
             <h2 className="text-4xl font-extrabold mb-2 tracking-tighter inline-block relative">
-                Mahama 360°
+                Kirehe 360°
                 <FireIcon className="absolute -top-2 -right-8 w-8 h-8 text-deep-red transform rotate-12" />
             </h2>
             <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">{t('mahama360Desc')}</p>
@@ -69,4 +70,4 @@ const Mahama360: React.FC<Mahama360Props> = ({ articles, onArticleClick }) => {
   );
 };
 
-export default Mahama360;
+export default Kirehe360;

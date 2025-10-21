@@ -1,10 +1,10 @@
 
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, FactCheckResult, Notification } from './types';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent } from './constants';
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, FactCheckResult, KeyConcept, TimelineEvent, CommunityHighlight } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
-import { determineOptimalLayout, factCheckArticle, getThisDayInHistory } from './utils/ai';
+import { determineOptimalLayout, getFactCheck, getKeyConcepts, getTimeline, getPullQuotes, getAiTags, getCommunityHighlights } from './utils/ai';
 import { fetchWeather } from './utils/weather';
 import { TranslationProvider } from './contexts/TranslationContext';
 
@@ -16,6 +16,7 @@ import RightAside from './components/RightAside';
 import NewsTicker from './components/NewsTicker';
 import FilterBar from './components/FilterBar';
 import ArticlePage from './components/ArticlePage';
+import LiveStream from './components/LiveStream';
 import Mahama360 from './components/Mahama360';
 import DataDrivenInsights from './components/DataDrivenInsights';
 import PodcastHub from './components/PodcastHub';
@@ -25,6 +26,7 @@ import ScrollProgressBar from './components/ScrollProgressBar';
 import MoviesTVPage from './components/MoviesTVPage';
 import SponsoredBanners from './components/SponsoredBanners';
 import InteractiveGlobe from './components/InteractiveGlobe';
+import MahamaInvestigatesPage from './components/MahamaInvestigatesPage';
 
 // Modal & Page Imports
 import SummarizerModal from './components/SummarizerModal';
@@ -59,10 +61,11 @@ import ProfilePage from './components/ProfilePage';
 import TrailerModal from './components/TrailerModal';
 import CategoryLoadingOverlay from './components/CategoryLoadingOverlay';
 import NotificationCenter from './components/NotificationCenter';
+import OnboardingTour from './components/OnboardingTour';
 import ComparisonModal from './components/ComparisonModal';
 import CompareNowButton from './components/CompareNowButton';
-// FIX: Import the missing MahamaInvestigatesPage component.
-import MahamaInvestigatesPage from './components/MahamaInvestigatesPage';
+import AiAnchorVideoModal from './components/AiAnchorVideoModal';
+import KireheServicesModal from './components/KireheServicesModal';
 
 
 const defaultSettings: Settings = {
@@ -96,16 +99,15 @@ const defaultSettings: Settings = {
     reduceMotion: false,
 };
 
-const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare'];
-const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'compare'];
+const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'kireheServices'];
+const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'compare'];
 
 
 const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
-            const savedSettings = localStorage.getItem('mahamaNewsSettings');
-            const parsed = savedSettings ? JSON.parse(savedSettings) : {};
-            return { ...defaultSettings, ...parsed };
+            const savedSettings = localStorage.getItem('kireheTVSettings');
+            return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
         } catch (error) {
             return defaultSettings;
         }
@@ -115,7 +117,7 @@ const App: React.FC = () => {
     const [activeArticle, setActiveArticle] = useState<Article | null>(null);
     const [activeMovie, setActiveMovie] = useState<StreamingContent | null>(null);
     const [isMoviesPage, setIsMoviesPage] = useState(false);
-    const [isMahamaInvestigatesPage, setIsMahamaInvestigatesPage] = useState(false);
+    const [isInvestigatesPage, setIsInvestigatesPage] = useState(false);
     const [currentCategory, setCurrentCategory] = useState('For You');
     const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -128,14 +130,22 @@ const App: React.FC = () => {
     const [modalArticle, setModalArticle] = useState<Article | null>(null);
     const [selectedPlan, setSelectedPlan] = useState<{ name: string; price: string } | null>(null);
     const [activeTrailer, setActiveTrailer] = useState<string | null>(null);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('kireheTVOnboardingComplete'));
+    const [comparisonList, setComparisonList] = useState<number[]>([]);
+    const [briefingScript, setBriefingScript] = useState<string|null>(null);
 
 
     // Real-time feed state
-    const [allArticles, setAllArticles] = useState<Article[]>([...mockArticles, ...hiddenArticles]);
+    const [allArticles, setAllArticles] = useState<Article[]>(mockArticles);
+    const [newArticlesQueue, setNewArticlesQueue] = useState<Article[]>([]);
+    const hiddenArticlesRef = useRef([...hiddenArticles]);
+
 
     // Authentication & User
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentUser] = useState<User>(mockCurrentUser);
+    const [currentUser, setCurrentUser] = useState<User>(mockCurrentUser);
+    const [notifications, setNotifications] = useState<any[]>([]);
 
     // Bookmarks & Offline
     const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<number[]>([]);
@@ -150,35 +160,25 @@ const App: React.FC = () => {
     const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
     const [isWeatherLoading, setIsWeatherLoading] = useState(true);
 
-    // AI data for Article Page
+    // AI-generated article enhancement states
     const [keyConcepts, setKeyConcepts] = useState<KeyConcept[]>([]);
     const [conceptsLoading, setConceptsLoading] = useState(false);
     const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
     const [timelineLoading, setTimelineLoading] = useState(false);
     const [pullQuotes, setPullQuotes] = useState<string[]>([]);
     const [pullQuotesLoading, setPullQuotesLoading] = useState(false);
-    const [tags, setTags] = useState<string[]>([]);
+    const [aiTags, setAiTags] = useState<string[]>([]);
     const [tagsLoading, setTagsLoading] = useState(false);
-    const [factCheckResult, setFactCheckResult] = useState<FactCheckResult | null>(null);
+    const [factCheckResult, setFactCheckResult] = useState<FactCheckResult|null>(null);
     const [factCheckLoading, setFactCheckLoading] = useState(false);
     const [aiTakeaways, setAiTakeaways] = useState<string[]>([]);
     const [takeawaysLoading, setTakeawaysLoading] = useState(false);
     const [communityHighlights, setCommunityHighlights] = useState<CommunityHighlight[]>([]);
     const [highlightsLoading, setHighlightsLoading] = useState(false);
     
-    // Comparison state
-    const [comparisonList, setComparisonList] = useState<number[]>([]);
-    
-    // Notifications
-    const [notifications, setNotifications] = useState<Notification[]>([
-        { id: 1, type: 'briefing', message: 'Your daily AI briefing is ready!', timestamp: '2h ago', read: false },
-        { id: 2, type: 'mention', message: 'Chen Wei mentioned you in a comment on "G7 Leaders Convene..."', timestamp: '5h ago', read: false },
-        { id: 3, type: 'news', message: 'BREAKING: Tensions flare in South China Sea.', timestamp: 'Yesterday', read: true },
-    ]);
-
     // Apply theme
     useEffect(() => {
-        localStorage.setItem('mahamaNewsSettings', JSON.stringify(settings));
+        localStorage.setItem('kireheTVSettings', JSON.stringify(settings));
         const root = window.document.documentElement;
         if (settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             root.classList.add('dark');
@@ -188,15 +188,31 @@ const App: React.FC = () => {
         root.style.fontSize = `${settings.fontSize}px`;
         root.classList.remove('font-sans', 'font-serif');
         root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
+        document.body.classList.remove('density-comfortable', 'density-compact');
+        document.body.classList.add(`density-${settings.informationDensity.toLowerCase()}`);
+
+        if (settings.reduceMotion) {
+            root.classList.add('reduce-motion');
+        } else {
+            root.classList.remove('reduce-motion');
+        }
+        if (settings.highContrast) {
+            root.classList.add('high-contrast');
+        } else {
+            root.classList.remove('high-contrast');
+        }
+
     }, [settings]);
 
     // Initial data loading
     useEffect(() => {
+        // Bookmarks
         try {
-            const savedBookmarks = localStorage.getItem('mahamaNewsBookmarks');
+            const savedBookmarks = localStorage.getItem('kireheTVBookmarks');
             if (savedBookmarks) setBookmarkedArticleIds(JSON.parse(savedBookmarks));
         } catch (error) { console.error("Failed to load bookmarks", error); }
         
+        // Offline Articles
         const fetchOfflineData = async () => {
             const ids = await getOfflineArticleIds();
             setOfflineArticleIds(ids);
@@ -205,85 +221,144 @@ const App: React.FC = () => {
         };
         fetchOfflineData();
 
+        const fetchDefaultWeather = async () => {
+            console.warn("Geolocation failed or was denied. Fetching weather for a default location.");
+            try {
+              const data = await fetchWeather(40.7128, -74.0060);
+              setWeatherData({ ...data, locationName: "New York, NY" });
+            } catch (e) {
+              console.error("Failed to fetch default weather", e);
+            } finally {
+              setIsWeatherLoading(false);
+            }
+        };
+
+        // Geolocation & Weather
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               async (position) => {
                 const { latitude, longitude } = position.coords;
-                const data = await fetchWeather(latitude, longitude);
-                setWeatherData(data);
-                setIsWeatherLoading(false);
+                try {
+                  const data = await fetchWeather(latitude, longitude);
+                  setWeatherData(data);
+                } catch (e) { 
+                    console.error("Failed to fetch weather for current location.", e);
+                    fetchDefaultWeather();
+                } 
+                finally { 
+                  setIsWeatherLoading(false); 
+                }
               },
-              async () => {
-                const data = await fetchWeather(40.7128, -74.0060); // Default location
-                setWeatherData({ ...data, locationName: "New York, NY"});
-                setIsWeatherLoading(false);
+              (error) => {
+                console.error(`Geolocation error: ${error.message}`);
+                fetchDefaultWeather();
               }
             );
         } else {
-            setIsWeatherLoading(false);
+            console.warn("Geolocation is not supported by this browser.");
+            fetchDefaultWeather();
         }
+
     }, []);
 
-    // Fetch AI data for active article
+    // Fetch AI enhancements when active article changes
     useEffect(() => {
         if (activeArticle) {
-            const fetchAiData = async () => {
-                setFactCheckLoading(true);
-                setTakeawaysLoading(true);
-                // MOCKING DATA for features without an AI util function
-                setConceptsLoading(true);
+            setKeyConcepts([]);
+            setTimelineEvents([]);
+            setPullQuotes([]);
+            setAiTags([]);
+            setFactCheckResult(null);
+            setAiTakeaways([]);
+            setCommunityHighlights([]);
+
+            setConceptsLoading(true);
+            getKeyConcepts(activeArticle, settings).then(setKeyConcepts).catch(console.error).finally(() => setConceptsLoading(false));
+
+            if (activeArticle.hasTimeline) {
                 setTimelineLoading(true);
-                setPullQuotesLoading(true);
-                setTagsLoading(true);
-// FIX: The state setter `setCommunityHighlightsLoading` does not exist. Use `setHighlightsLoading` instead.
-                setHighlightsLoading(true);
+                getTimeline(activeArticle, settings).then(setTimelineEvents).catch(console.error).finally(() => setTimelineLoading(false));
+            }
+            
+            setPullQuotesLoading(true);
+            getPullQuotes(activeArticle, settings).then(setPullQuotes).catch(console.error).finally(() => setPullQuotesLoading(false));
 
-                setTimeout(() => {
-                    setKeyConcepts([
-                        { term: 'G7', description: 'The Group of Seven is an intergovernmental political forum consisting of Canada, France, Germany, Italy, Japan, the United Kingdom, and the United States.', type: 'Organization' },
-                        { term: 'Fiscal Stimulus', description: 'Government measures, normally involving increased public spending and lower taxation, aimed at giving a positive jolt to economic activity.', type: 'Concept' }
-                    ]);
-                    setTimelineEvents([ { year: '2008', description: 'A similar global financial crisis led to coordinated G8/G20 summits.' } ]);
-                    setPullQuotes(['Analysts are watching closely to see if the world\'s leading economies can set aside recent trade tensions.']);
-                    setTags(['Global Economy', 'International Relations', 'G7 Summit', 'Financial Crisis']);
-                    setCommunityHighlights([ { viewpoint: 'Optimistic View', summary: 'Community members believe this summit shows a commitment to global cooperation that could stabilize markets.' } ]);
-                    
-                    setConceptsLoading(false);
-                    setTimelineLoading(false);
-                    setPullQuotesLoading(false);
-                    setTagsLoading(false);
-// FIX: The state setter `setCommunityHighlightsLoading` does not exist. Use `setHighlightsLoading` instead.
-                    setHighlightsLoading(false);
-                }, 1500);
+            setTagsLoading(true);
+            getAiTags(activeArticle, settings).then(setAiTags).catch(console.error).finally(() => setTagsLoading(false));
 
-                try {
-                    const [factCheck, takeaways] = await Promise.all([
-                        factCheckArticle(activeArticle, settings),
-                        Promise.resolve(activeArticle.keyTakeaways) // Using mock takeaways for now
-                    ]);
-                    setFactCheckResult(factCheck);
-                    setAiTakeaways(takeaways);
-                } catch (e) {
-                    console.error("Failed to fetch some AI data", e);
-                } finally {
-                    setFactCheckLoading(false);
-                    setTakeawaysLoading(false);
-                }
-            };
-            fetchAiData();
+            setFactCheckLoading(true);
+            getFactCheck(activeArticle, settings).then(setFactCheckResult).catch(console.error).finally(() => setFactCheckLoading(false));
+
+            setTakeawaysLoading(true);
+            getCommunityHighlights(activeArticle, settings, 'takeaways').then(res => setAiTakeaways(res.map(r => r.summary))).catch(console.error).finally(() => setTakeawaysLoading(false));
+            
+            setHighlightsLoading(true);
+            // FIX: Corrected state setter call from sethighlightsLoading to setHighlightsLoading
+            getCommunityHighlights(activeArticle, settings, 'highlights').then(setCommunityHighlights).catch(console.error).finally(() => setHighlightsLoading(false));
+
         }
     }, [activeArticle, settings]);
 
 
-    const handleSettingsChange = (newSettings: Settings) => setSettings(newSettings);
-
-    const bookmarkedArticles = useMemo(() => allArticles.filter(a => bookmarkedArticleIds.includes(a.id)), [bookmarkedArticleIds, allArticles]);
+    // Real-time article simulation
+    useEffect(() => {
+      const interval = setInterval(() => {
+        if (hiddenArticlesRef.current.length > 0) {
+          const nextArticle = hiddenArticlesRef.current.shift();
+          if (nextArticle) {
+            setNewArticlesQueue(prev => [nextArticle, ...prev]);
+          }
+        } else {
+          clearInterval(interval);
+        }
+      }, 20000); // New article every 20 seconds
     
+      return () => clearInterval(interval);
+    }, []);
+
+    const loadNewArticles = () => {
+        setAllArticles(prev => [...newArticlesQueue, ...prev]);
+        setNewArticlesQueue([]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleSettingsChange = (newSettings: Settings) => {
+        setSettings(newSettings);
+    };
+
+    const bookmarkedArticles = useMemo(() => {
+        const bookmarked = allArticles.filter(a => bookmarkedArticleIds.includes(a.id));
+        const offlineBookmarked = offlineArticles.filter(a => bookmarkedArticleIds.includes(a.id) && !bookmarked.find(ba => ba.id === a.id));
+        return [...bookmarked, ...offlineBookmarked];
+    }, [bookmarkedArticleIds, allArticles, offlineArticles]);
+
+
+    // AI Layout Optimization
+    useEffect(() => {
+        const optimizeLayout = async () => {
+          if (settings.subscriptionTier === 'Premium' && bookmarkedArticles.length >= 3) {
+            try {
+              const optimalLayout = await determineOptimalLayout(bookmarkedArticles, settings);
+              if (optimalLayout && settings.homepageLayout !== optimalLayout) {
+                const newDensity = optimalLayout === 'Dashboard' ? 'Compact' : 'Comfortable';
+                handleSettingsChange({ ...settings, homepageLayout: optimalLayout, informationDensity: newDensity });
+              }
+            } catch (e) {
+              console.error("Layout optimization failed", e);
+            }
+          }
+        };
+        const timer = setTimeout(optimizeLayout, 2000); // Debounce
+        return () => clearTimeout(timer);
+    }, [bookmarkedArticles.length, settings.subscriptionTier]);
+
+
     const openModal = (modal: string, article?: Article) => {
         if (aiModals.includes(modal) && !isAuthenticated) {
             setActiveModal('login');
             return;
         }
+
         if (premiumModals.includes(modal) && settings.subscriptionTier !== 'Premium') {
             setActiveModal('subscribe');
             return;
@@ -291,6 +366,16 @@ const App: React.FC = () => {
         setModalArticle(article || activeArticle || null);
         setActiveModal(modal);
     };
+
+    const handleOpenTtsModal = (article: Article) => {
+        if (!isAuthenticated) {
+            setActiveModal('login');
+            return;
+        }
+        setActiveModal('tts');
+        setModalArticle(article);
+    };
+
 
     const closeModal = () => {
         setActiveModal(null);
@@ -300,18 +385,23 @@ const App: React.FC = () => {
     const handleReadMore = (article: Article) => {
         setActiveArticle(article);
         setActiveMovie(null);
+        setActiveModal(null);
         setIsSettingsOpen(false);
         setIsProfileOpen(false);
         setIsMoviesPage(false);
-        setIsMahamaInvestigatesPage(false);
-        window.scrollTo(0, 0);
+        setIsInvestigatesPage(false);
     };
     
     const handleWatchMovie = (movie: StreamingContent) => {
         setActiveMovie(movie);
         setActiveArticle(null);
+        setActiveModal(null);
         setIsSettingsOpen(false);
         setIsProfileOpen(false);
+    };
+
+    const handleWatchTrailer = (url: string) => {
+        setActiveTrailer(url);
     };
 
     const handleCloseContent = () => {
@@ -327,40 +417,59 @@ const App: React.FC = () => {
             ? bookmarkedArticleIds.filter(bId => bId !== id)
             : [...bookmarkedArticleIds, id];
         setBookmarkedArticleIds(newBookmarks);
-        localStorage.setItem('mahamaNewsBookmarks', JSON.stringify(newBookmarks));
+        localStorage.setItem('kireheTVBookmarks', JSON.stringify(newBookmarks));
     };
 
     const handleDownloadArticle = useCallback(async (article: Article) => {
         setDownloadingArticleId(article.id);
         try {
             await saveArticleForOffline(article);
+            const ids = await getOfflineArticleIds();
+            setOfflineArticleIds(ids);
             const articles = await getOfflineArticles();
             setOfflineArticles(articles);
-            setOfflineArticleIds(articles.map(a => a.id));
+        } catch (error) {
+            console.error("Failed to save article for offline", error);
         } finally {
             setDownloadingArticleId(null);
         }
     }, []);
 
     const handleDeleteOfflineArticle = useCallback(async (id: number) => {
-        await deleteOfflineArticle(id);
-        const articles = await getOfflineArticles();
-        setOfflineArticles(articles);
-        setOfflineArticleIds(articles.map(a => a.id));
+        try {
+            await deleteOfflineArticle(id);
+            const ids = await getOfflineArticleIds();
+            setOfflineArticleIds(ids);
+            const articles = await getOfflineArticles();
+            setOfflineArticles(articles);
+        } catch (error) {
+            console.error("Failed to delete offline article", error);
+        }
     }, []);
     
     const handleClearAllOffline = async () => {
-        await clearAllOfflineArticles();
-        setOfflineArticles([]);
-        setOfflineArticleIds([]);
+        try {
+            await clearAllOfflineArticles();
+            setOfflineArticleIds([]);
+            setOfflineArticles([]);
+        } catch (error) {
+            console.error("Failed to clear offline articles", error);
+        }
     }
     
     const handleClearAllBookmarks = () => {
         setBookmarkedArticleIds([]);
-        localStorage.removeItem('mahamaNewsBookmarks');
+        localStorage.removeItem('kireheTVBookmarks');
     }
 
-    const handleLogin = () => { setIsAuthenticated(true); closeModal(); };
+    const handleLogin = () => {
+        setIsAuthenticated(true);
+        setActiveModal(null);
+        // Show onboarding tour for new logins if they haven't seen it
+        if (!localStorage.getItem('kireheTVOnboardingComplete')) {
+            setShowOnboarding(true);
+        }
+    };
     const handleLogout = () => setIsAuthenticated(false);
     
     const handleSubscribe = (plan: 'Free' | 'Premium', priceDetails: { name: string, price: string }) => {
@@ -369,49 +478,57 @@ const App: React.FC = () => {
             setActiveModal('payment');
         } else {
             handleSettingsChange({ ...settings, subscriptionTier: plan });
-            closeModal();
+            setActiveModal(null);
         }
     };
-    
+
     const handlePaymentSuccess = () => {
         handleSettingsChange({ ...settings, subscriptionTier: 'Premium' });
         setActiveModal(null);
+        setSelectedPlan(null);
     }
     
     const handleLogoClick = () => {
-        handleCloseContent();
+        setActiveArticle(null);
+        setActiveMovie(null);
+        setIsSettingsOpen(false);
+        setIsProfileOpen(false);
         setIsMoviesPage(false);
-        setIsMahamaInvestigatesPage(false);
+        setIsInvestigatesPage(false);
+        setActiveInfoPage(null);
         setCurrentCategory('For You');
         setCurrentSubCategory(null);
         window.scrollTo(0, 0);
     };
 
     const handleSelectCategory = (category: string) => {
-        if (category === currentCategory) return;
+        if (category === currentCategory && !isMoviesPage && !isInvestigatesPage) return;
+
         setIsCategoryLoading(true);
+
         setTimeout(() => {
-            handleCloseContent();
             setIsMoviesPage(category === 'Movies & TV');
-            setIsMahamaInvestigatesPage(category === 'Mahama Investigates');
+            setIsInvestigatesPage(category === 'Kirehe TV Investigates');
+            setActiveArticle(null);
+
             setCurrentCategory(category);
             setCurrentSubCategory(null);
             window.scrollTo(0, 0);
             setIsCategoryLoading(false);
-        }, 1500);
+        }, 1000); // 1-second delay
     };
 
-    const filteredArticles = useMemo(() => {
-        if (currentCategory === 'For You') {
-            return allArticles.slice(0, 15);
-        }
-        if(currentCategory === 'All') {
-            return allArticles;
-        }
-        return allArticles.filter(a => a.category === currentCategory);
-    }, [allArticles, currentCategory]);
+    const handleSelectSubCategory = (subCategory: string) => {
+        setCurrentSubCategory(subCategory);
+        window.scrollTo(0, 0);
+    };
     
-    const addToCompare = (articleId: number) => {
+    const closeOnboarding = () => {
+        setShowOnboarding(false);
+        localStorage.setItem('kireheTVOnboardingComplete', 'true');
+    }
+
+    const handleAddToCompare = (articleId: number) => {
         setComparisonList(prev => {
             if (prev.includes(articleId)) {
                 return prev.filter(id => id !== articleId);
@@ -419,71 +536,153 @@ const App: React.FC = () => {
             if (prev.length < 2) {
                 return [...prev, articleId];
             }
-            return prev;
+            return prev; // Max 2
         });
     };
     
     const comparisonArticles = useMemo(() => allArticles.filter(a => comparisonList.includes(a.id)), [comparisonList, allArticles]);
 
-    const mainContent = () => {
-        if (activeArticle) {
-            return <ArticlePage article={activeArticle} onClose={handleCloseContent} isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)} onToggleBookmark={() => toggleBookmark(activeArticle.id)} onReadMore={handleReadMore} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={article => openModal('tts', article)} onQuiz={article => openModal('quiz', article)} onCounterpoint={article => openModal('counterpoint', article)} onBehindTheNews={article => openModal('behindTheNews', article)} onExpertAnalysis={article => openModal('expertAnalysis', article)} onAskAuthor={article => openModal('askAuthor', article)} onFactCheckPage={article => openModal('factCheckPage', article)} onDeepDive={article => openModal('deepDive', article)} onInfographic={article => openModal('infographic', article)} settings={settings} onPremiumClick={() => setActiveModal('subscribe')} keyConcepts={keyConcepts} timelineEvents={timelineEvents} timelineLoading={timelineLoading} pullQuotes={pullQuotes} pullQuotesLoading={pullQuotesLoading} tags={tags} tagsLoading={tagsLoading} factCheckResult={factCheckResult} factCheckLoading={factCheckLoading} aiTakeaways={aiTakeaways} takeawaysLoading={takeawaysLoading} communityHighlights={communityHighlights} highlightsLoading={highlightsLoading} comparisonList={comparisonList} onAddToCompare={addToCompare} />;
-        }
-        if (activeMovie) {
-            return <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />;
-        }
-        if (isSettingsOpen) {
-            return <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => openModal('subscribe')} />;
-        }
-        if (isProfileOpen) {
-            return <ProfilePage user={currentUser} onUserChange={() => {}} settings={settings} onManageSubscription={() => openModal('subscribe')} readingHistory={allArticles.slice(0,5)} />;
-        }
-        if(activeInfoPage) {
-            return <>
-                {activeInfoPage === 'about' && <AboutPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                {activeInfoPage === 'careers' && <CareersPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                {activeInfoPage === 'contact' && <ContactPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-                {activeInfoPage === 'advertise' && <AdvertisePage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
-            </>
+
+    const filteredArticles = useMemo(() => {
+        let articlesToFilter = allArticles;
+
+        if (currentCategory === 'For You') {
+            return articlesToFilter
+                .filter(a => settings.contentPreferences.length === 0 || settings.contentPreferences.includes(a.category) || a.sentiment === 'Positive')
+                .slice(0, 15);
         }
         
-        return (
-            <div className={`lg:grid ${isMoviesPage || isMahamaInvestigatesPage ? '' : 'lg:grid-cols-3 lg:gap-8'}`}>
-                <div className={`${isMoviesPage || isMahamaInvestigatesPage ? 'col-span-3' : 'lg:col-span-2'}`}>
-                    {currentCategory === 'For You' && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
-                    <div className="mt-8">
-                        {isMoviesPage ? <MoviesTVPage onWatchMovie={handleWatchMovie} onWatchTrailer={url => setActiveTrailer(url)} /> : isMahamaInvestigatesPage ? <MahamaInvestigatesPage onArticleClick={handleReadMore} /> : <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={article => openModal('tts', article)} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={addToCompare} layout={settings.homepageLayout === 'Dashboard' ? 'grid' : 'default'} />}
-                    </div>
-                    {settings.showMahama360 && currentCategory === 'For You' && <Mahama360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore} />}
-                    {settings.showNewsMap && currentCategory === 'For You' && <InteractiveGlobe articles={allArticles} onArticleClick={handleReadMore} />}
-                    {settings.showDataInsights && currentCategory === 'For You' && <DataDrivenInsights />}
-                    {settings.showNowStreaming && currentCategory === 'For You' && <SponsoredBanners />}
-                </div>
-                {!(isMoviesPage || isMahamaInvestigatesPage) && <RightAside trendingArticles={allArticles.slice(1, 6)} allArticles={allArticles} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => openModal('subscribe')} weatherData={weatherData} isWeatherLoading={isWeatherLoading} isSettingsOpen={isSettingsOpen} isProfileOpen={isProfileOpen} user={currentUser} keyConcepts={keyConcepts} conceptsLoading={conceptsLoading} timelineEvents={timelineEvents} timelineLoading={timelineLoading}/>}
-            </div>
-        );
+        if(currentCategory !== 'All') {
+            articlesToFilter = articlesToFilter.filter(a => a.category === currentCategory);
+        }
+
+        return articlesToFilter;
+    }, [allArticles, currentCategory, settings.contentPreferences]);
+    
+    const renderCategoryContent = () => {
+        if (isMoviesPage) {
+            return <MoviesTVPage onWatchMovie={handleWatchMovie} onWatchTrailer={handleWatchTrailer} />;
+        }
+        if (isInvestigatesPage) {
+            return <MahamaInvestigatesPage onArticleClick={handleReadMore} />;
+        }
+
+        const layout = settings.homepageLayout === 'Dashboard' ? 'grid' : 'default';
+        return <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList} onAddToCompare={handleAddToCompare} layout={layout} />;
     };
+
 
     return (
         <TranslationProvider language={settings.preferredLanguage} settings={settings}>
-            <div className="min-h-screen bg-slate-50 dark:bg-navy text-slate-900 dark:text-white">
-                {isCategoryLoading && <CategoryLoadingOverlay />}
-                {(activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage) && <ScrollProgressBar />}
-                <Header onMenuClick={() => openModal('categoryExplorer')} onSearchClick={() => openModal('search')} onSettingsClick={() => setIsSettingsOpen(true)} onProfileClick={() => setIsProfileOpen(true)} onLogoClick={handleLogoClick} isAuthenticated={isAuthenticated} onLoginClick={() => setActiveModal('login')} onLogout={handleLogout} user={currentUser} onNotificationsClick={() => activeModal === 'notifications' ? closeModal() : openModal('notifications')} notifications={notifications} settings={settings} onSettingsChange={handleSettingsChange} isTranslating={false} />
+            <div className="min-h-screen bg-slate-50 dark:bg-navy text-slate-800 dark:text-slate-200">
+                {isCategoryLoading && <CategoryLoadingOverlay text={`Loading ${currentCategory}...`} />}
+                {activeArticle && <ScrollProgressBar />}
+                <Header
+                    onMenuClick={() => openModal('categoryExplorer')}
+                    onSearchClick={() => openModal('search')}
+                    onKireheServicesClick={() => openModal('kireheServices')}
+                    onSettingsClick={() => setIsSettingsOpen(true)}
+                    onProfileClick={() => setIsProfileOpen(true)}
+                    onLogoClick={handleLogoClick}
+                    isAuthenticated={isAuthenticated}
+                    onLoginClick={() => setActiveModal('login')}
+                    onLogout={handleLogout}
+                    user={currentUser}
+                    onNotificationsClick={() => setIsNotificationsOpen(p => !p)}
+                    notifications={notifications}
+                    settings={settings}
+                    onSettingsChange={handleSettingsChange}
+                    isTranslating={false}
+                />
 
-                <main className={`pt-20 transition-opacity duration-300 ${isCategoryLoading ? 'opacity-0' : 'opacity-100'}`}>
-                    {!(activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage) && <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />}
+                <main className="pt-20">
+                    {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && (
+                    <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />
+                    )}
                     <div className="sticky top-20 z-30">
-                        {!(activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage) && <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={setCurrentSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />}
+                        {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && (
+                            <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={handleSelectSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />
+                        )}
                     </div>
-                    <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${isMoviesPage || isMahamaInvestigatesPage ? 'max-w-full' : ''}`}>
-                        {mainContent()}
+                    
+                    {newArticlesQueue.length > 0 && !activeArticle && !activeMovie && (
+                        <div className="fixed top-40 left-1/2 -translate-x-1/2 z-40">
+                            <button onClick={loadNewArticles} className="px-4 py-2 bg-deep-red text-white font-semibold rounded-full shadow-lg animate-bounce">
+                                {newArticlesQueue.length} New Article{newArticlesQueue.length > 1 ? 's' : ''}
+                            </button>
+                        </div>
+                    )}
+                    
+                    <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${isMoviesPage || isInvestigatesPage ? 'max-w-full' : ''}`}>
+                        {activeArticle ? (
+                            <ArticlePage 
+                                article={activeArticle} 
+                                onClose={handleCloseContent}
+                                isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
+                                onToggleBookmark={toggleBookmark}
+                                onReadMore={handleReadMore}
+                                onSummarize={(article) => openModal('summarize', article)}
+                                onExplainSimply={(article) => openModal('explain', article)}
+                                onTextToSpeech={handleOpenTtsModal}
+                                onQuiz={(article) => openModal('quiz', article)}
+                                onCounterpoint={(article) => openModal('counterpoint', article)}
+                                onBehindTheNews={(article) => openModal('behindTheNews', article)}
+                                onExpertAnalysis={(article) => openModal('expertAnalysis', article)}
+                                onAskAuthor={(article) => openModal('askAuthor', article)}
+                                onFactCheckPage={(article) => openModal('factCheckPage', article)}
+                                onDeepDive={(article) => openModal('deepDive', article)}
+                                onInfographic={(article) => openModal('infographic', article)}
+                                settings={settings}
+                                onPremiumClick={() => setActiveModal('subscribe')}
+                                keyConcepts={keyConcepts}
+                                timelineEvents={timelineEvents}
+                                timelineLoading={timelineLoading}
+                                pullQuotes={pullQuotes}
+                                pullQuotesLoading={pullQuotesLoading}
+                                tags={aiTags}
+                                tagsLoading={tagsLoading}
+                                factCheckResult={factCheckResult}
+                                factCheckLoading={factCheckLoading}
+                                aiTakeaways={aiTakeaways}
+                                takeawaysLoading={takeawaysLoading}
+                                communityHighlights={communityHighlights}
+                                highlightsLoading={highlightsLoading}
+                            />
+                        ) : activeMovie ? (
+                            <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />
+                        ) : isSettingsOpen ? (
+                            <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />
+                        ) : isProfileOpen ? (
+                            <ProfilePage onClose={handleCloseContent} user={currentUser} onUserChange={setCurrentUser} settings={settings} onManageSubscription={() => setActiveModal('subscribe')} readingHistory={allArticles.slice(5, 10)} />
+                        ) : activeInfoPage ? (
+                            <>
+                                {activeInfoPage === 'about' && <AboutPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
+                                {activeInfoPage === 'careers' && <CareersPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
+                                {activeInfoPage === 'contact' && <ContactPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
+                                {activeInfoPage === 'advertise' && <AdvertisePage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
+                            </>
+                        ) : (
+                            <div className={`lg:grid ${isMoviesPage || isInvestigatesPage ? '' : 'lg:grid-cols-3 lg:gap-8'}`}>
+                                <div className={`${isMoviesPage || isInvestigatesPage ? 'col-span-3' : 'lg:col-span-2'}`}>
+                                {currentCategory === 'For You' && !isMoviesPage && !isInvestigatesPage && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
+                                <div className={`${currentCategory === 'For You' && !isMoviesPage && !isInvestigatesPage ? 'mt-8' : ''}`}>
+                                    {renderCategoryContent()}
+                                </div>
+                                    {settings.showMahama360 && currentCategory === 'For You' && <Mahama360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore} />}
+                                    {settings.showNowStreaming && currentCategory === 'For You' && <SponsoredBanners />}
+                                </div>
+                                {!isMoviesPage && !isInvestigatesPage && <RightAside trendingArticles={allArticles.slice(1, 6)} allArticles={allArticles} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => setActiveModal('subscribe')} weatherData={weatherData} isWeatherLoading={isWeatherLoading} isSettingsOpen={isSettingsOpen} isProfileOpen={isProfileOpen} user={currentUser} keyConcepts={keyConcepts} conceptsLoading={conceptsLoading} timelineEvents={timelineEvents} timelineLoading={timelineLoading} />}
+                            </div>
+                        )}
                     </div>
                 </main>
 
-                {!(activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage) && <Footer onInfoPageClick={setActiveInfoPage} />}
+                {!activeArticle && <Footer onInfoPageClick={setActiveInfoPage} />}
                 
-                {/* Modals */}
+                {showOnboarding && <OnboardingTour onClose={closeOnboarding} />}
+
+                <CompareNowButton articles={comparisonArticles} onCompare={() => openModal('compare')} onRemove={handleAddToCompare} onClear={() => setComparisonList([])} />
+
                 <SummarizerModal isOpen={activeModal === 'summarize'} article={modalArticle} settings={settings} onClose={closeModal} />
                 <ExplainSimplyModal isOpen={activeModal === 'explain'} article={modalArticle} settings={settings} onClose={closeModal} />
                 <QuizModal isOpen={activeModal === 'quiz'} article={modalArticle} settings={settings} onClose={closeModal} />
@@ -493,25 +692,26 @@ const App: React.FC = () => {
                 <AskAuthorModal isOpen={activeModal === 'askAuthor'} article={modalArticle} settings={settings} onClose={closeModal} />
                 <DeepDiveModal isOpen={activeModal === 'deepDive'} article={modalArticle} settings={settings} onClose={closeModal} />
                 <InfographicModal isOpen={activeModal === 'infographic'} article={modalArticle} settings={settings} onClose={closeModal} />
-                <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={activeArticle?.content || ''} />
-                <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} movies={mockStreamingContent} onArticleSelect={handleReadMore} onMovieSelect={handleWatchMovie} onWatchTrailer={url => setActiveTrailer(url)} settings={settings}/>
-                <CategoryExplorerPage isOpen={activeModal === 'categoryExplorer'} onClose={closeModal} categories={categories} onCategorySelect={(cat) => { handleSelectCategory(cat); closeModal(); }} onSubCategorySelect={(sub) => {handleSelectCategory(sub); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => {closeModal(); setIsSettingsOpen(true);}} />
+                <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={modalArticle?.content || ''} />
+                <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} movies={mockStreamingContent} onArticleSelect={handleReadMore} onMovieSelect={handleWatchMovie} onWatchTrailer={handleWatchTrailer} settings={settings}/>
+                <CategoryExplorerPage isOpen={activeModal === 'categoryExplorer'} onClose={closeModal} categories={categories} onCategorySelect={(cat) => { handleSelectCategory(cat); closeModal(); }} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={() => {closeModal(); setIsSettingsOpen(true);}} />
                 <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
                 <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore}/>
                 <LoginModal isOpen={activeModal === 'login'} onClose={closeModal} onLogin={handleLogin} />
                 <SubscriptionModal isOpen={activeModal === 'subscribe'} onClose={closeModal} onSubscribe={handleSubscribe} />
                 <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
-                <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={allArticles} onPlayBriefing={(briefing) => setAudioPlayerState({ article: briefing })} />
+                <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={allArticles} onPlayBriefing={(briefing) => setAudioPlayerState({ article: briefing })} onGenerateVideo={script => { setBriefingScript(script); openModal('anchorVideo'); }}/>
+                <AiAnchorVideoModal isOpen={activeModal === 'anchorVideo'} onClose={closeModal} script={briefingScript} />
                 <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
+                <KireheServicesModal isOpen={activeModal === 'kireheServices'} onClose={closeModal} />
                 <TextToSpeechModal isOpen={activeModal === 'tts'} article={modalArticle} settings={settings} onClose={closeModal} onPlay={(originalArticle, translatedText, voice) => setAudioPlayerState({ article: {...originalArticle, content: translatedText}, voiceOverride: voice })} />
                 <TrailerModal isOpen={!!activeTrailer} onClose={() => setActiveTrailer(null)} trailerUrl={activeTrailer} />
-                <NotificationCenter isOpen={activeModal === 'notifications'} onClose={closeModal} notifications={notifications} onMarkAsRead={(id) => setNotifications(notifs => notifs.map(n => n.id === id ? {...n, read: true} : n))} onMarkAllAsRead={() => setNotifications(notifs => notifs.map(n => ({...n, read: true})))} />
-                <ComparisonModal isOpen={activeModal === 'compare'} onClose={closeModal} articles={comparisonArticles} settings={settings} />
+                <ComparisonModal isOpen={activeModal === 'compare'} articles={comparisonArticles} settings={settings} onClose={closeModal} />
+                <NotificationCenter isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} onMarkAsRead={(id) => setNotifications(n => n.map(notif => notif.id === id ? {...notif, read: true} : notif))} onMarkAllAsRead={() => setNotifications(n => n.map(notif => ({...notif, read: true})))} />
 
-                {/* Floating Players & Buttons */}
+
                 <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
-                {!(activeArticle || activeMovie || isSettingsOpen || isProfileOpen || activeInfoPage) && <FloatingActionButton onClick={() => openModal('live')} />}
-                <CompareNowButton articles={comparisonArticles} onCompare={() => openModal('compare')} onRemove={addToCompare} onClear={() => setComparisonList([])} />
+                {!activeArticle && !activeMovie && <FloatingActionButton onClick={() => openModal('live')} />}
             </div>
         </TranslationProvider>
     );

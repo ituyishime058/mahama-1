@@ -10,10 +10,12 @@ import type { User, Notification, Settings, Language } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import UserIcon from './icons/UserIcon';
 import RingLoader from './RingLoader';
+import KireheServicesIcon from './icons/KireheServicesIcon';
 
 interface HeaderProps {
   onMenuClick: () => void;
   onSearchClick: () => void;
+  onKireheServicesClick: () => void;
   onSettingsClick: () => void;
   onProfileClick: () => void;
   onLogoClick: () => void;
@@ -31,6 +33,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ 
   onMenuClick,
   onSearchClick,
+  onKireheServicesClick,
   onSettingsClick,
   onProfileClick,
   onLogoClick,
@@ -104,6 +107,9 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex-1 flex items-center justify-end gap-1 sm:gap-2">
             <button onClick={onSearchClick} aria-label={t('openSearch')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SearchIcon />
+            </button>
+            <button onClick={onKireheServicesClick} aria-label={t('kireheServices')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <KireheServicesIcon />
             </button>
             
             <div className="relative" ref={langDropdownRef}>

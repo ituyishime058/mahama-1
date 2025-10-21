@@ -1,4 +1,32 @@
-// This file is deprecated. The active component is located at /components/ContactPage.tsx
 import React from 'react';
-const Placeholder = () => null;
-export default Placeholder;
+import InfoPage from './components/InfoPage';
+
+interface PageProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ContactPage: React.FC<PageProps> = ({ isOpen, onClose }) => {
+  return (
+    <InfoPage isOpen={isOpen} title="Contact Us" onClose={onClose}>
+      <p className="mb-4">We'd love to hear from you. Please direct your inquiries to the appropriate department below.</p>
+      
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-xl font-bold">General Inquiries</h3>
+          <p>For general questions, feedback, or story tips, please email us at: <a href="mailto:contact@kirehetv.com" className="text-deep-red dark:text-gold hover:underline">contact@kirehetv.com</a></p>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold">Press & Media</h3>
+          <p>For all press and media-related inquiries, contact our communications team at: <a href="mailto:press@kirehetv.com" className="text-deep-red dark:text-gold hover:underline">press@kirehetv.com</a></p>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold">Corrections</h3>
+          <p>To report an error or request a correction, please reach out to our editorial team at: <a href="mailto:corrections@kirehetv.com" className="text-deep-red dark:text-gold hover:underline">corrections@kirehetv.com</a></p>
+        </div>
+      </div>
+    </InfoPage>
+  );
+};
+
+export default ContactPage;

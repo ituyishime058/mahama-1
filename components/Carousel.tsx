@@ -32,12 +32,13 @@ const Carousel: React.FC<CarouselProps> = ({ title, items, onWatchMovie, onWatch
             <div className="relative group/carousel">
                 <div ref={scrollRef} className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide">
                     {items.map(item => (
-                        <MovieCard 
-                            key={item.id}
-                            item={item}
-                            onWatchMovie={onWatchMovie}
-                            onWatchTrailer={onWatchTrailer}
-                        />
+                        <div key={item.id} className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5 xl:w-1/6 flex-shrink-0">
+                            <MovieCard 
+                                item={item}
+                                onWatchMovie={onWatchMovie}
+                                onWatchTrailer={onWatchTrailer}
+                            />
+                        </div>
                     ))}
                 </div>
                 <button onClick={() => scroll('left')} aria-label="Scroll left" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-3 z-10 hidden md:block opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300">

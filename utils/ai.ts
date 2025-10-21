@@ -1,174 +1,68 @@
-import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
-import type { Article, Settings, QuizQuestion, ExpertPersona, InfographicData, FactCheckResult, ChatMessage, Language, TimelineEvent, KeyConcept, CommunityHighlight, NetworkNode, NetworkLink, StreamingContent, AiSearchResult } from '../types';
-import { mockArticles } from '../constants';
-
-const getModel = (settings: Settings) => settings.aiModelPreference === 'Quality' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+import { GoogleGenAI, Type } from "@google/genai";
+// FIX: Add AiTtsVoice to the import list.
+import type { Article, Settings, Language, QuizQuestion, ExpertPersona, FactCheckResult, KeyConcept, TimelineEvent, CommunityHighlight, AiSearchResult, InfographicData, StreamingContent, ChatMessage, NetworkNode, NetworkLink, AiTtsVoice } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
-// Reusable streaming function
-async function* streamResponse(prompt: string, model: string): AsyncGenerator<string> {
+// --- Text Generation & Summarization ---
+
+export async function* summarizeArticle(article: Article, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = settings.aiModelPreference === 'Quality' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const prompt = `Summarize the following article in a ${settings.summaryLength} paragraph: "${article.title}" - ${article.content.substring(0, 2000)}`;
+    
     const response = await ai.models.generateContentStream({
         model,
         contents: prompt,
     });
+
     for await (const chunk of response) {
         yield chunk.text;
     }
 }
 
-export async function* summarizeArticle(article: Article, settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Summarize the following article in a ${settings.summaryLength}, professional paragraph. Article title: "${article.title}". Content: ${article.content}`;
-    yield* streamResponse(prompt, model);
-}
+export async function* explainSimply(article: Article, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = settings.aiModelPreference === 'Quality' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const prompt = `Explain the key points of this article as if I'm a complete beginner on the topic. Article: "${article.title}" - ${article.content.substring(0, 2000)}`;
 
-export async function* explainSimply(article: Article, settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Explain the key points of this article as if I'm a complete beginner on the topic. Keep it simple and clear. Article title: "${article.title}". Content: ${article.content}`;
-    yield* streamResponse(prompt, model);
-}
-
-export async function generateQuiz(article: Article, settings: Settings): Promise<QuizQuestion[]> {
-    const model = getModel(settings);
-    const response = await ai.models.generateContent({
+    const response = await ai.models.generateContentStream({
         model,
-        contents: `Create a 3-question multiple-choice quiz based on this article. The questions should test comprehension of key facts. For each question, provide 4 options and indicate the correct answer. Article: ${article.content}`,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        question: { type: Type.STRING },
-                        options: {
-                            type: Type.ARRAY,
-                            items: { type: Type.STRING },
-                        },
-                        correctAnswer: { type: Type.STRING },
-                    },
-                    required: ['question', 'options', 'correctAnswer'],
-                },
-            },
-        },
-    });
-    return JSON.parse(response.text);
-}
-
-export async function* generateCounterpoint(article: Article, settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Provide a well-reasoned counterpoint or alternative perspective to the main argument of this article. Article: ${article.title}\n\n${article.content}`;
-    yield* streamResponse(prompt, model);
-}
-
-export async function* generateBehindTheNews(article: Article, settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Provide historical context, background information, and broader implications related to this news article. Format it with markdown headings. Article: ${article.title}\n\n${article.content}`;
-    yield* streamResponse(prompt, model);
-}
-
-export async function* generateExpertAnalysis(article: Article, persona: ExpertPersona, settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Analyze this article from the perspective of a professional ${persona}. Discuss the key implications, underlying trends, and potential future developments. Format with markdown. Article: ${article.title}\n\n${article.content}`;
-    yield* streamResponse(prompt, model);
-}
-
-export async function* generateAuthorResponse(article: Article, question: string, history: ChatMessage[], settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `You are an AI persona of ${article.author}, the author of the article "${article.title}". Based on the article's content and your persona, answer the following question. Previous conversation: ${JSON.stringify(history)}. Question: "${question}"`;
-    yield* streamResponse(prompt, model);
-}
-
-export async function* generateDeepDive(article: Article, settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Generate a deep-dive analysis of the article "${article.title}". Explore related topics, technical details, and long-term consequences. Use markdown for structure. Article content: ${article.content}`;
-    yield* streamResponse(prompt, model);
-}
-
-export async function generateInfographicData(article: Article, settings: Settings): Promise<InfographicData> {
-    const model = getModel(settings);
-    const response = await ai.models.generateContent({
-        model,
-        contents: `From the article "${article.title}", extract the most important quantifiable data points suitable for a bar chart. Identify a clear title for the chart and provide between 3 to 6 data items with labels and numerical values. Article: ${article.content}`,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    items: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                label: { type: Type.STRING },
-                                value: { type: Type.NUMBER },
-                            },
-                            required: ['label', 'value'],
-                        },
-                    },
-                },
-                required: ['title', 'items'],
-            },
-        },
-    });
-    return JSON.parse(response.text);
-}
-
-export async function findRelatedArticles(currentArticle: Article, allArticles: Article[], settings: Settings): Promise<number[]> {
-    const model = getModel(settings);
-    const articleSummaries = allArticles
-        .filter(a => a.id !== currentArticle.id)
-        .map(a => ({ id: a.id, title: a.title, excerpt: a.excerpt }));
-
-    const response = await ai.models.generateContent({
-        model,
-        contents: `From the following list of articles, which 3 are most topically related to the article titled "${currentArticle.title}"? Provide only a JSON array of their integer IDs. Article List: ${JSON.stringify(articleSummaries)}`,
+        contents: prompt,
     });
     
-    try {
-        const ids = JSON.parse(response.text.replace(/`/g, '').replace('json', ''));
-        return Array.isArray(ids) ? ids : [];
-    } catch (e) {
-        console.error("Failed to parse related article IDs:", e);
-        return [];
+    for await (const chunk of response) {
+        yield chunk.text;
     }
 }
 
-export async function determineOptimalLayout(bookmarkedArticles: Article[], settings: Settings): Promise<'Standard' | 'Dashboard'> {
-    const model = getModel(settings);
-    const titles = bookmarkedArticles.map(a => a.title).join(', ');
-    const response = await ai.models.generateContent({
-        model,
-        contents: `A user frequently bookmarks articles like: "${titles}". Based on these topics, would a "Standard" (content-focused, traditional) or "Dashboard" (dense, data-rich) layout be more suitable? Respond with only "Standard" or "Dashboard".`,
-    });
-    const layout = response.text.trim();
-    return layout === 'Dashboard' ? 'Dashboard' : 'Standard';
-}
+// --- Translation ---
 
-export const getThisDayInHistory = async (): Promise<string> => {
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `What are 2-3 significant historical events that happened on today's date? For each, provide the year and a one-sentence description. Use markdown "##" for each event title (e.g., "## 1969 - Moon Landing").`,
-    });
-    return response.text;
+export const batchTranslate = async (
+  sourceStrings: { [key: string]: string },
+  targetLanguage: Language,
+  settings: Settings
+): Promise<{ [key: string]: string }> => {
+  const model = 'gemini-2.5-flash';
+  const prompt = `Translate the following JSON object of English strings into ${targetLanguage}. Do not translate the keys. Return only the translated JSON object.\n\n${JSON.stringify(sourceStrings, null, 2)}`;
+  
+  const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+          responseMimeType: "application/json",
+      }
+  });
+
+  try {
+    const translatedJsonText = response.text.replace(/```json\n?|\n?```/g, '').trim();
+    return JSON.parse(translatedJsonText);
+  } catch (e) {
+    console.error("Failed to parse translated JSON:", response.text, e);
+    return sourceStrings; // Fallback to source
+  }
 };
 
-export async function applyReadingLens(content: string, lens: 'Simplify' | 'DefineTerms', settings: Settings): Promise<string> {
-    const model = getModel(settings);
-    let prompt = '';
-    if (lens === 'Simplify') {
-        prompt = `Rewrite the following text in simpler, easier-to-understand language, while retaining the core meaning: ${content}`;
-    } else if (lens === 'DefineTerms') {
-        prompt = `Analyze the following text. For any complex terms or jargon, add a simple, one-sentence definition in parentheses immediately after the term. Return the full text with these definitions integrated. Text: ${content}`;
-    }
-    const response = await ai.models.generateContent({ model, contents: prompt });
-    return response.text;
-}
-
 export const translateArticle = async (text: string, language: string, settings: Settings): Promise<string> => {
-    const model = getModel(settings);
+    const model = 'gemini-2.5-flash';
     const response = await ai.models.generateContent({
         model,
         contents: `Translate the following text to ${language}: "${text}"`,
@@ -176,160 +70,352 @@ export const translateArticle = async (text: string, language: string, settings:
     return response.text;
 };
 
-export const batchTranslate = async (englishStrings: Record<string, string>, language: string, settings: Settings): Promise<Record<string, string>> => {
-    const model = getModel(settings);
+export const translateArticleContent = async (article: Article, language: Language, settings: Settings): Promise<{ title: string, excerpt: string, content: string }> => {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING },
+            excerpt: { type: Type.STRING },
+            content: { type: Type.STRING },
+        }
+    };
+
     const response = await ai.models.generateContent({
         model,
-        contents: `Translate the values of this JSON object to ${language}. Return only the translated JSON object. ${JSON.stringify(englishStrings)}`,
-        config: { responseMimeType: 'application/json' }
-    });
-    try {
-        return JSON.parse(response.text);
-    } catch (e) {
-        console.error("Failed to parse translated JSON:", e);
-        return englishStrings; // Fallback
-    }
-}
-
-export const translateArticleContent = async (article: Article, language: Language, settings: Settings): Promise<{ title: string; excerpt: string; content: string; }> => {
-    const model = getModel(settings);
-    const response = await ai.models.generateContent({
-        model,
-        contents: `Translate the following JSON object's string values to ${language}. Return only the translated JSON object. ${JSON.stringify({ title: article.title, excerpt: article.excerpt, content: article.content })}`,
-        config: { responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text);
-};
-
-export const factCheckArticle = async (article: Article, settings: Settings): Promise<FactCheckResult> => {
-    const model = 'gemini-2.5-pro';
-    const response = await ai.models.generateContent({
-        model,
-        contents: `Fact-check the key claims in the following article. Provide a summary of your findings and a status: "Verified", "Mixed", or "Unverified". Article: ${article.content}`,
-        config: { tools: [{ googleSearch: {} }] }
-    });
-    const text = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web) || [];
-    
-    let status: FactCheckResult['status'] = 'Unverified';
-    if (text.toLowerCase().includes('verified')) status = 'Verified';
-    else if (text.toLowerCase().includes('mixed')) status = 'Mixed';
-    
-    return { status, summary: text, sources };
-};
-
-export const factCheckPageContent = async (content: string, settings: Settings): Promise<{ summary: string; sources: { uri: string, title: string }[] }> => {
-    const model = 'gemini-2.5-pro';
-    const response = await ai.models.generateContent({
-        model,
-        contents: `Fact-check the key claims in the provided text. Summarize your findings and list the sources you consulted. Text: ${content}`,
-        config: { tools: [{ googleSearch: {} }] }
-    });
-
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web) || [];
-    return { summary: response.text, sources };
-}
-
-export const identifyKeyPlayers = async (article: Article, settings: Settings): Promise<{ nodes: NetworkNode[]; links: NetworkLink[]; }> => {
-    const model = getModel(settings);
-    const response = await ai.models.generateContent({
-        model,
-        contents: `Identify the key players (companies, countries, people) in this article and their relationships. Return a JSON object with 'nodes' and 'links'. Nodes should have 'id' and 'type'. Links should have 'source' and 'target'. Article: ${article.content}`,
-        config: { responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text);
-}
-
-export async function* askAboutArticle(article: Article, question: string, history: ChatMessage[], settings: Settings): AsyncGenerator<string> {
-    const model = getModel(settings);
-    const prompt = `Based on the article "${article.title}", answer the following question. Previous conversation: ${JSON.stringify(history)}. Question: "${question}"\n\nArticle Content: ${article.content}`;
-    yield* streamResponse(prompt, model);
-}
-
-export const generateNewsBriefing = async (articles: Article[], settings: Settings): Promise<string> => {
-    const model = getModel(settings);
-    const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
-    const response = await ai.models.generateContent({
-        model,
-        contents: `You are a news anchor with a ${settings.aiVoicePersonality} personality. Create a concise, engaging news briefing script summarizing these articles. The script should be spoken, not written. Articles:\n${articleSummaries}`,
-    });
-    return response.text;
-}
-
-export const textToSpeech = async (text: string, voice: string): Promise<string> => {
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: text }] }],
+        contents: `Translate the title, excerpt, and content of the following article to ${language}. Article Title: "${article.title}", Excerpt: "${article.excerpt}", Content: "${article.content.substring(0, 2000)}"`,
         config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice as any } } },
-        },
-    });
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!base64Audio) {
-        throw new Error("No audio data returned from API.");
-    }
-    return base64Audio;
-};
-
-export const performAiSearch = async (query: string, articles: Article[], movies: StreamingContent[], settings: Settings): Promise<AiSearchResult> => {
-    const model = getModel(settings);
-    const articleTitles = articles.map(a => ({ id: a.id, title: a.title }));
-    const movieTitles = movies.map(m => ({ id: m.id, title: m.title }));
-    
-    const response = await ai.models.generateContent({
-        model,
-        contents: `A user is searching for "${query}". 
-        1. Provide a direct, concise summary answer to the query.
-        2. From this list of articles, identify up to 5 relevant article IDs: ${JSON.stringify(articleTitles)}.
-        3. From this list of movies/TV shows, identify up to 5 relevant IDs: ${JSON.stringify(movieTitles)}.
-        4. Suggest 3 follow-up questions the user might have.`,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    summary: { type: Type.STRING },
-                    relatedArticleIds: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-                    relatedMovieIds: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-                    suggestedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
-                },
-                required: ['summary', 'relatedArticleIds', 'relatedMovieIds', 'suggestedQuestions'],
-            }
+            responseMimeType: "application/json",
+            responseSchema: schema,
         }
     });
 
     return JSON.parse(response.text);
-};
-
-export async function compareArticles(article1: Article, article2: Article, settings: Settings): Promise<AsyncGenerator<string>> {
-  const model = getModel(settings);
-  const prompt = `Compare and contrast the following two articles. Analyze their perspectives, key points, and potential biases. Format the output with markdown.
-  
-  Article 1: "${article1.title}"
-  Content: ${article1.excerpt}
-  
-  Article 2: "${article2.title}"
-  Content: ${article2.excerpt}`;
-  
-  const response = await ai.models.generateContentStream({ model, contents: prompt });
-  
-  return (async function*() {
-    for await (const chunk of response) {
-      yield chunk.text;
-    }
-  })();
 }
 
-export const generateAnchorVideo = async (script: string): Promise<string> => {
+
+// --- Interactive AI Features ---
+
+export async function generateQuiz(article: Article, settings: Settings): Promise<QuizQuestion[]> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                question: { type: Type.STRING },
+                options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                correctAnswer: { type: Type.STRING },
+            },
+            required: ['question', 'options', 'correctAnswer'],
+        }
+    };
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Generate a 3-question multiple-choice quiz based on this article. Each question should have 4 options. Article: "${article.title}" - ${article.content.substring(0, 2000)}`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+        }
+    });
+    return JSON.parse(response.text);
+}
+
+export async function* generateCounterpoint(article: Article, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = settings.aiModelPreference === 'Quality' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const prompt = `Provide a well-reasoned counterpoint or alternative perspective to the main argument of this article. Article: "${article.title}" - ${article.content.substring(0, 2000)}`;
+
+    const response = await ai.models.generateContentStream({
+        model,
+        contents: prompt,
+    });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+export async function* generateBehindTheNews(article: Article, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = settings.aiModelPreference === 'Quality' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const prompt = `Provide historical context, background information, and broader implications related to this news article. Format the response with markdown headings. Article: "${article.title}" - ${article.content.substring(0, 2000)}`;
+    
+    const response = await ai.models.generateContentStream({
+        model,
+        contents: prompt,
+    });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+export async function* generateExpertAnalysis(article: Article, persona: ExpertPersona, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = 'gemini-2.5-pro'; // Always use Pro for this feature
+    const prompt = `Analyze this article from the perspective of a professional ${persona}. Provide a detailed analysis covering key aspects relevant to that field. Format with markdown. Article: "${article.title}" - ${article.content.substring(0, 3000)}`;
+
+    const response = await ai.models.generateContentStream({
+        model,
+        contents: prompt,
+    });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+export async function* generateAuthorResponse(article: Article, question: string, history: ChatMessage[], settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = 'gemini-2.5-pro';
+    const systemInstruction = `You are an AI persona of ${article.author}. Your task is to answer questions about the article "${article.title}" as if you were the author. Maintain the author's likely tone and perspective based on the article's content. Do not break character.`;
+    const chatHistory = history.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
+    
+    const chat = ai.chats.create({
+        model,
+        config: { systemInstruction },
+        history: chatHistory,
+    });
+
+    const response = await chat.sendMessageStream({ message: question });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+// --- Page-level AI Analysis ---
+
+export async function factCheckPageContent(content: string, settings: Settings): Promise<{ summary: string; sources: { uri: string, title: string }[] }> {
+    const model = 'gemini-2.5-pro';
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Fact-check the key claims in the following text using your knowledge and search capabilities. Provide a summary of your findings and list any sources you used. Text: "${content.substring(0, 4000)}"`,
+        config: {
+            tools: [{ googleSearch: {} }],
+        }
+    });
+
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const sources = groundingChunks
+        .map(chunk => chunk.web)
+        .filter(web => web?.uri && web.title)
+        .map(web => ({ uri: web!.uri!, title: web!.title! }));
+
+    return { summary: response.text, sources };
+}
+
+export async function getThisDayInHistory(): Promise<string> {
+    const model = 'gemini-2.5-flash';
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const response = await ai.models.generateContent({
+        model,
+        contents: `What are 2-3 significant historical events that happened on ${today}? For each, provide a title with the year using "##" markdown and a one-sentence description.`,
+    });
+    return response.text;
+}
+
+export async function generateNewsBriefing(articles: Article[], settings: Settings): Promise<string> {
+    const model = settings.aiModelPreference === 'Quality' ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
+    const response = await ai.models.generateContent({
+        model,
+        contents: `You are a news anchor for Kirehe TV. Your persona is ${settings.aiVoicePersonality}. Create a concise, engaging news briefing script summarizing the following articles. Start with a greeting. End with a sign-off. The script should be around 250 words.\n\nArticles:\n${articleSummaries}`,
+    });
+    return response.text;
+}
+
+export async function generateInfographicData(article: Article, settings: Settings): Promise<InfographicData> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING },
+            items: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        label: { type: Type.STRING },
+                        value: { type: Type.NUMBER },
+                    },
+                    required: ['label', 'value'],
+                }
+            }
+        },
+        required: ['title', 'items']
+    };
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Extract key numerical data from this article suitable for a bar chart. Identify a title for the chart and up to 5 data points with labels and values. Article: "${article.content.substring(0, 2000)}"`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+        }
+    });
+
+    return JSON.parse(response.text);
+}
+
+// --- Text-to-Speech ---
+
+export async function textToSpeech(text: string, voice: AiTtsVoice): Promise<string> {
+    const model = 'gemini-2.5-flash-preview-tts';
+    const response = await ai.models.generateContent({
+        model,
+        contents: [{ parts: [{ text: text }] }],
+        config: {
+            responseModalities: [ 'AUDIO' ],
+            speechConfig: {
+                voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } }
+            }
+        }
+    });
+
+    const audioPart = response.candidates?.[0]?.content?.parts?.[0];
+    if (audioPart && audioPart.inlineData) {
+        return audioPart.inlineData.data;
+    }
+    throw new Error("No audio data returned from TTS API.");
+}
+
+// --- Search ---
+
+export async function performAiSearch(query: string, articles: Article[], movies: StreamingContent[], settings: Settings): Promise<AiSearchResult> {
+    const model = 'gemini-2.5-pro';
+    const articleData = articles.map(a => `ID: ${a.id}, Title: ${a.title}, Category: ${a.category}`).join('\n');
+    const movieData = movies.map(m => `ID: ${m.id}, Title: ${m.title}, Genre: ${m.genre}, Description: ${m.description.substring(0,100)}`).join('\n');
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            summary: { type: Type.STRING, description: "A conversational, helpful summary answering the user's query based on the provided content and your general knowledge. Use markdown for formatting." },
+            relatedArticleIds: { type: Type.ARRAY, items: { type: Type.NUMBER }, description: "List of relevant article IDs from the provided article list." },
+            relatedMovieIds: { type: Type.ARRAY, items: { type: Type.NUMBER }, description: "List of relevant movie IDs from the provided movie list." },
+            suggestedQuestions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Three follow-up questions the user might have." },
+        },
+        required: ['summary', 'relatedArticleIds', 'relatedMovieIds', 'suggestedQuestions']
+    };
+    
+    const response = await ai.models.generateContent({
+        model,
+        contents: `You are a helpful search assistant for a news and entertainment platform. Answer the user's query based on the provided article and movie lists, and your general knowledge.
+        User Query: "${query}"
+        
+        Available Articles:
+        ${articleData}
+        
+        Available Movies & TV:
+        ${movieData}`,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+        }
+    });
+    
+    return JSON.parse(response.text);
+}
+
+// --- Content Enhancement & Personalization ---
+
+export async function findRelatedArticles(currentArticle: Article, allArticles: Article[], settings: Settings): Promise<number[]> {
+    const model = 'gemini-2.5-flash';
+    const articleList = allArticles
+        .filter(a => a.id !== currentArticle.id)
+        .map(a => `ID ${a.id}: ${a.title} (${a.category})`)
+        .join('\n');
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Given the article "${currentArticle.title}", which 3 of the following articles are most relevant? Return only a comma-separated list of their IDs (e.g., "1, 2, 3").\n\n${articleList}`,
+    });
+    return response.text.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+}
+
+export async function determineOptimalLayout(bookmarkedArticles: Article[], settings: Settings): Promise<Settings['homepageLayout']> {
+    const model = 'gemini-2.5-flash';
+    const bookmarkTitles = bookmarkedArticles.map(a => a.title).join(', ');
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Based on these bookmarked article titles, would a "Standard" (magazine-style) or "Dashboard" (dense, grid-style) layout be better for this user? Titles: "${bookmarkTitles}". Respond with only "Standard" or "Dashboard".`,
+    });
+    const layout = response.text.trim();
+    if (layout === 'Standard' || layout === 'Dashboard') {
+        return layout;
+    }
+    return settings.homepageLayout; // Fallback
+}
+
+export async function applyReadingLens(content: string, lens: 'Simplify' | 'DefineTerms', settings: Settings): Promise<string> {
+    const model = 'gemini-2.5-flash';
+    let prompt = '';
+    if (lens === 'Simplify') {
+        prompt = `Rewrite the following text in simpler, easier-to-understand language without losing the core meaning. Text: "${content}"`;
+    } else { // DefineTerms
+        prompt = `Analyze the following text. For any complex terms, names, or acronyms, add a brief, inline definition in parentheses after the term. Text: "${content}"`;
+    }
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+    });
+    return response.text;
+}
+
+// ... more functions to be added ...
+
+export async function* askAboutArticle(article: Article, question: string, history: ChatMessage[], settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = 'gemini-2.5-pro';
+    const systemInstruction = `You are a helpful AI assistant residing in the sidebar of a news article. Your purpose is to answer questions specifically about the article's content. Be concise and stick to the information provided in the article. The article is titled "${article.title}".`;
+    const chatHistory = history.map(m => ({ role: m.role, parts: [{ text: m.content }] }));
+    
+    const chat = ai.chats.create({
+        model,
+        config: { systemInstruction },
+        history: chatHistory,
+    });
+    
+    const fullPrompt = `Based on the article content below, answer the user's question.
+    Article Content: """
+    ${article.content.substring(0, 4000)}
+    """
+    User Question: "${question}"`;
+
+    const response = await chat.sendMessageStream({ message: fullPrompt });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+
+export async function* compareArticles(article1: Article, article2: Article, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = 'gemini-2.5-pro';
+    const prompt = `Compare and contrast the following two articles. Identify their main themes, points of agreement, and points of divergence. Format the output with markdown.
+    
+    ## Article 1: ${article1.title}
+    ${article1.excerpt}
+    
+    ## Article 2: ${article2.title}
+    ${article2.excerpt}`;
+    
+    const response = await ai.models.generateContentStream({
+        model,
+        contents: prompt,
+    });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+
+export async function generateAnchorVideo(script: string): Promise<string> {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     let operation = await ai.models.generateVideos({
-        model: 'veo-3.1-generate-preview',
-        prompt: `A photorealistic virtual news anchor presenting this script in a modern news studio: "${script}"`,
+        model: 'veo-3.1-fast-generate-preview',
+        prompt: `A news anchor presenting the following script: "${script}"`,
         config: {
             numberOfVideos: 1,
             resolution: '720p',
-            aspectRatio: '16:9',
-        },
+            aspectRatio: '16:9'
+        }
     });
 
     while (!operation.done) {
@@ -339,32 +425,208 @@ export const generateAnchorVideo = async (script: string): Promise<string> => {
 
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) {
-        throw new Error("Video generation failed to produce a download link.");
+        throw new Error("Video generation failed, no download link found.");
     }
     return downloadLink;
-};
+}
 
-export const getKireheInfo = async (query: string, location: { latitude: number; longitude: number } | null): Promise<FactCheckResult> => {
-    const config: any = {
-        tools: [{ googleMaps: {} }],
-    };
-    if (location) {
-        config.toolConfig = {
-            retrievalConfig: { latLng: location }
-        };
+export async function* generateDeepDive(article: Article, settings: Settings): AsyncGenerator<string, void, undefined> {
+    const model = 'gemini-2.5-pro';
+    const prompt = `Provide a deep dive into the topic of the article "${article.title}". Expand on the key concepts, explore related issues, and discuss future implications. Use markdown for formatting with ## headings for sections. Article excerpt: ${article.content.substring(0, 1000)}`;
+
+    const response = await ai.models.generateContentStream({ model, contents: prompt });
+    for await (const chunk of response) {
+        yield chunk.text;
     }
+}
+
+// ---- Article Page AI Functions ----
+
+export async function getFactCheck(article: Article, settings: Settings): Promise<FactCheckResult> {
+    const model = 'gemini-2.5-flash';
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Fact-check the main claims in this article excerpt using Google Search. Categorize the findings as 'Verified', 'Mixed', or 'Unverified'. Provide a brief summary of your findings. Excerpt: "${article.content.substring(0, 1500)}"`,
+        config: {
+            tools: [{ googleSearch: {} }],
+        }
+    });
+
+    const text = response.text;
+    let status: FactCheckResult['status'] = 'Unverified';
+    if (text.toLowerCase().includes('verified')) status = 'Verified';
+    else if (text.toLowerCase().includes('mixed')) status = 'Mixed';
+    
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const sources = groundingChunks
+        .map(chunk => chunk.web)
+        .filter((web): web is { uri: string; title: string } => !!web?.uri)
+        .map(web => ({ uri: web.uri, title: web.title || web.uri }));
+
+
+    return { status, summary: text, sources };
+}
+
+
+export async function getKeyConcepts(article: Article, settings: Settings): Promise<KeyConcept[]> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                term: { type: Type.STRING },
+                description: { type: Type.STRING },
+                type: { type: Type.STRING, enum: ['Person', 'Location', 'Organization', 'Concept'] }
+            },
+            required: ['term', 'description', 'type']
+        }
+    };
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Identify the top 5-7 key concepts (people, places, organizations, or ideas) from the article. For each, provide a brief, one-sentence definition. Article: "${article.content.substring(0, 2000)}"`,
+        config: { responseMimeType: "application/json", responseSchema: schema }
+    });
+    return JSON.parse(response.text);
+}
+
+export async function getTimeline(article: Article, settings: Settings): Promise<TimelineEvent[]> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                year: { type: Type.STRING },
+                description: { type: Type.STRING }
+            },
+            required: ['year', 'description']
+        }
+    };
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Create a timeline of the 3-5 most important events mentioned or relevant to this article. Article: "${article.content.substring(0, 2000)}"`,
+        config: { responseMimeType: "application/json", responseSchema: schema }
+    });
+    return JSON.parse(response.text);
+}
+
+
+export async function getPullQuotes(article: Article, settings: Settings): Promise<string[]> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.ARRAY,
+        items: { type: Type.STRING }
+    };
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Extract two impactful, representative pull quotes from the article. Each should be a complete sentence or two. Article: "${article.content.substring(0, 3000)}"`,
+        config: { responseMimeType: "application/json", responseSchema: schema }
+    });
+    return JSON.parse(response.text);
+}
+
+
+export async function getAiTags(article: Article, settings: Settings): Promise<string[]> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.ARRAY,
+        items: { type: Type.STRING }
+    };
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Generate 4-5 relevant tags for this article. Examples: "AI Ethics", "Geopolitics", "Climate Tech". Article: "${article.title} ${article.excerpt}"`,
+        config: { responseMimeType: "application/json", responseSchema: schema }
+    });
+    return JSON.parse(response.text);
+}
+
+export async function getCommunityHighlights(article: Article, settings: Settings, type: 'takeaways' | 'highlights'): Promise<CommunityHighlight[]> {
+    const model = 'gemini-2.5-flash';
+    const promptType = type === 'takeaways' ? "key takeaways" : "diverse community viewpoints and opinions";
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                viewpoint: { type: Type.STRING },
+                summary: { type: Type.STRING }
+            },
+            required: ['viewpoint', 'summary']
+        }
+    };
+    const response = await ai.models.generateContent({
+        model,
+        contents: `Based on the article, generate 3 hypothetical but plausible ${promptType}. Each should have a 'viewpoint' title and a 'summary' sentence. Article: "${article.content.substring(0, 2000)}"`,
+        config: { responseMimeType: "application/json", responseSchema: schema }
+    });
+    return JSON.parse(response.text);
+}
+
+export async function identifyKeyPlayers(articleContent: string): Promise<{ nodes: NetworkNode[], links: NetworkLink[] }> {
+    const model = 'gemini-2.5-flash';
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            nodes: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        id: { type: Type.STRING },
+                        type: { type: Type.STRING, enum: ['company', 'country', 'person'] }
+                    },
+                    required: ['id', 'type']
+                }
+            },
+            links: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        source: { type: Type.STRING },
+                        target: { type: Type.STRING }
+                    },
+                    required: ['source', 'target']
+                }
+            }
+        },
+        required: ['nodes', 'links']
+    };
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
-        contents: `Answer the following question about Kirehe District, Rwanda: "${query}"`,
-        config,
+        model,
+        contents: `Analyze the following text and identify the key entities (companies, countries, people) and their relationships. Format the output for a network graph. Text: "${articleContent.substring(0, 3000)}"`,
+        config: { responseMimeType: "application/json", responseSchema: schema }
     });
-    
-    const text = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => ({
-        uri: chunk.maps?.uri || '#',
-        title: chunk.maps?.title || 'Google Maps Result'
-    })) || [];
+    return JSON.parse(response.text);
+}
 
-    return { status: 'Verified', summary: text, sources };
-};
+export async function getKireheInfo(query: string, location: { latitude: number, longitude: number } | null): Promise<string> {
+  const model = 'gemini-2.5-flash';
+  
+  let toolConfig = {};
+  if (location) {
+    toolConfig = {
+      toolConfig: {
+        retrievalConfig: {
+          latLng: {
+            latitude: location.latitude,
+            longitude: location.longitude
+          }
+        }
+      }
+    };
+  }
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: `The user is asking a question about Kirehe District in Rwanda. Answer the question using Google Maps grounding. Question: "${query}"`,
+    config: {
+      tools: [{ googleMaps: {} }],
+      ...toolConfig
+    },
+  });
+
+  return response.text;
+}

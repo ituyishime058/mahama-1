@@ -1,9 +1,15 @@
 {
   "name": "kirehe-tv",
   "version": "1.0.0",
-  "description": "A cutting-edge, interactive, and elegant news website inspired by the clean layout and credibility of BBC News but more futuristic, visually dynamic, and highly interactive.",
-  "dependencies": {},
+  "description": "A cutting-edge, interactive news platform.",
   "scripts": {
     "start": "serve"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
   }
 }
