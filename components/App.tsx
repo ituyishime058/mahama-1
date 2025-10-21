@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
@@ -17,16 +16,17 @@ import RightAside from './RightAside';
 import NewsTicker from './NewsTicker';
 import FilterBar from './FilterBar';
 import ArticlePage from './ArticlePage';
-// FIX: Corrected import path for Kirehe360 component.
-import Kirehe360 from './Kirehe360';
+// FIX: Corrected import path for Mahama360 component.
+import Mahama360 from './Mahama360';
 import DataDrivenInsights from './DataDrivenInsights';
 import PodcastHub from './PodcastHub';
 import InnovationTimeline from './InnovationTimeline';
 import Footer from './Footer';
 import ScrollProgressBar from './ScrollProgressBar';
-import MoviesTVPage from './MoviesTVPage';
+// FIX: Changed import to a named import to resolve "no default export" error.
+import { MoviesTVPage } from './MoviesTVPage';
 import SponsoredBanners from './SponsoredBanners';
-import KireheInvestigatesPage from './KireheInvestigatesPage';
+import MahamaInvestigatesPage from './MahamaInvestigatesPage';
 import NowStreaming from './NowStreaming';
 
 // Modal & Page Imports
@@ -62,10 +62,11 @@ import ProfilePage from './ProfilePage';
 import TrailerModal from './TrailerModal';
 import CategoryLoadingOverlay from './CategoryLoadingOverlay';
 import NotificationCenter from './NotificationCenter';
-import KireheServicesModal from './KireheServicesModal';
+import MahamaServicesModal from './MahamaServicesModal';
 import CompareNowButton from './CompareNowButton';
 import ComparisonModal from './ComparisonModal';
 import AiAnchorVideoModal from './AiAnchorVideoModal';
+import MovieDeepDiveModal from './MovieDeepDiveModal';
 
 
 const defaultSettings: Settings = {
@@ -79,7 +80,7 @@ const defaultSettings: Settings = {
     preferredLanguage: 'English',
     showCounterpoint: true,
     showInnovationTimelines: true,
-    showKirehe360: true,
+    showMahama360: true,
     showNewsMap: false,
     showDataInsights: true,
     showNowStreaming: true,
@@ -99,14 +100,14 @@ const defaultSettings: Settings = {
     reduceMotion: false,
 };
 
-const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'kirehe'];
-const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'aiAnchorVideo'];
+const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'mahama', 'movieDeepDive'];
+const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'aiAnchorVideo', 'movieDeepDive'];
 
 
 const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
-            const savedSettings = localStorage.getItem('kireheTVSettings');
+            const savedSettings = localStorage.getItem('mahamaHubSettings');
             return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
         } catch (error) {
             return defaultSettings;
@@ -134,6 +135,7 @@ const App: React.FC = () => {
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [comparisonList, setComparisonList] = useState<Article[]>([]);
     const [videoScript, setVideoScript] = useState<string|null>(null);
+    const [deepDiveMovie, setDeepDiveMovie] = useState<StreamingContent | null>(null);
 
 
     // Real-time feed state
@@ -177,7 +179,7 @@ const App: React.FC = () => {
     
     // Apply theme
     useEffect(() => {
-        localStorage.setItem('kireheTVSettings', JSON.stringify(settings));
+        localStorage.setItem('mahamaHubSettings', JSON.stringify(settings));
         const root = window.document.documentElement;
         if (settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             root.classList.add('dark');
@@ -299,6 +301,14 @@ const App: React.FC = () => {
         setActiveModal(null);
         setIsSettingsOpen(false);
     };
+    
+    const handleDeepDiveMovie = (movie: StreamingContent) => {
+        if (premiumModals.includes('movieDeepDive') && settings.subscriptionTier !== 'Premium') {
+            setActiveModal('subscribe');
+            return;
+        }
+        setDeepDiveMovie(movie);
+    };
 
     const handleWatchTrailer = (url: string) => {
         setActiveTrailer(url);
@@ -404,7 +414,7 @@ const App: React.FC = () => {
                 setIsMoviesPage(true);
                 setIsInvestigatesPage(false);
                 setActiveArticle(null);
-            } else if (category === 'Kirehe TV Investigates') {
+            } else if (category === 'Mahama Investigates') {
                 setIsInvestigatesPage(true);
                 setIsMoviesPage(false);
                 setActiveArticle(null);
@@ -461,7 +471,7 @@ const App: React.FC = () => {
         <Header
             onMenuClick={() => openModal('categoryExplorer')}
             onSearchClick={() => openModal('search')}
-            onKireheServicesClick={() => openModal('kirehe')}
+            onMahamaServicesClick={() => openModal('mahama')}
             onSettingsClick={() => setIsSettingsOpen(true)}
             onProfileClick={() => setIsProfileOpen(true)}
             onLogoClick={handleLogoClick}
@@ -521,7 +531,7 @@ const App: React.FC = () => {
                         highlightsLoading={highlightsLoading}
                     />
                 ) : activeMovie ? (
-                     <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />
+                     <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} onDeepDive={handleDeepDiveMovie} />
                 ) : isSettingsOpen ? (
                     <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />
                 ) : isProfileOpen ? (
@@ -534,17 +544,17 @@ const App: React.FC = () => {
                         {activeInfoPage === 'advertise' && <AdvertisePage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
                     </>
                 ) : isMoviesPage ? (
-                    <MoviesTVPage onWatchMovie={handleWatchMovie} onWatchTrailer={handleWatchTrailer} />
+                    <MoviesTVPage onWatchMovie={handleWatchMovie} onWatchTrailer={handleWatchTrailer} settings={settings} />
                 ) : isInvestigatesPage ? (
-                    <KireheInvestigatesPage onArticleClick={handleReadMore} />
+                    <MahamaInvestigatesPage onArticleClick={handleReadMore} />
                 ) : (
-                    <div className="md:grid md:grid-cols-3 md:gap-8">
+                    <div className="md:grid md:grid-cols-3 md:gap-x-0 lg:gap-x-8">
                         <div className="md:col-span-2">
                            {currentCategory === 'For You' && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
                            <div className="mt-8">
                                 <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article?.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList.map(a => a.id)} onAddToCompare={addToCompare} layout={settings.homepageLayout === 'Dashboard' ? 'grid' : 'default'} />
                            </div>
-                            {settings.showKirehe360 && <Kirehe360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore}/>}
+                            {settings.showMahama360 && <Mahama360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore}/>}
                             {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts} />
                             {settings.showInnovationTimelines && <InnovationTimeline />}
@@ -577,13 +587,14 @@ const App: React.FC = () => {
         <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
         <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={allArticles} onPlayBriefing={(briefing) => setAudioPlayerState({ article: briefing })} onGenerateVideo={(script) => {setVideoScript(script); openModal('aiAnchorVideo');}} />
         <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
-        <KireheServicesModal isOpen={activeModal === 'kirehe'} onClose={closeModal} settings={settings} />
+        <MahamaServicesModal isOpen={activeModal === 'mahama'} onClose={closeModal} settings={settings} />
         <TextToSpeechModal isOpen={!!ttsModalArticle} article={ttsModalArticle} settings={settings} onClose={() => setTtsModalArticle(null)} onPlay={(originalArticle, translatedText, voice) => setAudioPlayerState({ article: {...originalArticle, content: translatedText}, voiceOverride: voice })} />
         <TrailerModal isOpen={!!activeTrailer} onClose={() => setActiveTrailer(null)} trailerUrl={activeTrailer} />
         <NotificationCenter isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} onMarkAsRead={() => {}} onMarkAllAsRead={() => {}} />
         <CompareNowButton articles={comparisonList} onCompare={() => openModal('compare')} onRemove={removeFromCompare} onClear={() => setComparisonList([])} />
         <ComparisonModal isOpen={activeModal === 'compare'} articles={comparisonList} settings={settings} onClose={closeModal} />
         <AiAnchorVideoModal isOpen={activeModal === 'aiAnchorVideo'} onClose={closeModal} script={videoScript} />
+        <MovieDeepDiveModal isOpen={!!deepDiveMovie} movie={deepDiveMovie} settings={settings} onClose={() => setDeepDiveMovie(null)} />
 
         <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
         {!activeArticle && !activeMovie && <FloatingActionButton onClick={() => openModal('live')} />}

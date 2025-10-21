@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import CloseIcon from './icons/CloseIcon';
 
@@ -8,7 +9,7 @@ interface OnboardingTourProps {
 
 const steps = [
   {
-    title: 'Welcome to Kirehe TV!',
+    title: 'Welcome to Mahama News Hub!',
     content: 'Let\'s take a quick tour of the powerful features that make your news experience smarter and more personal.',
     position: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
   },

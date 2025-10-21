@@ -6,7 +6,7 @@ import { mockArticles } from '../constants'; // Using mock data for now
 import NetworkIcon from './icons/NetworkIcon';
 import InvestigatesIcon from './icons/InvestigatesIcon';
 
-interface KireheInvestigatesPageProps {
+interface MahamaInvestigatesPageProps {
   onArticleClick: (article: Article) => void;
 }
 
@@ -28,7 +28,7 @@ const links: NetworkLink[] = [
     { source: 'Dr. Evelyn Reed', target: 'StellarForge' },
 ];
 
-const KireheInvestigatesPage: React.FC<KireheInvestigatesPageProps> = ({ onArticleClick }) => {
+const MahamaInvestigatesPage: React.FC<MahamaInvestigatesPageProps> = ({ onArticleClick }) => {
     const leadArticle = mockArticles.find(a => a.category === 'Technology') || mockArticles[3];
     const relatedArticles = mockArticles.filter(a => a.category === 'World' || a.category === 'Economy').slice(0, 4);
 
@@ -39,7 +39,7 @@ const KireheInvestigatesPage: React.FC<KireheInvestigatesPageProps> = ({ onArtic
                 <div className="relative z-10">
                     <div className="inline-flex items-center gap-4">
                         <InvestigatesIcon className="w-12 h-12 text-deep-red" />
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Kirehe TV Investigates</h1>
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Mahama Investigates</h1>
                     </div>
                     <p className="mt-4 max-w-3xl mx-auto text-slate-300">
                         Uncovering the stories behind the headlines. Our in-depth reports connect the dots on the world's most complex issues.
@@ -104,4 +104,4 @@ const KireheInvestigatesPage: React.FC<KireheInvestigatesPageProps> = ({ onArtic
     );
 };
 
-export default KireheInvestigatesPage;
+export default MahamaInvestigatesPage;

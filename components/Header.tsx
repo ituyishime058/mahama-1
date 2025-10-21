@@ -10,12 +10,12 @@ import type { User, Notification, Settings, Language } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import UserIcon from './icons/UserIcon';
 import RingLoader from './RingLoader';
-import KireheServicesIcon from './icons/KireheServicesIcon';
+import MahamaServicesIcon from './icons/MahamaServicesIcon';
 
 interface HeaderProps {
   onMenuClick: () => void;
   onSearchClick: () => void;
-  onKireheServicesClick: () => void;
+  onMahamaServicesClick: () => void;
   onSettingsClick: () => void;
   onProfileClick: () => void;
   onLogoClick: () => void;
@@ -33,7 +33,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ 
   onMenuClick,
   onSearchClick,
-  onKireheServicesClick,
+  onMahamaServicesClick,
   onSettingsClick,
   onProfileClick,
   onLogoClick,
@@ -108,8 +108,8 @@ const Header: React.FC<HeaderProps> = ({
             <button onClick={onSearchClick} aria-label={t('openSearch')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <SearchIcon />
             </button>
-            <button onClick={onKireheServicesClick} aria-label={t('kireheServices')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                <KireheServicesIcon />
+            <button onClick={onMahamaServicesClick} aria-label={t('mahamaServices')} className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <MahamaServicesIcon />
             </button>
             
             <div className="relative" ref={langDropdownRef}>

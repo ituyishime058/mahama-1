@@ -10,7 +10,7 @@ interface PageProps {
 const AdvertisePage: React.FC<PageProps> = ({ isOpen, onClose }) => {
   return (
     <InfoPage isOpen={isOpen} title="Advertise with Us" onClose={onClose}>
-      <p className="mb-4">Partner with Kirehe TV to connect with a global audience of engaged, influential, and tech-savvy readers. Our platform offers a unique opportunity to showcase your brand alongside premium, trusted news content.</p>
+      <p className="mb-4">Partner with Mahama News Hub to connect with a global audience of engaged, influential, and tech-savvy readers. Our platform offers a unique opportunity to showcase your brand alongside premium, trusted news content.</p>
       
       <h3 className="text-2xl font-bold mt-6 mb-2">Our Offerings</h3>
       <ul className="list-disc list-inside space-y-2 mb-4">
@@ -20,7 +20,7 @@ const AdvertisePage: React.FC<PageProps> = ({ isOpen, onClose }) => {
         <li><strong>Event Partnerships:</strong> Align your brand with our exclusive events and summits.</li>
       </ul>
 
-      <p>To learn more about our advertising solutions and to request a media kit, please contact our sales team at <a href="mailto:advertise@kirehetv.com" className="text-deep-red dark:text-gold hover:underline">advertise@kirehetv.com</a>.</p>
+      <p>To learn more about our advertising solutions and to request a media kit, please contact our sales team at <a href="mailto:advertise@mahamanewshub.com" className="text-deep-red dark:text-gold hover:underline">advertise@mahamanewshub.com</a>.</p>
     </InfoPage>
   );
 };

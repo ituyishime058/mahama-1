@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import PayPalIcon from './icons/PayPalIcon';
 import LockIcon from './icons/LockIcon';
@@ -18,7 +19,7 @@ const PayPalFlow: React.FC<PayPalFlowProps> = ({ onSubmit }) => {
         <div className="text-center border-b border-slate-300 dark:border-slate-700 pb-4">
             <PayPalIcon className="h-8 mx-auto mb-2" />
             <p className="text-sm text-slate-500">Pay with PayPal</p>
-            <p className="text-sm font-semibold">Kirehe TV</p>
+            <p className="text-sm font-semibold">Mahama News Hub</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <input 

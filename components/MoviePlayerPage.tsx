@@ -1,14 +1,16 @@
 import React from 'react';
 import type { StreamingContent } from '../types';
 import { mockStreamingContent } from '../constants';
+import SparklesIcon from './icons/SparklesIcon';
 
 interface MoviePlayerPageProps {
   movie: StreamingContent;
   onClose: () => void;
   onWatchMovie: (movie: StreamingContent) => void;
+  onDeepDive: (movie: StreamingContent) => void;
 }
 
-const MoviePlayerPage: React.FC<MoviePlayerPageProps> = ({ movie, onClose, onWatchMovie }) => {
+const MoviePlayerPage: React.FC<MoviePlayerPageProps> = ({ movie, onClose, onWatchMovie, onDeepDive }) => {
   const relatedMovies = mockStreamingContent.filter(m => m.id !== movie.id).slice(0, 4);
 
   return (
@@ -30,9 +32,19 @@ const MoviePlayerPage: React.FC<MoviePlayerPageProps> = ({ movie, onClose, onWat
         </div>
         <div className="p-6">
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-2">{movie.title}</h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400 mb-4">
+            <span>{movie.year}</span>
+            <span>{movie.rating}</span>
+            <span>{movie.duration}</span>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             {movie.description}
           </p>
+          <div className="flex items-center gap-4">
+            <button onClick={() => onDeepDive(movie)} className="flex items-center gap-2 bg-gold/20 hover:bg-gold/30 text-gold font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 duration-300">
+              <SparklesIcon className="w-6 h-6" /> AI Deep Dive
+            </button>
+          </div>
         </div>
       </div>
       

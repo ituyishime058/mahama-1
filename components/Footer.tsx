@@ -41,14 +41,14 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
           <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('features')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('kirehe_360')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('mahama_360')}</button></li>
               <li><button className="hover:text-deep-red dark:hover:text-gold">{t('podcastsAndVideo')}</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('kireheInvestigates')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('mahamaInvestigates')}</button></li>
               <li><button className="hover:text-deep-red dark:hover:text-gold">{t('communityForum')}</button></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('aboutKTV')}</h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('aboutMNH')}</h4>
             <ul className="space-y-2 text-sm">
               <li><button onClick={() => onInfoPageClick('about')} className="hover:text-deep-red dark:hover:text-gold">{t('aboutUs')}</button></li>
               <li><button onClick={() => onInfoPageClick('careers')} className="hover:text-deep-red dark:hover:text-gold">{t('careers')}</button></li>

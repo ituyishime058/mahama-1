@@ -113,7 +113,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       "Art": "art",
       "Music": "music",
       "History": "history",
-      "Kirehe TV Investigates": "kireheInvestigates"
+      "Mahama Investigates": "mahamaInvestigates"
   };
 
   return (

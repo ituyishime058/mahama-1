@@ -82,7 +82,7 @@ export const mockPodcasts: Podcast[] = [
     title: "AI & The Human Element",
     excerpt: "In this episode, we sit down with philosopher Dr. Kenji Tanaka to discuss the implications of advanced AI on creativity, consciousness, and the future of human work.",
     imageUrl: "https://picsum.photos/seed/podcast1/400/400",
-    author: "Kirehe TV",
+    author: "Mahama News Hub",
     duration: "45 min",
     episode: 12,
     audioUrl: "https://storage.googleapis.com/media.aistudio.dev/general/d52f689c-d143-4248-a212-325373a241e3.mp3",
@@ -105,7 +105,7 @@ export const categories: Category[] = [
     { name: "Culture", icon: CultureIcon, subcategories: ["Food", "Language", "Traditions"] },
     { name: "Entertainment", icon: EntertainmentIcon, subcategories: ["Movies & TV", "Music", "Art"] },
     { name: "History", icon: HistoryIcon, subcategories: ["Ancient History", "Modern History", "African History", "Military History"] },
-    { name: "Kirehe TV Investigates", icon: InvestigatesIcon },
+    { name: "Mahama Investigates", icon: InvestigatesIcon },
 ];
 
 // Stock Data

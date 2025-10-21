@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useRef } from 'react';
-import type { StreamingContent } from '../types';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import type { StreamingContent, Settings } from '../types';
 import { mockStreamingContent } from '../constants';
+import { generateMovieRecommendations } from '../utils/ai';
 import PlayCircleIcon from './icons/PlayCircleIcon';
 import InfoIcon from './icons/InfoIcon';
 import AdjustmentsHorizontalIcon from './icons/AdjustmentsHorizontalIcon';
@@ -12,6 +13,7 @@ import Carousel from './Carousel';
 interface MoviesTVPageProps {
   onWatchMovie: (movie: StreamingContent) => void;
   onWatchTrailer: (url: string) => void;
+  settings: Settings;
 }
 
 const FilterControls: React.FC<{
@@ -51,11 +53,25 @@ const FilterControls: React.FC<{
     );
 };
 
-const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTrailer }) => {
+export const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTrailer, settings }) => {
     const [filters, setFilters] = useState({ genre: 'All Genres', year: 'All Years', sortBy: 'Popularity' });
     const [visibleCount, setVisibleCount] = useState(12);
+    const [recommended, setRecommended] = useState<StreamingContent[]>([]);
 
     const genres = useMemo(() => [...Array.from(new Set(mockStreamingContent.map(item => item.genre)))], []);
+
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            try {
+                const recommendedIds = await generateMovieRecommendations(mockStreamingContent, settings);
+                const recommendedMovies = mockStreamingContent.filter(m => recommendedIds.includes(m.id));
+                setRecommended(recommendedMovies);
+            } catch (e) {
+                console.error("Failed to get movie recommendations", e);
+            }
+        };
+        fetchRecommendations();
+    }, [settings]);
 
     const handleFilterChange = (newFilters: Partial<typeof filters>) => {
         setFilters(prev => ({...prev, ...newFilters}));
@@ -111,57 +127,9 @@ const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatchTraile
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
                 <div className="relative h-full flex flex-col justify-center sm:justify-end p-4 sm:p-8 md:p-12">
-                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold max-w-2xl drop-shadow-[0_4px_4px_rgba(0,0,0,0.7)]">{featuredMovie.title}</h1>
-                    <p className="max-w-xl mt-4 text-slate-300 hidden md:block text-lg drop-shadow-md">{featuredMovie.description}</p>
-                    <div className="mt-6 flex gap-4">
-                        <button onClick={() => onWatchMovie(featuredMovie)} className="flex items-center gap-2 bg-deep-red hover:bg-red-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full transition-transform transform hover:scale-105 duration-300">
-                            <PlayCircleIcon className="w-6 h-6"/> <span className="text-sm sm:text-base">Play</span>
-                        </button>
-                        <button onClick={() => onWatchTrailer(featuredMovie.trailerUrl)} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-full transition-transform transform hover:scale-105 duration-300">
-                            <InfoIcon className="w-6 h-6"/> <span className="text-sm sm:text-base">More Info</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+                    <h1 className="text-3xl sm:--- START OF FILE TextToSpeechPlayer.tsx ---
 
-            <div className="px-4 sm:px-6 lg:px-8 space-y-12 pb-12">
-                <Carousel title="Trending Now" items={trending} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                <Carousel title="New Releases" items={newReleases} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                <Carousel title="Award Winners" items={awardWinners} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
-                
-                <section>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold mb-4 sm:mb-6 text-white">Browse All</h2>
-                    <FilterControls genres={genres} filters={filters} onFilterChange={handleFilterChange} onClear={clearFilters} />
-                    {filteredContent.length > 0 ? (
-                        <>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-                                {filteredContent.slice(0, visibleCount).map(item => (
-                                    <MovieCard 
-                                        key={item.id}
-                                        item={item}
-                                        onWatchMovie={onWatchMovie}
-                                        onWatchTrailer={onWatchTrailer}
-                                    />
-                                ))}
-                            </div>
-                            {visibleCount < filteredContent.length && (
-                                <div className="text-center mt-12">
-                                    <button onClick={handleLoadMore} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
-                                        Load More
-                                    </button>
-                                </div>
-                            )}
-                        </>
-                     ) : (
-                        <div className="text-center py-16">
-                            <h3 className="text-2xl font-bold">No Results Found</h3>
-                            <p className="text-slate-400 mt-2">Try adjusting your filters or clearing them to see more content.</p>
-                        </div>
-                    )}
-                </section>
-            </div>
-        </div>
-    );
-};
-
-export default MoviesTVPage;
+// This file is deprecated. The active component is located at /components/TextToSpeechPlayer.tsx
+import React from 'react';
+const Placeholder = () => null;
+export default Placeholder;

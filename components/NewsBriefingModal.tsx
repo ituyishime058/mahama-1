@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from 'react';
 import type { Article, Settings } from '../types';
 import { generateNewsBriefing } from '../utils/ai';
@@ -63,7 +64,7 @@ const NewsBriefingModal: React.FC<NewsBriefingModalProps> = ({ isOpen, onClose, 
       const briefingArticle: Article = {
           id: -1, 
           title: "Your Daily News Briefing",
-          author: "Kirehe TV AI",
+          author: "Mahama News Hub AI",
           content: briefingScript,
           category: "Briefing",
           date: new Date().toLocaleDateString(),

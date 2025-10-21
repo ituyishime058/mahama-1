@@ -1,7 +1,8 @@
 
+
 export const translations = {
   English: {
-    logoText: 'Kirehe TV',
+    logoText: 'Mahama News Hub',
     openMenu: 'Open Menu',
     openSearch: 'Open Search',
     openNotifications: 'Open Notifications',
@@ -26,7 +27,7 @@ export const translations = {
     viewAllTrending: 'View All Trending',
     liveCoverage: 'Live Coverage',
     breakingG7: 'Breaking: G7 Summit Concludes',
-    kirehe360Desc: "A panoramic view of the world's most pivotal stories, offering diverse perspectives and in-depth analysis.",
+    mahama360Desc: "A panoramic view of the world's most pivotal stories, offering diverse perspectives and in-depth analysis.",
     stayAhead: 'Stay Ahead of the Curve',
     newsletterDesc: 'Subscribe to our newsletter for daily insights and top stories.',
     subscribe: 'Subscribe',
@@ -37,11 +38,11 @@ export const translations = {
     economy: 'Economy',
     technology: 'Technology',
     features: 'Features',
-    kirehe_360: 'Kirehe 360°',
+    mahama_360: 'Mahama 360°',
     podcastsAndVideo: 'Podcasts & Video',
-    kireheInvestigates: 'Kirehe TV Investigates',
+    mahamaInvestigates: 'Mahama Investigates',
     communityForum: 'Community Forum',
-    aboutKTV: 'About Kirehe TV',
+    aboutMNH: 'About Mahama News Hub',
     aboutUs: 'About Us',
     careers: 'Careers',
     contact: 'Contact',
@@ -181,18 +182,18 @@ export const translations = {
     counterpoint: 'Counterpoint',
     factCheck: 'Fact-Check',
     infographic: 'Infographic',
-    // Kirehe Services
-    kireheServices: 'Kirehe Services',
-    kireheServicesDesc: 'Your AI guide to Kirehe District. Ask anything about locations, services, and more.',
-    kirehePrompt1: 'Where is the district office?',
-    kirehePrompt2: 'Recommend a good restaurant.',
-    kirehePrompt3: 'Who is the current mayor?',
-    kireheAskPlaceholder: 'Ask about Kirehe...',
-    kireheGeolocation: 'Please allow location access for better results.',
-    kireheWelcome: "Welcome to Kirehe Services! I'm your AI guide to the district. How can I help you today?",
+    // Mahama Services
+    mahamaServices: 'Mahama Services',
+    mahamaServicesDesc: 'Your AI guide to Mahama. Ask anything about locations, services, and more.',
+    mahamaPrompt1: 'Where is the camp office?',
+    mahamaPrompt2: 'Recommend a good restaurant.',
+    mahamaPrompt3: 'What services are available?',
+    mahamaAskPlaceholder: 'Ask about Mahama...',
+    mahamaGeolocation: 'Please allow location access for better results.',
+    mahamaWelcome: "Welcome to Mahama Services! I'm your AI guide to the area. How can I help you today?",
   },
   Kinyarwanda: {
-    logoText: 'Kirehe TV',
+    logoText: 'Mahama News Hub',
     // In a real app, all keys would be translated here.
   },
   French: {},

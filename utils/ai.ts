@@ -254,7 +254,7 @@ export async function findRelatedArticles(currentArticle: Article, allArticles: 
 export async function generateNewsBriefing(articles: Article[], settings: Settings): Promise<string> {
     const model = getModelForPreference(settings.aiModelPreference);
     const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
-    const prompt = `You are a news anchor for Kirehe TV. Create a concise, engaging news briefing script based on the following articles. The script must be in ${settings.preferredLanguage}. The tone should be ${settings.aiVoicePersonality}. Start with a greeting and end with a sign-off.\n\n${articleSummaries}`;
+    const prompt = `You are a news anchor for Mahama News Hub. Create a concise, engaging news briefing script based on the following articles. The script must be in ${settings.preferredLanguage}. The tone should be ${settings.aiVoicePersonality}. Start with a greeting and end with a sign-off.\n\n${articleSummaries}`;
     const response = await ai.models.generateContent({ model, contents: prompt });
     return response.text;
 }
@@ -362,10 +362,10 @@ export async function batchTranslate(englishStrings: { [key: string]: string }, 
     }
 }
 
-export async function getKireheInfo(query: string, location: { latitude: number; longitude: number } | null, settings: Settings): Promise<string> {
+export async function getMahamaInfo(query: string, location: { latitude: number; longitude: number } | null, settings: Settings): Promise<string> {
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `The user is asking about Kirehe District, Rwanda. Their query is: "${query}". Answer them as a helpful local guide in ${settings.preferredLanguage}.`,
+        contents: `The user is asking about Mahama, Rwanda. Their query is: "${query}". Answer them as a helpful local guide in ${settings.preferredLanguage}.`,
         config: {
             tools: [{ googleMaps: {} }],
             toolConfig: location ? {
@@ -405,4 +405,31 @@ export async function generateAnchorVideo(script: string): Promise<string> {
         throw new Error("Video generation failed, no download link available.");
     }
     return downloadLink;
+}
+
+export async function generateMovieDeepDive(movie: StreamingContent, settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
+    const model = getModelForPreference(settings.aiModelPreference);
+    const prompt = `Provide an AI-powered "deep dive" for the movie "${movie.title}". Include interesting sections like 'Behind the Scenes & Trivia', 'Thematic Analysis', and 'Critical & Audience Reception'. The response must be in ${settings.preferredLanguage}. Format the response using markdown.`;
+    const response = await ai.models.generateContentStream({ model, contents: prompt });
+    return streamToGenerator(response);
+}
+
+export async function generateMovieRecommendations(allMovies: StreamingContent[], settings: Settings): Promise<number[]> {
+    const model = getModelForPreference(settings.aiModelPreference);
+    const movieList = allMovies.map(m => `ID ${m.id}: ${m.title} (${m.genre}) - ${m.description}`).join('\n');
+    const prompt = `Based on a user who enjoys action and sci-fi, which movies from the following list would you recommend? Return only a JSON array of up to 5 movie IDs.
+    List of movies:
+    ${movieList}
+    `;
+    const response = await ai.models.generateContent({ model, contents: prompt });
+    try {
+        const match = response.text.match(/\[(.*?)\]/);
+        if (match) {
+            return JSON.parse(match[0]);
+        }
+        return [];
+    } catch (e) {
+        console.error("Failed to parse movie recommendations", e);
+        return [];
+    }
 }

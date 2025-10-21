@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import CloseIcon from './icons/CloseIcon';
 import Logo from './Logo';
@@ -69,7 +70,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                     <h2 className="text-3xl font-bold mt-4">A New Era of News</h2>
                     <p className="mt-2 opacity-80">Intelligent, personalized, and always ahead.</p>
                 </div>
-                <p className="text-xs opacity-60">&copy; {new Date().getFullYear()} Kirehe TV. All Rights Reserved.</p>
+                <p className="text-xs opacity-60">&copy; {new Date().getFullYear()} Mahama News Hub. All Rights Reserved.</p>
             </div>
         </div>
 

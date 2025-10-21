@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import type { Settings } from '../types';
 import { TTS_VOICES, categories } from '../constants';
@@ -164,7 +165,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                 </div>
                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-1 divide-y divide-slate-200 dark:divide-slate-700">
                     <h4 className="font-semibold text-lg mb-2">Homepage Sections</h4>
-                    <ToggleSwitch label="Show Kirehe 360°" enabled={localSettings.showKirehe360} onChange={(val) => handleSettingChange('showKirehe360', val)} />
+                    <ToggleSwitch label="Show Mahama 360°" enabled={localSettings.showMahama360} onChange={(val) => handleSettingChange('showMahama360', val)} />
                     <ToggleSwitch label="Show Data Insights" enabled={localSettings.showDataInsights} onChange={(val) => handleSettingChange('showDataInsights', val)} />
                     <ToggleSwitch label="Show Innovation Timeline" enabled={localSettings.showInnovationTimelines} onChange={(val) => handleSettingChange('showInnovationTimelines', val)} />
                 </div>

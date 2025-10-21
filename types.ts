@@ -127,7 +127,7 @@ export interface Settings {
     preferredLanguage: Language;
     showCounterpoint: boolean;
     showInnovationTimelines: boolean;
-    showKirehe360: boolean;
+    showMahama360: boolean;
     showNewsMap: boolean;
     showDataInsights: boolean;
     showNowStreaming: boolean;
