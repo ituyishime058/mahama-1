@@ -37,6 +37,7 @@ interface ArticlePageProps {
   onFactCheckPage: (article: Article) => void;
   onDeepDive: (article: Article) => void;
   onInfographic: (article: Article) => void;
+  onAnalyzeImage: (article: Article) => void;
   settings: Settings;
   onPremiumClick: () => void;
   keyConcepts: KeyConcept[];
@@ -71,6 +72,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onFactCheckPage,
     onDeepDive,
     onInfographic,
+    onAnalyzeImage,
     settings,
     onPremiumClick,
     keyConcepts,
@@ -249,6 +251,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onToggleBookmark={() => onToggleBookmark(article.id)}
             onTextToSpeech={() => onTextToSpeech(article)} // Pass original article for TTS
             onSummarize={() => onSummarize(article)}
+            onAnalyzeImage={() => onAnalyzeImage(article)}
         />
 
         <div className={`transition-all duration-300 max-w-4xl mx-auto mt-8 container sm:px-6 lg:px-8`}>
@@ -261,7 +264,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                     onToggleZenMode={() => setIsZenMode(!isZenMode)}
                     activeLens={activeLens}
                     onSetLens={setActiveLens}
-                />
+                    comparisonList={[]} onAddToCompare={() => {}}                />
                 
                 <main className={!isZenMode ? 'lg:pl-24' : ''}>
                     <AuthorInfo author={article.author} date={article.date} content={displayArticle.content} />

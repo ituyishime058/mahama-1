@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
@@ -67,6 +68,7 @@ import CompareNowButton from './CompareNowButton';
 import ComparisonModal from './ComparisonModal';
 import AiAnchorVideoModal from './AiAnchorVideoModal';
 import MovieDeepDiveModal from './MovieDeepDiveModal';
+import ImageAnalysisModal from './ImageAnalysisModal';
 
 
 const defaultSettings: Settings = {
@@ -100,8 +102,8 @@ const defaultSettings: Settings = {
     reduceMotion: false,
 };
 
-const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'mahama', 'movieDeepDive'];
-const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'aiAnchorVideo', 'movieDeepDive'];
+const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'mahama', 'movieDeepDive', 'analyzeImage'];
+const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'aiAnchorVideo', 'movieDeepDive', 'analyzeImage'];
 
 
 const App: React.FC = () => {
@@ -136,6 +138,7 @@ const App: React.FC = () => {
     const [comparisonList, setComparisonList] = useState<Article[]>([]);
     const [videoScript, setVideoScript] = useState<string|null>(null);
     const [deepDiveMovie, setDeepDiveMovie] = useState<StreamingContent | null>(null);
+    const [analyzeImageArticle, setAnalyzeImageArticle] = useState<Article | null>(null);
 
 
     // Real-time feed state
@@ -280,6 +283,18 @@ const App: React.FC = () => {
             return;
         }
         setTtsModalArticle(article);
+    };
+    
+    const handleAnalyzeImage = (article: Article) => {
+        if (premiumModals.includes('analyzeImage') && settings.subscriptionTier !== 'Premium') {
+            setActiveModal('subscribe');
+            return;
+        }
+        if (!isAuthenticated) {
+            setActiveModal('login');
+            return;
+        }
+        setAnalyzeImageArticle(article);
     };
 
 
@@ -514,6 +529,7 @@ const App: React.FC = () => {
                         onFactCheckPage={(article) => openModal('factCheckPage', article)}
                         onDeepDive={(article) => openModal('deepDive', article)}
                         onInfographic={(article) => openModal('infographic', article)}
+                        onAnalyzeImage={handleAnalyzeImage}
                         settings={settings}
                         onPremiumClick={() => setActiveModal('subscribe')}
                         keyConcepts={keyConcepts}
@@ -595,6 +611,7 @@ const App: React.FC = () => {
         <ComparisonModal isOpen={activeModal === 'compare'} articles={comparisonList} settings={settings} onClose={closeModal} />
         <AiAnchorVideoModal isOpen={activeModal === 'aiAnchorVideo'} onClose={closeModal} script={videoScript} />
         <MovieDeepDiveModal isOpen={!!deepDiveMovie} movie={deepDiveMovie} settings={settings} onClose={() => setDeepDiveMovie(null)} />
+        <ImageAnalysisModal isOpen={!!analyzeImageArticle} article={analyzeImageArticle} settings={settings} onClose={() => setAnalyzeImageArticle(null)} />
 
         <AudioPlayer state={audioPlayerState} onStateChange={setAudioPlayerState} voice={settings.ttsVoice} />
         {!activeArticle && !activeMovie && <FloatingActionButton onClick={() => openModal('live')} />}

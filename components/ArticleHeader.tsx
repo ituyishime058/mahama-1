@@ -5,6 +5,7 @@ import SummarizeIcon from './icons/SummarizeIcon';
 import BookmarkIcon from './icons/BookmarkIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import { useTranslation } from '../hooks/useTranslation';
+import ImageIcon from './icons/ImageIcon';
 
 interface ArticleHeaderProps {
     article: Article; // This can now be the translated article object
@@ -13,6 +14,7 @@ interface ArticleHeaderProps {
     onSummarize: () => void;
     isBookmarked: boolean;
     onToggleBookmark: () => void;
+    onAnalyzeImage: () => void;
 }
 
 const PrimaryActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode; label: string; }> = ({ onClick, icon, label }) => (
@@ -22,7 +24,7 @@ const PrimaryActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode
     </button>
 );
 
-const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextToSpeech, onSummarize, isBookmarked, onToggleBookmark }) => {
+const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextToSpeech, onSummarize, isBookmarked, onToggleBookmark, onAnalyzeImage }) => {
     const { t } = useTranslation();
     return (
         <header className="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 mb-8 text-white min-h-[60vh] max-h-[700px] flex flex-col justify-between p-4 sm:p-8 lg:p-12 rounded-b-2xl overflow-hidden animate-fade-in">
@@ -50,6 +52,7 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
                 <div className="mt-6 flex flex-wrap items-center gap-4">
                     <PrimaryActionButton onClick={onTextToSpeech} icon={<ReadAloudIcon className="w-5 h-5" />} label={t('listen')} />
                     <PrimaryActionButton onClick={onSummarize} icon={<SummarizeIcon className="w-5 h-5" />} label={t('summarize')} />
+                    <PrimaryActionButton onClick={onAnalyzeImage} icon={<ImageIcon className="w-5 h-5" />} label={t('analyzeImage')} />
                     <PrimaryActionButton onClick={onToggleBookmark} icon={<BookmarkIcon filled={isBookmarked} className="w-5 h-5" />} label={isBookmarked ? t('bookmarked') : t('bookmark')} />
                 </div>
             </div>

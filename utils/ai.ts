@@ -433,3 +433,32 @@ export async function generateMovieRecommendations(allMovies: StreamingContent[]
         return [];
     }
 }
+
+export async function analyzeImage(imageBase64: string, mimeType: string, question: string, history: ChatMessage[], settings: Settings): Promise<AsyncGenerator<string, any, unknown>> {
+    const model = getModelForPreference(settings.aiModelPreference);
+    
+    const historyString = history.map(m => `${m.role}: ${m.content}`).join('\n');
+
+    const imagePart = {
+        inlineData: {
+            mimeType: mimeType,
+            data: imageBase64,
+        },
+    };
+    
+    const textPart = {
+        text: `The user is asking a question about the provided image. Your response must be in ${settings.preferredLanguage}.
+        
+        Previous Conversation:
+        ${historyString}
+        
+        New Question: ${question}`,
+    };
+
+    const response = await ai.models.generateContentStream({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [imagePart, textPart] },
+    });
+
+    return streamToGenerator(response);
+}

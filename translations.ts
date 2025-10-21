@@ -191,6 +191,7 @@ export const translations = {
     mahamaAskPlaceholder: 'Ask about Mahama...',
     mahamaGeolocation: 'Please allow location access for better results.',
     mahamaWelcome: "Welcome to Mahama Services! I'm your AI guide to the area. How can I help you today?",
+    analyzeImage: 'Analyze Image',
   },
   Kinyarwanda: {
     logoText: 'Mahama News Hub',
