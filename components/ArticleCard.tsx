@@ -7,14 +7,13 @@ import DownloadIcon from './icons/DownloadIcon';
 import CheckIcon from './icons/CheckIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import SentimentIndicator from './SentimentIndicator';
-import TranslateIcon from './icons/TranslateIcon';
+import TextToSpeechIcon from './icons/TextToSpeechIcon';
 
 interface ArticleCardProps {
   article: Article;
   onSummarize: (article: Article) => void;
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
-  onTranslate: (article: Article) => void;
   onReadMore: (article: Article) => void;
   audioState: {
     playingArticleId: number | null;
@@ -34,7 +33,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onSummarize,
   onExplainSimply,
   onTextToSpeech,
-  onTranslate,
   onReadMore,
   audioState,
   isBookmarked,
@@ -93,7 +91,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <div className={`flex items-center gap-4 flex-wrap ${isGridLayout ? 'order-2 w-full justify-start' : ''}`}>
             <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
             <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-            <ActionButton onClick={() => onTranslate(article)} icon={<TranslateIcon className="w-5 h-5" />} label="Listen" />
+            <ActionButton onClick={() => onTextToSpeech(article)} icon={<TextToSpeechIcon className="w-5 h-5" />} label="Listen" />
           </div>
           <div className={`flex items-center gap-2 ${isGridLayout ? 'order-1 self-end mb-2' : ''}`}>
             <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}>

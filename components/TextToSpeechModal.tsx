@@ -12,7 +12,7 @@ interface TextToSpeechModalProps {
   article: Article | null;
   settings: Settings;
   onClose: () => void;
-  onPlay: (originalArticle: Article, translatedText: string, voice: AiTtsVoice) => void;
+  onPlay: (originalArticle: Article, textToSpeak: string, voice: AiTtsVoice) => void;
 }
 
 const TextToSpeechModal: React.FC<TextToSpeechModalProps> = ({ isOpen, article, settings, onClose, onPlay }) => {
@@ -38,15 +38,15 @@ const TextToSpeechModal: React.FC<TextToSpeechModalProps> = ({ isOpen, article, 
     setError('');
 
     try {
-      let textToSpeak = article.content;
+      let textToSpeak = `Title: ${article.title}. By ${article.author}. ${article.content}`;
       const voice = LANGUAGE_VOICE_MAP[targetLanguage] || 'Zephyr';
 
       if (targetLanguage !== 'English') {
         setStatus('Translating article...');
-        textToSpeak = await translateArticle(article.content, targetLanguage, settings);
+        textToSpeak = await translateArticle(textToSpeak, targetLanguage, settings);
       }
       
-      setStatus('Generating audio...');
+      setStatus('Preparing audio...');
       onPlay(article, textToSpeak, voice);
       onClose();
 

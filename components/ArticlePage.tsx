@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
-import { translateArticle, applyReadingLens } from '../utils/ai';
+import { applyReadingLens } from '../utils/ai';
 
 import AuthorInfo from './AuthorInfo';
 import ContentGutter from './ContentGutter';
@@ -11,7 +11,6 @@ import FactCheck from './FactCheck';
 import CommentsSection from './CommentsSection';
 import FloatingActionbar from './FloatingActionbar';
 import RelatedArticles from './RelatedArticles';
-import TranslateIcon from './icons/TranslateIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import GlossaryPopup from './GlossaryPopup';
 import CommunityHighlights from './CommunityHighlights';
@@ -29,7 +28,6 @@ interface ArticlePageProps {
   onSummarize: (article: Article) => void;
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
-  onTranslate: (article: Article) => void;
   onQuiz: (article: Article) => void;
   onCounterpoint: (article: Article) => void;
   onBehindTheNews: (article: Article) => void;
@@ -64,7 +62,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     onSummarize,
     onExplainSimply,
     onTextToSpeech,
-    onTranslate,
     onQuiz,
     onCounterpoint,
     onBehindTheNews,
@@ -91,10 +88,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
 }) => {
   const [isZenMode, setIsZenMode] = useState(false);
   
-  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [showOriginal, setShowOriginal] = useState(true);
-
   const [activeLens, setActiveLens] = useState<ReadingLens>('None');
   const [modifiedContent, setModifiedContent] = useState<string | null>(null);
   const [isModifyingContent, setIsModifyingContent] = useState(false);
@@ -103,36 +96,14 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   
   const articleRef = useRef<HTMLDivElement>(null);
 
-  const handleManualTranslate = async () => {
-    if (isTranslating) return;
-    setIsTranslating(true);
-    try {
-        const translation = await translateArticle(article.content, settings.preferredLanguage, settings);
-        setTranslatedContent(translation);
-        setShowOriginal(false);
-    } catch (e) {
-        console.error("Translation failed:", e);
-    } finally {
-        setIsTranslating(false);
-    }
-  };
-
   useEffect(() => {
     window.scrollTo(0, 0);
     // Reset state on article change
     setGlossaryTerm(null);
-    setTranslatedContent(null);
-    setShowOriginal(true);
-    setIsTranslating(false);
     setActiveLens('None');
     setModifiedContent(null);
     setIsModifyingContent(false);
-
-    if (settings.autoTranslate && settings.preferredLanguage !== 'English') {
-        handleManualTranslate();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [article, settings.autoTranslate, settings.preferredLanguage]);
+  }, [article]);
 
   useEffect(() => {
     setActiveLens(isZenMode ? settings.aiReadingLens : 'None');
@@ -157,7 +128,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     modifyContent();
   }, [activeLens, article.content, settings]);
   
-  const contentToDisplay = modifiedContent ?? (showOriginal || !translatedContent ? article.content : translatedContent);
+  const contentToDisplay = modifiedContent ?? article.content;
 
   const processedContent = useMemo(() => {
     if (!settings.interactiveGlossary || keyConcepts.length === 0) {
@@ -194,6 +165,20 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
     }
   }, [keyConcepts]);
   
+  // Insert pull quotes into the article content
+  const contentWithPullQuotes = useMemo(() => {
+    let contentParts = processedContent.split('<br />');
+    if (pullQuotes.length > 0 && contentParts.length > 4) {
+        const firstQuoteIndex = Math.floor(contentParts.length / 3);
+        contentParts.splice(firstQuoteIndex, 0, `PULLQUOTE_0`);
+    }
+    if (pullQuotes.length > 1 && contentParts.length > 8) {
+        const secondQuoteIndex = Math.floor(contentParts.length * 2 / 3);
+        contentParts.splice(secondQuoteIndex, 0, `PULLQUOTE_1`);
+    }
+    return contentParts;
+  }, [processedContent, pullQuotes]);
+
   return (
     <div ref={articleRef} className={`transition-colors duration-300 ${isZenMode ? 'bg-slate-50 dark:bg-gray-900' : 'bg-transparent'}`}>
         <style>{`
@@ -240,25 +225,9 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 
                 <main className={!isZenMode ? 'lg:pl-24' : ''}>
                     <AuthorInfo author={article.author} date={article.date} content={article.content} />
-                    
-                    <div className="my-4 flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                           {translatedContent && (
-                                <button onClick={() => setShowOriginal(!showOriginal)} className="font-semibold text-sm text-deep-red dark:text-gold hover:underline">
-                                    {showOriginal ? 'Show Translation' : 'Show Original'}
-                                </button>
-                           )}
-                        </div>
-                        <button onClick={handleManualTranslate} disabled={isTranslating} className="flex items-center gap-2 text-sm font-semibold p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50">
-                            {isTranslating ? <LoadingSpinner /> : <TranslateIcon className="w-5 h-5"/>}
-                            <span>{isTranslating ? 'Translating...' : `Translate to ${settings.preferredLanguage}`}</span>
-                        </button>
-                    </div>
-                   
+                                       
                     <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                     <FactCheck result={factCheckResult} isLoading={factCheckLoading} />
-                    
-                    {!pullQuotesLoading && pullQuotes[0] && <PullQuote quote={pullQuotes[0]} />}
                     
                      {isModifyingContent && (
                         <div className="flex justify-center items-center my-8 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
@@ -266,11 +235,18 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                             <span>Applying AI Reading Lens...</span>
                         </div>
                     )}
-                    <div onClick={handleArticleClick}>
-                        <div className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300" dangerouslySetInnerHTML={{ __html: processedContent.replace(/\n/g, '<br />') }} />
+                    <div onClick={handleArticleClick} className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300">
+                      {contentWithPullQuotes.map((paragraph, index) => {
+                          if (paragraph.startsWith('PULLQUOTE_')) {
+                              const quoteIndex = parseInt(paragraph.split('_')[1]);
+                              if (pullQuotes[quoteIndex] && !pullQuotesLoading) {
+                                return <PullQuote key={`pullquote-${index}`} quote={pullQuotes[quoteIndex]} />;
+                              }
+                              return null;
+                          }
+                          return <p key={index} dangerouslySetInnerHTML={{ __html: paragraph }} />;
+                      })}
                     </div>
-                    
-                    {!pullQuotesLoading && pullQuotes[1] && <PullQuote quote={pullQuotes[1]} />}
 
                     {article.hasTimeline && <ArticleTimeline events={timelineEvents} isLoading={timelineLoading} />}
 
@@ -296,7 +272,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
-            onTranslate={onTranslate}
             onQuiz={onQuiz}
             onCounterpoint={onCounterpoint}
             onBehindTheNews={onBehindTheNews}

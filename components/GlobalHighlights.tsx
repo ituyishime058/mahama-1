@@ -7,7 +7,6 @@ interface GlobalHighlightsProps {
   onSummarize: (article: Article) => void;
   onExplainSimply: (article: Article) => void;
   onTextToSpeech: (article: Article) => void;
-  onTranslate: (article: Article) => void;
   onReadMore: (article: Article) => void;
   audioState: {
     playingArticleId: number | null;
@@ -26,7 +25,6 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   onSummarize, 
   onExplainSimply, 
   onTextToSpeech,
-  onTranslate,
   onReadMore, 
   audioState,
   bookmarkedArticleIds,
@@ -55,7 +53,6 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
-            onTranslate={onTranslate}
             onReadMore={onReadMore}
             audioState={audioState}
             isBookmarked={bookmarkedArticleIds.includes(article.id)}
@@ -82,7 +79,6 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
           onSummarize={onSummarize}
           onExplainSimply={onExplainSimply}
           onTextToSpeech={onTextToSpeech}
-          onTranslate={onTranslate}
           onReadMore={onReadMore}
           audioState={audioState}
           isBookmarked={bookmarkedArticleIds.includes(featuredArticle.id)}
@@ -100,7 +96,6 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
             onSummarize={onSummarize}
             onExplainSimply={onExplainSimply}
             onTextToSpeech={onTextToSpeech}
-            onTranslate={onTranslate}
             onReadMore={onReadMore}
             audioState={audioState}
             isBookmarked={bookmarkedArticleIds.includes(article.id)}
