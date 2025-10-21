@@ -20,7 +20,6 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({ currentArticle, allAr
     const fetchRelated = async () => {
       setIsLoading(true);
       try {
-        // FIX: Corrected incomplete function call on line 23 from 'all' to 'allArticles' and added missing 'settings' argument. The rest of the file was also reconstructed as it was truncated.
         const relatedIds = await findRelatedArticles(currentArticle, allArticles, settings);
         const relatedArticlesData = allArticles.filter(a => relatedIds.includes(a.id));
         setRelated(relatedArticlesData);

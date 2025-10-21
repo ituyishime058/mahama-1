@@ -1,5 +1,6 @@
 import { GoogleGenAI, GenerateContentResponse, Content, Type, Modality } from "@google/genai";
-import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData, AiSearchResult, StreamingContent, Language } from '../types';
+// FIX: Add NetworkNode and NetworkLink to the type imports.
+import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData, AiSearchResult, StreamingContent, Language, FactCheckResult, NetworkNode, NetworkLink } from '../types';
 
 const getModelConfig = (settings: Settings, taskComplexity: 'simple' | 'complex' = 'simple') => {
     if (settings.subscriptionTier === 'Premium' && settings.aiModelPreference === 'Quality') {
@@ -201,32 +202,49 @@ export const generateTags = async (article: Article, settings: Settings): Promis
 };
 
 // 9. factCheckArticle
-export const factCheckArticle = async (article: Article, settings: Settings): Promise<{ status: string; summary: string }> => {
+export const factCheckArticle = async (article: Article, settings: Settings): Promise<FactCheckResult | null> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
 
     const prompt = `Fact-check the key claims in this article excerpt using Google Search. Provide a one-sentence summary of your findings and a status of "Verified", "Mixed", or "Unverified".
     
+    Article Title: ${article.title}
     Excerpt: "${article.excerpt}"`;
     
-    const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt,
-        config: {
-            ...config,
-            tools: [{ googleSearch: {} }],
-        },
-    });
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                ...config,
+                tools: [{ googleSearch: {} }],
+            },
+        });
 
-    const text = response.text.toLowerCase();
-    let status = 'Unverified';
-    if (text.includes('verified')) status = 'Verified';
-    else if (text.includes('mixed') || text.includes('partially')) status = 'Mixed';
-    
-    return {
-        status: status,
-        summary: response.text,
-    };
+        const text = response.text.toLowerCase();
+        let status: 'Verified' | 'Mixed' | 'Unverified' = 'Unverified';
+        if (text.includes('verified')) status = 'Verified';
+        else if (text.includes('mixed') || text.includes('partially')) status = 'Mixed';
+        
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+            ?.map(chunk => chunk.web)
+            .filter((web): web is { uri: string; title: string } => !!web && !!web.uri)
+            .reduce((acc: { uri: string; title: string }[], current) => { // Remove duplicates
+                if (!acc.some(item => item.uri === current.uri)) {
+                    acc.push(current);
+                }
+                return acc;
+            }, []) ?? [];
+
+        return {
+            status: status,
+            summary: response.text,
+            sources: sources,
+        };
+    } catch (e) {
+        console.error("Fact check failed", e);
+        return null;
+    }
 };
 
 // 10. generateKeyTakeaways
@@ -419,7 +437,7 @@ export async function* askAboutArticle(article: Article, question: string, histo
     ---`;
     
     const contents: Content[] = history.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
+        role: msg.role,
         parts: [{ text: msg.content }]
     }));
     contents.push({ role: 'user', parts: [{ text: question }] });
@@ -475,24 +493,29 @@ export const summarizeComments = async (comments: Comment[], settings: Settings)
 };
 
 // 18. generateAuthorResponse
-export async function* generateAuthorResponse(article: Article, question: string, settings: Settings): AsyncGenerator<string> {
+export async function* generateAuthorResponse(article: Article, question: string, history: ChatMessage[], settings: Settings): AsyncGenerator<string> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
-    const prompt = `You are an AI persona of ${article.author}, the author of the article titled "${article.title}". Adopt their likely tone and style based on the article's content. A user has a question for you. Answer it from the author's perspective, drawing upon the information and context within the article.
+    const systemInstruction = `You are an AI persona of ${article.author}, the author of the article titled "${article.title}". Adopt their likely tone and style based on the article's content. A user is asking you questions. Answer them from the author's perspective, drawing upon the information and context within the article and the previous conversation.
     
-    Article Content:
+    Article Content for your reference:
     ---
     ${article.content}
-    ---
-    
-    User's Question: "${question}"
-    
-    Your response as ${article.author}:`;
-    
+    ---`;
+
+    const contents: Content[] = history.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.content }]
+    }));
+    contents.push({ role: 'user', parts: [{ text: question }] });
+
     const response = await ai.models.generateContentStream({
-        model: model,
-        contents: prompt,
-        config,
+        model,
+        contents,
+        config: {
+            ...config,
+            systemInstruction,
+        },
     });
 
     for await (const chunk of response) {
@@ -505,142 +528,94 @@ export const generateNewsBriefing = async (articles: Article[], settings: Settin
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
 
-    const articleSummaries = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
+    const articlesSummary = articles.map(a => `Title: ${a.title}\nExcerpt: ${a.excerpt}`).join('\n\n');
 
-    const prompt = `You are a news anchor for Mahama News Hub. Your task is to write a script for a short audio news briefing. The tone should be ${settings.aiVoicePersonality}. Start with a friendly greeting, then briefly summarize each of the following top stories. End with a warm sign-off. The entire script should be about 200-300 words.
+    const prompt = `You are an AI news anchor for Mahama News Hub. Your personality is ${settings.aiVoicePersonality}. Create a concise, engaging news briefing script summarizing the following articles. Start with a friendly greeting, then smoothly transition between each story. End with a warm sign-off.
     
-    Here are the stories to summarize:
-    ---
-    ${articleSummaries}
-    ---
-    
-    Generate the full script now.`;
-    
+    Articles:
+    ${articlesSummary}`;
+
     const response = await ai.models.generateContent({
-        model: model,
+        model,
         contents: prompt,
-        config: config,
+        config
     });
-    
+
     return response.text;
 };
 
-// 20. factCheckPageContent
-export const factCheckPageContent = async (content: string, settings: Settings): Promise<{ summary: string; sources: { uri: string, title: string }[] }> => {
+// 20. determineOptimalLayout
+export const determineOptimalLayout = async (bookmarkedArticles: Article[], settings: Settings): Promise<HomepageLayout | null> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const { model, config } = getModelConfig(settings, 'complex');
+    const { model, config } = getModelConfig(settings, 'simple');
+    
+    const articleTitles = bookmarkedArticles.map(a => `- ${a.title} (Category: ${a.category})`).join("\n");
+    const prompt = `Based on this user's bookmarked articles, determine the optimal homepage layout: "Standard" (for broad interests) or "Dashboard" (for focused, data-heavy topics). Return only the word "Standard" or "Dashboard".
 
-    const prompt = `Fact-check the key claims in the following content using Google Search. Provide a brief summary of your findings and list the top 3-5 web sources you used.
+    Bookmarks:
+    ${articleTitles}`;
 
-    Content to check:
-    ---
-    ${content}
-    ---
-    `;
+    const response = await ai.models.generateContent({ model, contents: prompt, config });
+    const layout = response.text.trim();
+
+    if (layout === 'Standard' || layout === 'Dashboard') {
+        return layout;
+    }
+    return null;
+};
+
+// 21. generatePullQuotes
+export const generatePullQuotes = async (article: Article, settings: Settings): Promise<string[]> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'simple');
+    const prompt = `Extract two impactful and representative "pull quotes" from the following article content. The quotes should be concise and compelling. Return a JSON array of two strings.
+    
+    Content:
+    ${article.content}`;
 
     const response = await ai.models.generateContent({
-        model: model,
+        model,
         contents: prompt,
         config: {
             ...config,
-            tools: [{ googleSearch: {} }],
-        },
+            responseMimeType: "application/json",
+            responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } },
+        }
     });
 
-    const chunks = (response.candidates?.[0]?.groundingMetadata?.groundingChunks as any[]) || [];
-    const sources = chunks.map(chunk => ({
-        uri: chunk.web?.uri || '',
-        title: chunk.web?.title || '',
-    })).filter(source => source.uri);
-
-    const uniqueSources = Array.from(new Map(sources.map(item => [item.uri, item])).values());
-
-    return {
-        summary: response.text,
-        sources: uniqueSources,
-    };
+    try {
+        const quotes = JSON.parse(response.text.trim()) as string[];
+        return quotes.slice(0, 2);
+    } catch {
+        return [];
+    }
 };
 
-// 21. generateDeepDive
+// 22. generateDeepDive
 export async function* generateDeepDive(article: Article, settings: Settings): AsyncGenerator<string> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
-    const prompt = `You are a senior analyst and researcher. Create a comprehensive "Deep Dive" on the topic of the provided news article. Go far beyond the article's text to provide extensive, well-researched background information. Your analysis must be structured with the following detailed markdown sections:
+    const prompt = `Provide a "deep dive" analysis of the following article. Go beyond the surface-level facts and explore the nuances, complexities, and interconnected themes. Structure your response with markdown headings.
     
-    ## Comprehensive Background
-    Explain the broader historical, social, or technological context that this news event fits into. What led up to this moment?
+    Article: ${article.title}\n\n${article.content}`;
     
-    ## Profiles of Key Entities
-    Detail the most important individuals, organizations, or nations involved. What are their histories, motivations, and roles in this story?
-    
-    ## Data & Statistics
-    Provide relevant data points, statistics, or quantitative analysis that helps to understand the scale and scope of the issue.
-    
-    ## Future Outlook & Projections
-    Based on the information, discuss the potential long-term consequences, future trends, and expert predictions related to this topic.
-    
-    Article Title: ${article.title}
-    Article Excerpt: ${article.excerpt}`;
-    
-    const response = await ai.models.generateContentStream({
-        model,
-        contents: prompt,
-        config,
-    });
+    const response = await ai.models.generateContentStream({ model, contents: prompt, config });
 
     for await (const chunk of response) {
         yield chunk.text;
     }
 }
 
-// 22. determineOptimalLayout
-export const determineOptimalLayout = async (bookmarkedArticles: Article[], settings: Settings): Promise<HomepageLayout | null> => {
-    if (bookmarkedArticles.length < 3) return null;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const { model, config } = getModelConfig(settings, 'simple');
-
-    const bookmarkSummary = bookmarkedArticles.map(a => `- ${a.title} (Category: ${a.category})`).join('\n');
-
-    const prompt = `Based on this user's list of bookmarked articles, should their homepage layout be "Standard" or "Dashboard"?
-    - "Standard" is a traditional, comfortable news layout.
-    - "Dashboard" is a dense, multi-column layout for power users who follow many diverse topics or data-heavy subjects (like Economy, Technology).
-    
-    User's Bookmarks:
-    ${bookmarkSummary}
-    
-    Respond with only a single word: "Standard" or "Dashboard".`;
-
-    const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config,
-    });
-
-    const layout = response.text.trim();
-    if (layout === 'Dashboard' || layout === 'Standard') {
-        return layout;
-    }
-    return null;
-};
-
 // 23. generateInfographicData
 export const generateInfographicData = async (article: Article, settings: Settings): Promise<InfographicData> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
-
-    const prompt = `Analyze the following article to extract key numerical data or quantifiable concepts that can be represented in a simple bar chart.
-    Identify a suitable title for the chart and up to 5 data points with labels and numerical values.
-    Return the result as a single JSON object with a "title" (string) and an "items" array. Each object in "items" should have a "label" (string) and a "value" (number).
-    If no suitable data is found, return an empty items array.
-
-    Article:
-    ---
-    ${article.content}
-    ---
-    `;
-
+    const prompt = `Analyze this article to find quantifiable data suitable for a simple bar chart. Identify a clear theme and extract 3-5 data points with labels and numerical values. Return a single JSON object with a "title" (string) for the chart and an "items" array, where each object has a "label" (string) and a "value" (number).
+    
+    Article: ${article.content}`;
+    
     const response = await ai.models.generateContent({
-        model: model,
+        model,
         contents: prompt,
         config: {
             ...config,
@@ -655,9 +630,9 @@ export const generateInfographicData = async (article: Article, settings: Settin
                             type: Type.OBJECT,
                             properties: {
                                 label: { type: Type.STRING },
-                                value: { type: Type.NUMBER }
+                                value: { type: Type.NUMBER },
                             },
-                            required: ["label", "value"]
+                            required: ["label", "value"],
                         }
                     }
                 },
@@ -667,76 +642,36 @@ export const generateInfographicData = async (article: Article, settings: Settin
     });
 
     try {
-        const jsonText = response.text.trim();
-        return JSON.parse(jsonText) as InfographicData;
+        return JSON.parse(response.text.trim()) as InfographicData;
     } catch (e) {
-        console.error("Failed to parse infographic JSON:", e, "Received text:", response.text);
-        throw new Error("Could not generate valid infographic data.");
+        console.error("Failed to parse infographic JSON:", e);
+        throw new Error("Could not generate infographic data.");
     }
 };
 
-// 24. getThisDayInHistory
-export const getThisDayInHistory = async (): Promise<string> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-
-    const prompt = `Using Google Search, tell me about two significant and interesting historical events that happened on this day, ${today}. For each event, provide a title using markdown like '## Year - Event Title' and a one-sentence summary on the next line.`;
-    
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-            tools: [{ googleSearch: {} }],
-        },
-    });
-
-    return response.text;
-};
-
-// 25. getAutocompleteSuggestions
-export const getAutocompleteSuggestions = async (query: string, settings: Settings): Promise<string[]> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const prompt = `Based on the user's typing, provide 3-4 likely search query completions. The user has typed: "${query}". Return as a simple JSON array of strings.`;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-            thinkingConfig: { thinkingBudget: 0 },
-            responseMimeType: "application/json",
-            responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } },
-        }
-    });
-
-    try {
-        return JSON.parse(response.text.trim());
-    } catch {
-        return [];
-    }
-};
-
-// 26. performAiSearch
+// 24. performAiSearch
 export const performAiSearch = async (query: string, articles: Article[], movies: StreamingContent[], settings: Settings): Promise<AiSearchResult> => {
-    const { model, config } = getModelConfig(settings, 'complex');
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'complex');
     
-    const articleList = articles.map(a => ({ id: a.id, title: a.title, excerpt: a.excerpt }));
-    const movieList = movies.map(m => ({ id: m.id, title: m.title, description: m.description, genre: m.genre }));
+    const articleData = articles.map(a => `ID: ${a.id}, Title: ${a.title}, Type: Article, Excerpt: ${a.excerpt}`).join("\n");
+    const movieData = movies.map(m => `ID: ${m.id}, Title: ${m.title}, Type: Movie, Description: ${m.description}`).join("\n");
+    
+    const prompt = `You are a powerful search AI. Analyze the user's query and the provided data.
+    1. Provide a concise, direct answer to the query in a short paragraph.
+    2. Identify the most relevant article IDs and movie IDs from the data.
+    3. Suggest 3 follow-up questions.
+    
+    Return a single JSON object with "summary" (string), "relatedArticleIds" (array of numbers), "relatedMovieIds" (array of numbers), and "suggestedQuestions" (array of strings).
 
-    const prompt = `You are an AI search assistant for a news and entertainment website. The user's query is: "${query}".
-    Your task is four-fold:
-    1.  Provide a concise, direct summary or answer to the user's query. If the query is broad, summarize the general topic. Use markdown for formatting if needed.
-    2.  From the provided list of articles, identify the top 3-5 most relevant articles. Return only their integer IDs in the 'relatedArticleIds' field.
-    3.  From the provided list of movies/TV shows, identify the top 3-5 most relevant items. Return only their integer IDs in the 'relatedMovieIds' field.
-    4.  Suggest 3 insightful follow-up questions the user might have.
+    User Query: "${query}"
 
-    Here is the list of available articles:
-    ${JSON.stringify(articleList)}
-
-    Here is the list of available movies/TV shows:
-    ${JSON.stringify(movieList)}
-
-    Return a single, valid JSON object that strictly follows this schema.`;
+    Data:
+    ---
+    ${articleData}
+    ---
+    ${movieData}
+    ---`;
 
     const response = await ai.models.generateContent({
         model,
@@ -758,50 +693,91 @@ export const performAiSearch = async (query: string, articles: Article[], movies
     });
 
     try {
-        return JSON.parse(response.text.trim());
-    } catch (e) {
-        console.error("Failed to parse AI search result", e, "Response text:", response.text);
-        throw new Error("AI search returned an invalid format.");
+        return JSON.parse(response.text.trim()) as AiSearchResult;
+    } catch(e) {
+        console.error("AI Search failed:", e);
+        throw new Error("AI search failed to produce a valid result.");
     }
 };
 
-// 27. generatePullQuotes
-export const generatePullQuotes = async (article: Article, settings: Settings): Promise<string[]> => {
+// 25. translateArticleContent (for full article)
+export const translateArticleContent = async (article: Article, language: Language, settings: Settings): Promise<{ title: string; excerpt: string; content: string }> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'simple');
-    const prompt = `From the following article, extract one or two of the most impactful, representative, or thought-provoking sentences to be used as pull quotes. Return them as a simple JSON array of strings. Maximum of two quotes.
+
+    const contentToTranslate = {
+        title: article.title,
+        excerpt: article.excerpt,
+        content: article.content
+    };
+
+    const prompt = `Translate the following JSON object's string values into ${language}. Return a valid JSON object with the same structure.
     
-    Article Content:
-    ---
-    ${article.content}
-    ---
-    `;
-    
+    Input:
+    ${JSON.stringify(contentToTranslate, null, 2)}`;
+
     const response = await ai.models.generateContent({
         model,
         contents: prompt,
         config: {
             ...config,
             responseMimeType: "application/json",
-            responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } },
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    title: { type: Type.STRING },
+                    excerpt: { type: Type.STRING },
+                    content: { type: Type.STRING },
+                },
+                required: ["title", "excerpt", "content"]
+            }
         }
     });
 
     try {
-        const quotes = JSON.parse(response.text.trim()) as string[];
-        return quotes.slice(0, 2); // Ensure max of 2
-    } catch {
-        return [];
+        return JSON.parse(response.text.trim());
+    } catch (e) {
+        console.error("Full article translation failed:", e);
+        throw new Error("Could not translate the article.");
     }
 };
 
-// 28. generateInvestigationSummary
-export const generateInvestigationSummary = async (topic: string, settings: Settings): Promise<{ overview: string, status: string }> => {
+// 26. batchTranslate (for UI strings)
+export const batchTranslate = async (translations: { [key: string]: string }, language: Language, settings: Settings): Promise<{ [key: string]: string }> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'simple');
+    
+    const prompt = `Translate the values of the following JSON object into ${language}. Maintain the original keys. Return a valid JSON object.
+    
+    Input:
+    ${JSON.stringify(translations, null, 2)}`;
+    
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: { ...config, responseMimeType: "application/json" }
+    });
+
+    try {
+        const jsonString = response.text.trim().replace(/```json\n?|\n?```/g, '');
+        return JSON.parse(jsonString);
+    } catch (e) {
+        console.error("Batch translation failed:", e);
+        throw new Error("Could not translate UI elements.");
+    }
+};
+
+// 27. factCheckPageContent
+export const factCheckPageContent = async (pageContent: string, settings: Settings): Promise<{ summary: string; sources: { uri: string; title: string }[] }> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
-    const prompt = `You are an investigative journalist AI. Your task is to provide a summary and the latest status on the topic: "${topic}".
-    Use Google Search to get the most up-to-date information.
-    Return a single JSON object with two keys: "overview" (a 2-3 sentence summary of the entire topic) and "status" (a 1-2 sentence summary of the very latest developments).`;
+
+    const prompt = `You are a meticulous fact-checker. Analyze the full text of this article using Google Search to verify its key claims and data points. Provide a comprehensive summary of your findings, highlighting any inconsistencies or confirmations.
+    
+    Article Text:
+    ---
+    ${pageContent.substring(0, 8000)}
+    ---`;
 
     const response = await ai.models.generateContent({
         model,
@@ -809,52 +785,85 @@ export const generateInvestigationSummary = async (topic: string, settings: Sett
         config: {
             ...config,
             tools: [{ googleSearch: {} }],
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    overview: { type: Type.STRING },
-                    status: { type: Type.STRING }
-                },
-                required: ["overview", "status"]
-            }
-        }
+        },
     });
+
+    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+        ?.map(chunk => chunk.web)
+        .filter((web): web is { uri: string; title: string } => !!web && !!web.uri)
+        .reduce((acc: { uri: string; title: string }[], current) => {
+            if (!acc.some(item => item.uri === current.uri)) {
+                acc.push(current);
+            }
+            return acc;
+        }, []) ?? [];
     
-    try {
-        return JSON.parse(response.text.trim());
-    } catch {
-        throw new Error("Failed to generate investigation summary.");
-    }
+    return {
+        summary: response.text,
+        sources: sources,
+    };
 };
 
-// 29. identifyKeyPlayers
-export const identifyKeyPlayers = async (topic: string, settings: Settings): Promise<{ nodes: {id: string, type: 'company' | 'country' | 'person'}[], links: {source: string, target: string}[] }> => {
+
+// 28. compareArticles
+export async function* compareArticles(article1: Article, article2: Article, settings: Settings): AsyncGenerator<string> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
     const { model, config } = getModelConfig(settings, 'complex');
-    const prompt = `Analyze the topic "${topic}". Identify the 5-7 most critical key players (companies, countries, or people). Then, describe the primary relationships between them (e.g., 'competes with', 'supplies to', 'regulates').
-    Return a single JSON object with two keys: "nodes" and "links".
-    "nodes" should be an array of objects, each with an "id" (the player's name) and a "type" ('company', 'country', or 'person').
-    "links" should be an array of objects, each with a "source" (an id from nodes) and a "target" (an id from nodes).`;
+    const prompt = `You are an expert news analyst. Compare and contrast the following two articles. Identify common themes, differing perspectives, and unique information in each. Structure your response with markdown headings for "Common Ground", "Article 1 Unique Points", and "Article 2 Unique Points".
     
+    Article 1: "${article1.title}"
+    Excerpt: ${article1.excerpt}
+    
+    Article 2: "${article2.title}"
+    Excerpt: ${article2.excerpt}`;
+    
+    const response = await ai.models.generateContentStream({ model, contents: prompt, config });
+
+    for await (const chunk of response) {
+        yield chunk.text;
+    }
+}
+
+// 29. getThisDayInHistory
+export const getThisDayInHistory = async (): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const prompt = `Provide 2-3 significant historical events that happened on this day, ${today}. For each event, provide a title using markdown H2 format (##) and a one-sentence description.`;
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+    });
+    return response.text;
+};
+
+// 30. identifyKeyPlayers (for Mahama Investigates)
+// FIX: Update return type to use NetworkNode and NetworkLink from types.ts, resolving "Cannot find name 'Link'" error.
+export const identifyKeyPlayers = async (topic: string, settings: Settings): Promise<{ nodes: NetworkNode[], links: NetworkLink[] }> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'complex');
+
+    const prompt = `For the topic "${topic}", identify 5-7 key players (companies, countries, people) and their relationships. Return a JSON object with "nodes" (array of objects with "id" and "type") and "links" (array of objects with "source" and "target" id strings showing influence or relationship).
+    
+    Node types can be 'company', 'country', or 'person'.`;
+
     const response = await ai.models.generateContent({
         model,
         contents: prompt,
         config: {
             ...config,
-            responseMimeType: 'application/json',
+            responseMimeType: "application/json",
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    nodes: { 
+                    nodes: {
                         type: Type.ARRAY,
                         items: {
                             type: Type.OBJECT,
                             properties: {
                                 id: { type: Type.STRING },
-                                type: { type: Type.STRING, enum: ['company', 'country', 'person']}
+                                type: { type: Type.STRING, enum: ['company', 'country', 'person'] },
                             },
-                             required: ["id", "type"]
+                            required: ['id', 'type'],
                         }
                     },
                     links: {
@@ -863,128 +872,50 @@ export const identifyKeyPlayers = async (topic: string, settings: Settings): Pro
                             type: Type.OBJECT,
                             properties: {
                                 source: { type: Type.STRING },
-                                target: { type: Type.STRING }
+                                target: { type: Type.STRING },
                             },
-                             required: ["source", "target"]
+                            required: ['source', 'target'],
                         }
                     }
                 },
-                required: ["nodes", "links"]
+                required: ['nodes', 'links']
             }
         }
     });
 
     try {
         return JSON.parse(response.text.trim());
-    } catch {
-         throw new Error("Failed to identify key players.");
-    }
-};
-
-// 30. batchTranslate
-export const batchTranslate = async (sourceTexts: Record<string, string>, targetLanguage: Language, settings: Settings): Promise<Record<string, string>> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const { model, config } = getModelConfig(settings, 'simple');
-
-    const prompt = `You are a professional translator. Translate the values of the following JSON object from English to ${targetLanguage}.
-    Respond ONLY with the resulting JSON object, with the exact same keys. Do not add any explanatory text, markdown formatting, or any characters before or after the JSON object.
-
-    Source JSON:
-    ${JSON.stringify(sourceTexts, null, 2)}
-    `;
-
-    const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt,
-        config: {
-            ...config,
-            responseMimeType: 'application/json',
-        }
-    });
-
-    try {
-        const jsonText = response.text.trim();
-        // Sometimes the model might wrap the JSON in markdown, so we try to clean it.
-        const cleanedJson = jsonText.replace(/^```json\n/, '').replace(/\n```$/, '');
-        return JSON.parse(cleanedJson) as Record<string, string>;
     } catch (e) {
-        console.error("Failed to parse batch translation JSON:", e, "Received text:", response.text);
-        throw new Error(`Could not get a valid translation from the AI for ${targetLanguage}.`);
+        console.error("Failed to parse key players:", e);
+        throw new Error("Could not identify key players.");
     }
 };
 
-// 31. translateArticleContent
-export const translateArticleContent = async (article: Article, language: Language, settings: Settings): Promise<{ title: string, excerpt: string, content: string }> => {
+// 31. generateInvestigationSummary
+export const generateInvestigationSummary = async (topic: string, settings: Settings): Promise<{ overview: string, status: string }> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const { model, config } = getModelConfig(settings, 'simple');
-    
-    const contentToTranslate = {
-        title: article.title,
-        excerpt: article.excerpt,
-        content: article.content
-    };
-
-    const prompt = `You are a professional translator for a news website. Translate the values of the following JSON object from English to ${language}.
-    Maintain the original meaning, tone, and formatting (like paragraph breaks).
-    Respond ONLY with the resulting JSON object, with the exact same keys. Do not add any explanatory text, markdown formatting, or any characters before or after the JSON object.
-
-    Source JSON:
-    ${JSON.stringify(contentToTranslate, null, 2)}
-    `;
+    const { model, config } = getModelConfig(settings, 'complex');
+    const prompt = `Provide a summary for an investigative report on "${topic}". Return a JSON object with "overview" (a 2-3 sentence summary) and "status" (a 1-sentence update on the current situation).`;
 
     const response = await ai.models.generateContent({
         model,
         contents: prompt,
         config: {
             ...config,
-            responseMimeType: 'application/json',
+            responseMimeType: "application/json",
             responseSchema: {
                 type: Type.OBJECT,
                 properties: {
-                    title: { type: Type.STRING },
-                    excerpt: { type: Type.STRING },
-                    content: { type: Type.STRING }
+                    overview: { type: Type.STRING },
+                    status: { type: Type.STRING },
                 },
-                required: ["title", "excerpt", "content"]
+                required: ['overview', 'status'],
             }
         }
     });
-
     try {
-        const jsonText = response.text.trim();
-        const cleanedJson = jsonText.replace(/^```json\n/, '').replace(/\n```$/, '');
-        return JSON.parse(cleanedJson) as { title: string, excerpt: string, content: string };
-    } catch (e) {
-        console.error("Failed to parse article translation JSON:", e, "Received text:", response.text);
-        throw new Error(`Could not get a valid article translation from the AI for ${language}.`);
+        return JSON.parse(response.text.trim());
+    } catch(e) {
+        throw new Error("Could not generate investigation summary.");
     }
 };
-
-// 32. compareArticles
-export async function* compareArticles(article1: Article, article2: Article, settings: Settings): AsyncGenerator<string> {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-    const { model, config } = getModelConfig(settings, 'complex');
-    const prompt = `You are an expert news analyst. Compare and contrast the following two articles. Structure your response with the following markdown sections:
-    
-    ## Key Theme Comparison: What are the core topics and how do they overlap or differ?
-    ## Tone & Perspective: Analyze the tone (e.g., neutral, optimistic, critical) and any potential author biases in each article.
-    ## Factual Overlap & Discrepancies: Identify key facts that are present in both, or where they present differing information.
-    ## Synthesis: Provide a concluding paragraph that synthesizes the information from both articles into a broader understanding for the reader.
-
-    Article 1: "${article1.title}"
-    Excerpt 1: ${article1.excerpt}
-
-    Article 2: "${article2.title}"
-    Excerpt 2: ${article2.excerpt}
-    `;
-
-    const response = await ai.models.generateContentStream({
-        model,
-        contents: prompt,
-        config,
-    });
-
-    for await (const chunk of response) {
-        yield chunk.text;
-    }
-}

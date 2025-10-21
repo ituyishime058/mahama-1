@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-// FIX: The 'LiveSession' type is not exported from '@google/genai'. It has been removed.
 import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
 import MicIcon from './icons/MicIcon';
@@ -17,7 +16,6 @@ type TranscriptionEntry = {
 };
 
 const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, onClose }) => {
-  // FIX: Removed state for session object to avoid using the non-exported LiveSession type.
   const [isConnecting, setIsConnecting] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +26,6 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
   const outputAudioContextRef = useRef<AudioContext>();
   const mediaStreamRef = useRef<MediaStream>();
   const scriptProcessorRef = useRef<ScriptProcessorNode>();
-  // FIX: Using `any` since `LiveSession` is not an exported type.
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const nextStartTimeRef = useRef(0);
   const sourcesRef = useRef(new Set<AudioBufferSourceNode>());
@@ -41,9 +38,8 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcription, interimUserTranscript]);
 
-  // FIX: Refactored to use sessionPromiseRef directly and remove dependency on session state.
   const stopSession = useCallback(() => {
-    sessionPromiseRef.current?.then(s => s.close());
+    sessionPromiseRef.current?.then(s => s?.close());
     
     if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
@@ -53,11 +49,11 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
         scriptProcessorRef.current.disconnect();
         scriptProcessorRef.current = undefined;
     }
-    if(inputAudioContextRef.current && inputAudioContextRef.current.state !== 'closed') {
-        // Not closing context to avoid browser issues
+     if (inputAudioContextRef.current && inputAudioContextRef.current.state !== 'closed') {
+        inputAudioContextRef.current.close();
     }
-    if(outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
-        // Not closing context to avoid browser issues
+    if (outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
+        outputAudioContextRef.current.close();
     }
     
     setIsListening(false);
@@ -71,10 +67,13 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
   };
 
   useEffect(() => {
+    if (!isOpen) {
+        stopSession();
+    }
     return () => {
         stopSession();
     };
-  }, [stopSession]);
+  }, [isOpen, stopSession]);
 
   const startSession = async () => {
     setIsConnecting(true);
@@ -83,6 +82,8 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
     setInterimUserTranscript('');
     currentInputTranscription.current = '';
     currentOutputTranscription.current = '';
+    nextStartTimeRef.current = 0;
+    sourcesRef.current.clear();
 
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -104,12 +105,12 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
             },
             callbacks: {
                 onopen: () => {
-                    // FIX: Removed setSession call as session state is no longer used.
+                    if (!inputAudioContextRef.current || inputAudioContextRef.current.state === 'closed') return;
                     setIsConnecting(false);
                     setIsListening(true);
                     
-                    const source = inputAudioContextRef.current!.createMediaStreamSource(stream);
-                    scriptProcessorRef.current = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
+                    const source = inputAudioContextRef.current.createMediaStreamSource(stream);
+                    scriptProcessorRef.current = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
                     
                     scriptProcessorRef.current.onaudioprocess = (audioProcessingEvent) => {
                         const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
@@ -124,16 +125,20 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                         };
                         
                         sessionPromiseRef.current?.then((activeSession) => {
-                            activeSession.sendRealtimeInput({ media: pcmBlob });
+                            if (activeSession) {
+                                activeSession.sendRealtimeInput({ media: pcmBlob });
+                            }
                         });
                     };
                     source.connect(scriptProcessorRef.current);
-                    scriptProcessorRef.current.connect(inputAudioContextRef.current!.destination);
+                    scriptProcessorRef.current.connect(inputAudioContextRef.current.destination);
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     if (message.serverContent?.inputTranscription) {
                         const newText = currentInputTranscription.current + message.serverContent.inputTranscription.text;
-                        currentInputTranscription.current = newText;
+                        if (message.serverContent.inputTranscription.isFinal) {
+                            currentInputTranscription.current = newText;
+                        }
                         setInterimUserTranscript(newText);
                     }
                     if (message.serverContent?.outputTranscription) {
@@ -143,18 +148,20 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                         const userInput = currentInputTranscription.current.trim();
                         const modelOutput = currentOutputTranscription.current.trim();
                         setInterimUserTranscript('');
+                        
                         setTranscription(prev => {
                             const newHistory = [...prev];
                             if (userInput) newHistory.push({ speaker: 'user', text: userInput });
                             if (modelOutput) newHistory.push({ speaker: 'model', text: modelOutput });
                             return newHistory;
                         });
+
                         currentInputTranscription.current = '';
                         currentOutputTranscription.current = '';
                     }
 
                     const base64Audio = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
-                    if (base64Audio && outputAudioContextRef.current) {
+                    if (base64Audio && outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
                         const outputContext = outputAudioContextRef.current;
                         nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputContext.currentTime);
                         
@@ -171,7 +178,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
                     if(message.serverContent?.interrupted) {
                          for (const source of sourcesRef.current.values()) {
                             source.stop(0);
-                        }
+                         }
                         sourcesRef.current.clear();
                         nextStartTimeRef.current = 0;
                     }
@@ -197,8 +204,8 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={handleClose}>
-        <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-xl flex flex-col transform transition-all duration-300 animate-fade-in" style={{ height: 'clamp(400px, 80vh, 600px)' }} onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={handleClose}>
+        <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg shadow-xl flex flex-col transform transition-all duration-300" style={{ height: 'clamp(400px, 80vh, 600px)' }} onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
                 <h2 className="text-xl font-bold">Live Conversation</h2>
                 <button onClick={handleClose}><CloseIcon /></button>

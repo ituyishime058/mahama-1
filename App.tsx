@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, stockData, mockCurrentUser, mockStreamingContent, mockNotifications } from './constants';
-import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, Notification, Language } from './types';
+// FIX: Import Notification type.
+import type { Article, Podcast, Settings, StreamingContent, AudioPlayerState, AiTtsVoice, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, Notification, Language, FactCheckResult } from './types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from './utils/db';
 import { determineOptimalLayout, extractKeyConcepts, generateArticleTimeline, generatePullQuotes, generateTags, factCheckArticle, generateKeyTakeaways, summarizeComments } from './utils/ai';
 import { fetchWeather } from './utils/weather';
@@ -77,7 +78,7 @@ type ArticleAiData = {
     pullQuotesLoading: boolean;
     tags: string[];
     tagsLoading: boolean;
-    factCheckResult: { status: string; summary: string } | null;
+    factCheckResult: FactCheckResult | null;
     factCheckLoading: boolean;
     aiTakeaways: string[];
     takeawaysLoading: boolean;
@@ -90,7 +91,6 @@ interface AppContentProps {
     onSettingsChange: (newSettings: Settings) => void;
 }
 
-// FIX: Define constants for AI and premium modals to resolve reference errors.
 const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live'];
 const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic'];
 
@@ -121,7 +121,7 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
     const hiddenArticlesRef = useRef([...hiddenArticles]);
     
     // AI data for active article
-    const initialAiData = { keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true, tags: [], tagsLoading: true, factCheckResult: null, factCheckLoading: true, aiTakeaways: [], takeawaysLoading: true, communityHighlights: [], highlightsLoading: true };
+    const initialAiData: ArticleAiData = { keyConcepts: [], conceptsLoading: true, timelineEvents: [], timelineLoading: true, pullQuotes: [], pullQuotesLoading: true, tags: [], tagsLoading: true, factCheckResult: null, factCheckLoading: true, aiTakeaways: [], takeawaysLoading: true, communityHighlights: [], highlightsLoading: true };
     const [articleAiData, setArticleAiData] = useState<ArticleAiData>(initialAiData);
 
 
@@ -162,17 +162,10 @@ const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) =
             root.classList.remove('dark');
         }
 
-        // Accessibility
-        root.classList.toggle('high-contrast', settings.highContrast);
-        root.classList.toggle('reduce-motion', settings.reduceMotion);
-        root.classList.toggle('font-dyslexic', settings.dyslexiaFont);
-
         // Font & Density
         root.style.fontSize = `${settings.fontSize}px`;
-        if (!settings.dyslexiaFont) {
-          root.classList.remove('font-sans', 'font-serif');
-          root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
-        }
+        root.classList.remove('font-sans', 'font-serif');
+        root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
         document.body.classList.remove('density-comfortable', 'density-compact');
         document.body.classList.add(`density-${settings.informationDensity.toLowerCase()}`);
     }, [settings]);
@@ -816,10 +809,9 @@ const defaultSettings: Settings = {
     },
     subscriptionTier: 'Free',
     informationDensity: 'Comfortable',
+    // FIX: Add missing properties
     highContrast: false,
     reduceMotion: false,
-    dyslexiaFont: false,
-    aiAnalysisDepth: 'Balanced',
 };
 
 const App: React.FC = () => {

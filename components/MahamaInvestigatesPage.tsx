@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { Article, Settings } from '../types';
+// FIX: Import NetworkNode and NetworkLink from the central types file.
+import type { Article, Settings, NetworkNode, NetworkLink } from '../types';
 import { generateInvestigationSummary, identifyKeyPlayers } from '../utils/ai';
 import LoadingSpinner from './icons/LoadingSpinner';
 import SparklesIcon from './icons/SparklesIcon';
@@ -15,10 +16,12 @@ interface MahamaInvestigatesPageProps {
 
 const investigationTopic = "The Global Semiconductor Shortage";
 
-type Node = { id: string; type: 'company' | 'country' | 'person'; x: number; y: number };
-type Link = { source: string; target: string; };
+// FIX: Update local type definitions to use the imported shared types.
+type Node = NetworkNode & { x: number; y: number };
+type Link = NetworkLink;
 
-const KeyPlayerNetwork: React.FC<{ data: { nodes: Omit<Node, 'x' | 'y'>[], links: Link[] } }> = ({ data }) => {
+// FIX: Update the component's props to use the shared types.
+const KeyPlayerNetwork: React.FC<{ data: { nodes: NetworkNode[], links: Link[] } }> = ({ data }) => {
     const layout = useMemo(() => {
         if (!data || !data.nodes) return { nodes: [], links: [] };
         const radius = 120;
@@ -26,7 +29,7 @@ const KeyPlayerNetwork: React.FC<{ data: { nodes: Omit<Node, 'x' | 'y'>[], links
         const centerY = 150;
         const angleStep = (2 * Math.PI) / data.nodes.length;
         
-        const nodes = data.nodes.map((node, i) => ({
+        const nodes: Node[] = data.nodes.map((node, i) => ({
             ...node,
             x: centerX + radius * Math.cos(i * angleStep),
             y: centerY + radius * Math.sin(i * angleStep),
@@ -75,7 +78,8 @@ const KeyPlayerNetwork: React.FC<{ data: { nodes: Omit<Node, 'x' | 'y'>[], links
 
 const MahamaInvestigatesPage: React.FC<MahamaInvestigatesPageProps> = ({ settings, onArticleClick, allArticles }) => {
   const [summary, setSummary] = useState({ overview: '', status: '' });
-  const [keyPlayers, setKeyPlayers] = useState<{ nodes: Omit<Node, 'x' | 'y'>[], links: Link[] }>({ nodes: [], links: [] });
+  // FIX: Update the state to use the imported shared types.
+  const [keyPlayers, setKeyPlayers] = useState<{ nodes: NetworkNode[], links: NetworkLink[] }>({ nodes: [], links: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 

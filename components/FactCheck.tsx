@@ -1,11 +1,13 @@
 import React from 'react';
+import type { FactCheckResult } from '../types';
 import SparklesIcon from './icons/SparklesIcon';
 import VerifiedIcon from './icons/VerifiedIcon';
 import UnverifiedIcon from './icons/UnverifiedIcon';
 import MixedIcon from './icons/MixedIcon';
+import LinkIcon from './icons/LinkIcon';
 
 interface FactCheckProps {
-  result: { status: string; summary: string } | null;
+  result: FactCheckResult | null;
   isLoading: boolean;
 }
 
@@ -46,7 +48,7 @@ const FactCheck: React.FC<FactCheckProps> = ({ result, isLoading }) => {
     },
   };
 
-  const config = statusConfig[result.status as keyof typeof statusConfig] || statusConfig.Unverified;
+  const config = statusConfig[result.status] || statusConfig.Unverified;
 
   return (
     <div className={`mb-8 p-4 rounded-lg border ${config.className}`}>
@@ -60,6 +62,21 @@ const FactCheck: React.FC<FactCheckProps> = ({ result, isLoading }) => {
       <p className="text-slate-700 dark:text-slate-300 text-sm">
         {result.summary}
       </p>
+      {result.sources && result.sources.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Sources Checked by AI</h4>
+            <ul className="space-y-1">
+                {result.sources.map((source, index) => (
+                    <li key={index}>
+                        <a href={source.uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                           <LinkIcon className="w-4 h-4 flex-shrink-0" />
+                           <span className="truncate">{source.title || source.uri}</span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+      )}
     </div>
   );
 };

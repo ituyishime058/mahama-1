@@ -99,6 +99,15 @@ export type SubscriptionPlan = {
   isRecommended?: boolean;
 };
 
+// FIX: Add Notification type definition.
+export type Notification = {
+  id: number;
+  type: 'briefing' | 'comment' | 'news' | 'mention';
+  message: string;
+  timestamp: string;
+  read: boolean;
+};
+
 export type AiTtsVoice = 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'en-US-A' | 'en-US-B' | 'en-US-C' | 'en-US-D' | 'en-US-E' | 'en-US-F' | 'en-GB-A' | 'en-GB-B' | 'en-GB-C' | 'en-GB-D' | 'en-GB-F' | 'fr-FR-A' | 'fr-FR-B' | 'fr-FR-C' | 'fr-FR-D' | 'fr-FR-E' | 'es-ES-A' | 'es-ES-B' | 'es-ES-C' | 'es-ES-D' | 'de-DE-A' | 'de-DE-B' | 'de-DE-C' | 'de-DE-D' | 'ja-JP-A' | 'ja-JP-B' | 'ja-JP-C' | 'ja-JP-D' | 'ru-RU-A' | 'ru-RU-B' | 'ru-RU-C' | 'ru-RU-D' | 'cmn-CN-A' | 'cmn-CN-B' | 'cmn-CN-C' | 'rw-RW-A' | 'rw-RW-B' | 'sw-KE-A' | 'sw-KE-B' | 'ar-XA-A' | 'ar-XA-B' | 'it-IT-A' | 'it-IT-B' | 'ko-KR-A' | 'ko-KR-B';
 
 export type AiSummaryLength = 'short' | 'medium' | 'long';
@@ -137,15 +146,20 @@ export interface Settings {
     };
     subscriptionTier: SubscriptionTier;
     informationDensity: 'Comfortable' | 'Compact';
+    // FIX: Add missing properties for accessibility settings
     highContrast: boolean;
     reduceMotion: boolean;
-    dyslexiaFont: boolean;
-    aiAnalysisDepth: 'Concise' | 'Balanced' | 'InDepth';
 }
 
 export type TimelineEvent = {
     year: string;
     description: string;
+};
+
+export type FactCheckResult = {
+  status: 'Verified' | 'Mixed' | 'Unverified';
+  summary: string;
+  sources: { uri: string; title: string }[];
 };
 
 export type KeyConcept = {
@@ -162,6 +176,7 @@ export type CommunityHighlight = {
 export type ChatMessage = {
     role: 'user' | 'model';
     content: string;
+    id: number; // Mandatory for stable React keys
 };
 
 export type QuizQuestion = {
@@ -197,11 +212,13 @@ export type AiSearchResult = {
   suggestedQuestions: string[];
 };
 
-export type Notification = {
-  id: number;
-  type: 'comment' | 'mention' | 'news' | 'briefing';
-  message: string;
-  timestamp: string;
-  read: boolean;
-  link?: string;
+// FIX: Add types for investigation network graph
+export type NetworkNode = {
+  id: string;
+  type: 'company' | 'country' | 'person';
+};
+
+export type NetworkLink = {
+  source: string;
+  target: string;
 };

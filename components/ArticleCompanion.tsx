@@ -8,6 +8,7 @@ import TimelineIcon from './icons/TimelineIcon';
 import LoadingSpinner from './icons/LoadingSpinner';
 import KeyConcepts from './KeyConcepts';
 import ArticleTimeline from './ArticleTimeline';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ArticleCompanionProps {
   article: Article;
@@ -23,6 +24,7 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
   
     useEffect(() => {
       setMessages([]);
@@ -37,20 +39,22 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
         const question = (typeof e === 'string') ? e : input;
         if (!question.trim() || isLoading) return;
 
-        const userMessage: ChatMessage = { role: 'user', content: question };
-        setMessages(prev => [...prev, userMessage]);
+        const userMessage: ChatMessage = { role: 'user', content: question, id: Date.now() };
+        const currentMessages = [...messages, userMessage];
+        setMessages(currentMessages);
+
         if (typeof e !== 'string') setInput('');
         setIsLoading(true);
         
-        const modelResponse: ChatMessage = { role: 'model', content: '' };
-        setMessages(prev => [...prev, modelResponse]);
+        const modelMessage: ChatMessage = { role: 'model', content: '', id: Date.now() + 1 };
+        setMessages(prev => [...prev, modelMessage]);
 
         try {
-            const stream = await askAboutArticle(article, question, [...messages, userMessage].slice(0, -1), settings);
+            const stream = await askAboutArticle(article, question, messages, settings);
             for await (const chunk of stream) {
                 setMessages(prev => {
                     const lastMessage = prev[prev.length - 1];
-                    if (lastMessage.role === 'model') {
+                    if (lastMessage && lastMessage.role === 'model') {
                         lastMessage.content += chunk;
                         return [...prev.slice(0, -1), lastMessage];
                     }
@@ -61,7 +65,7 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
             console.error(error);
             setMessages(prev => {
                 const lastMessage = prev[prev.length - 1];
-                if (lastMessage.role === 'model') {
+                if (lastMessage && lastMessage.role === 'model') {
                     lastMessage.content = "Sorry, I couldn't get an answer. Please try again.";
                     return [...prev.slice(0, -1), lastMessage];
                 }
@@ -73,16 +77,16 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
     };
     
     const suggestedQuestions = [
-        "What are the key takeaways?",
+        t('suggestedQuestion1'),
         `Who is ${article.author}?`,
-        "What is the broader context?",
+        t('suggestedQuestion3'),
     ];
 
     return (
         <div className="h-full flex flex-col">
             <div className="flex-grow overflow-y-auto p-4 space-y-4">
                 <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-sm">
-                    <p className="font-semibold mb-2">Ask me anything about this article!</p>
+                    <p className="font-semibold mb-2">{t('askAnything')}</p>
                     <div className="flex flex-col items-start gap-1">
                         {suggestedQuestions.map(q => (
                             <button key={q} onClick={() => handleSubmit(q)} className="text-xs text-deep-red dark:text-gold hover:underline text-left">
@@ -91,11 +95,11 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
                         ))}
                     </div>
                 </div>
-                {messages.map((msg, index) => (
-                <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-deep-red text-white' : 'bg-slate-100 dark:bg-slate-700'}`}>
                     {msg.content}
-                    {isLoading && msg.role === 'model' && index === messages.length -1 && (
+                    {isLoading && msg.role === 'model' && msg.content.length === 0 && (
                         <span className="inline-block w-2 h-4 bg-slate-500 dark:bg-slate-300 animate-blink ml-1"></span>
                     )}
                     </div>
@@ -104,20 +108,20 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
                 <div ref={chatEndRef} />
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200 dark:border-slate-700">
+            <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
                 <div className="relative">
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask a question..."
+                    placeholder={t('askAQuestion')}
                     disabled={isLoading}
                     className="w-full p-3 pr-12 bg-slate-100 dark:bg-slate-700 rounded-full border-transparent focus:ring-2 focus:ring-deep-red"
                 />
                 <button
                     type="submit"
                     disabled={isLoading || !input.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-deep-red text-white rounded-full flex items-center justify-center disabled:bg-slate-400 dark:disabled:bg-slate-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-deep-red text-white rounded-full flex items-center justify-center disabled:bg-slate-400 dark:disabled:bg-slate-600 transition-colors"
                 >
                     <SendIcon className="w-5 h-5" />
                 </button>
@@ -129,11 +133,11 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
 
 const ArticleCompanion: React.FC<ArticleCompanionProps> = (props) => {
     const { article } = props;
-    const [activeTab, setActiveTab] = useState('Chat');
+    const [activeTab, setActiveTab] = useState('Concepts');
 
     const tabs = [
-        { name: 'Chat', icon: ChatBubbleIcon },
         { name: 'Concepts', icon: KeyIcon },
+        { name: 'Chat', icon: ChatBubbleIcon },
     ];
     
     if (article.hasTimeline) {
@@ -142,19 +146,19 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = (props) => {
 
     const renderTabContent = () => {
         switch (activeTab) {
-            case 'Concepts':
-                return <KeyConcepts {...props} />;
+            case 'Chat':
+                return <ChatPanel article={props.article} settings={props.settings} />;
             case 'Timeline':
                 return <div className="p-4 h-full overflow-y-auto"><ArticleTimeline events={props.timelineEvents} isLoading={props.timelineLoading} /></div>;
-            case 'Chat':
+            case 'Concepts':
             default:
-                return <ChatPanel article={props.article} settings={props.settings} />;
+                return <KeyConcepts {...props} />;
         }
     };
     
     return (
-        <aside className="bg-white dark:bg-slate-800/50 rounded-lg shadow-md flex flex-col h-[70vh] max-h-[600px] animate-fade-in-up">
-            <div className="p-2 border-b border-slate-200 dark:border-slate-700">
+        <aside className="bg-white dark:bg-slate-800/50 rounded-lg shadow-md flex flex-col h-[70vh] max-h-[600px]">
+            <div className="p-2 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
                 <div className="flex justify-around items-center">
                     {tabs.map(tab => (
                         <button 
