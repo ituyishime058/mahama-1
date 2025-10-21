@@ -378,7 +378,15 @@ const App: React.FC = () => {
 
 
     const handleReadMore = (article: Article) => navigateTo('article', article);
-    const handleWatchMovie = (movie: StreamingContent) => navigateTo('movie', movie);
+    
+    const handleWatchMovie = (movie: StreamingContent) => {
+        if (!isAuthenticated) {
+            setActiveModal('login');
+            return;
+        }
+        navigateTo('movie', movie);
+    };
+
     const handleWatchTrailer = (url: string) => setActiveTrailer(url);
     const handleLogoClick = () => navigateTo('home');
     
@@ -703,7 +711,16 @@ const App: React.FC = () => {
             <DeepDiveModal isOpen={activeModal === 'deepDive'} article={modalArticle} settings={settings} onClose={closeModal} />
             <InfographicModal isOpen={activeModal === 'infographic'} article={modalArticle} settings={settings} onClose={closeModal} />
             <FactCheckPageModal isOpen={activeModal === 'factCheckPage'} onClose={closeModal} settings={settings} pageContent={activeArticle?.content || ''} />
-            <SearchModal isOpen={activeModal === 'search'} onClose={closeModal} articles={allArticles} onArticleSelect={handleReadMore} settings={settings}/>
+            <SearchModal 
+                isOpen={activeModal === 'search'} 
+                onClose={closeModal} 
+                articles={allArticles} 
+                movies={mockStreamingContent}
+                onArticleSelect={(article) => { handleReadMore(article); closeModal(); }} 
+                onMovieSelect={(movie) => { handleWatchMovie(movie); closeModal(); }}
+                onWatchTrailer={(url) => { handleWatchTrailer(url); closeModal(); }}
+                settings={settings}
+            />
             <CategoryExplorerPage isOpen={activeModal === 'categoryExplorer'} onClose={closeModal} categories={categories} onCategorySelect={(cat) => handleSelectCategory(cat)} onSubCategorySelect={(sub) => {handleSelectSubCategory(sub); closeModal();}} onBookmarksClick={() => openModal('bookmarks')} onOfflineClick={() => openModal('offline')} onSettingsClick={handleOpenSettings} />
             <BookmarksModal isOpen={activeModal === 'bookmarks'} onClose={closeModal} bookmarkedArticles={bookmarkedArticles} onToggleBookmark={toggleBookmark} onReadArticle={handleReadMore} />
             <OfflineModal isOpen={activeModal === 'offline'} onClose={closeModal} offlineArticles={offlineArticles} onDeleteArticle={handleDeleteOfflineArticle} onReadArticle={handleReadMore}/>

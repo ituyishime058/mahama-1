@@ -187,5 +187,6 @@ export type WeatherData = {
 export type AiSearchResult = {
   summary: string;
   relatedArticleIds: number[];
+  relatedMovieIds: number[];
   suggestedQuestions: string[];
 };

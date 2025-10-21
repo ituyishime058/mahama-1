@@ -17,6 +17,7 @@ import GlossaryPopup from './GlossaryPopup';
 import CommunityHighlights from './CommunityHighlights';
 import PullQuote from './PullQuote';
 import ArticleTimeline from './ArticleTimeline';
+import ArticleHeader from './ArticleHeader';
 
 
 interface ArticlePageProps {
@@ -215,7 +216,17 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             line-height: 1.5;
           }
         `}</style>
-        <div className={`transition-all duration-300 max-w-4xl mx-auto`}>
+
+        <ArticleHeader 
+            article={article}
+            onClose={onClose}
+            isBookmarked={isBookmarked}
+            onToggleBookmark={() => onToggleBookmark(article.id)}
+            onTextToSpeech={onTextToSpeech}
+            onSummarize={onSummarize}
+        />
+
+        <div className={`transition-all duration-300 max-w-4xl mx-auto mt-8`}>
             <div className="relative">
                 <ContentGutter 
                     article={article}
@@ -228,10 +239,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                 />
                 
                 <main className={!isZenMode ? 'lg:pl-24' : ''}>
-                    <p className="text-deep-red dark:text-gold font-semibold uppercase tracking-wider">{article.category}</p>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white my-4 !leading-tight">{article.title}</h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400">{article.excerpt}</p>
-                    
                     <AuthorInfo author={article.author} date={article.date} content={article.content} />
                     
                     <div className="my-4 flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
@@ -247,14 +254,6 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                             <span>{isTranslating ? 'Translating...' : `Translate to ${settings.preferredLanguage}`}</span>
                         </button>
                     </div>
-
-
-                    {!isZenMode && (
-                         <figure className="my-8">
-                            <img src={article.imageUrl} alt={article.title} className="w-full h-auto rounded-lg shadow-lg"/>
-                            <figcaption className="text-center text-sm text-slate-500 mt-2">A representative image for the article.</figcaption>
-                        </figure>
-                    )}
                    
                     <KeyTakeaways takeaways={aiTakeaways} isLoading={takeawaysLoading} />
                     <FactCheck result={factCheckResult} isLoading={factCheckLoading} />

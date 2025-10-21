@@ -75,14 +75,23 @@ const Header: React.FC<HeaderProps> = ({
             {isAuthenticated ? (
                 <UserMenu user={user} onLogout={onLogout} onProfileClick={onProfileClick} />
             ) : (
-                <button 
-                onClick={onLoginClick} 
-                aria-label="Login or sign up" 
-                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full p-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
-                >
-                    <UserIcon className="w-5 h-5" />
-                    <span className="hidden sm:inline">Login</span>
-                </button>
+                 <div className="flex items-center gap-2">
+                    <button 
+                        onClick={onLoginClick} 
+                        aria-label="Login" 
+                        className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full p-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                        <UserIcon className="w-5 h-5" />
+                        <span className="hidden sm:inline">Login</span>
+                    </button>
+                    <button 
+                        onClick={onLoginClick}
+                        aria-label="Register" 
+                        className="hidden sm:block bg-deep-red text-white font-semibold px-4 py-2 rounded-full text-sm hover:bg-red-700 transition-colors"
+                    >
+                        Register
+                    </button>
+                </div>
             )}
           </div>
         </div>
