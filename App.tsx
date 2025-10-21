@@ -16,7 +16,7 @@ import FilterBar from './components/FilterBar';
 import ArticlePage from './components/ArticlePage';
 import LiveStream from './components/LiveStream';
 import Mahama360 from './components/Mahama360';
-import NewsMap from './components/NewsMap';
+import InteractiveGlobe from './components/InteractiveGlobe';
 import DataDrivenInsights from './components/DataDrivenInsights';
 import PodcastHub from './components/PodcastHub';
 import InnovationTimeline from './components/InnovationTimeline';
@@ -57,6 +57,7 @@ import AdvertisePage from './components/AdvertisePage';
 import ProfilePage from './components/ProfilePage';
 import TrailerModal from './components/TrailerModal';
 import CategoryLoadingOverlay from './components/CategoryLoadingOverlay';
+import MahamaInvestigatesPage from './components/MahamaInvestigatesPage';
 import { mockComments } from './constants';
 
 
@@ -600,10 +601,12 @@ const App: React.FC = () => {
                 case 'Politics':
                      return (
                         <>
+                            <InteractiveGlobe articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />
                             <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                            <NewsMap articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />
                         </>
                      );
+                case 'Mahama Investigates':
+                    return <MahamaInvestigatesPage settings={settings} onArticleClick={handleReadMore} allArticles={allArticles} />;
                 case 'Economy':
                     return (
                         <>
@@ -638,7 +641,7 @@ const App: React.FC = () => {
         return renderCategoryContent();
     };
 
-    const isAsideVisible = !(activeMovie || isMoviesPage);
+    const isAsideVisible = !(activeMovie || isMoviesPage || currentCategory === 'Mahama Investigates');
 
     return (
         <div className="min-h-screen">
@@ -675,7 +678,7 @@ const App: React.FC = () => {
                      </div>
                 )}
                 
-                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie || activeArticle ? 'max-w-full px-0 sm:px-0 lg:px-0' : ''}`}>
+                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie || activeArticle || currentCategory === 'Mahama Investigates' ? 'max-w-full px-0 sm:px-0 lg:px-0' : ''}`}>
                     <div className={` ${!activeArticle ? 'lg:grid' : ''} ${isAsideVisible ? 'lg:grid-cols-4' : ''} lg:gap-8`}>
                         <div className={isAsideVisible && !activeArticle ? 'lg:col-span-3' : 'col-span-1'}>
                             {renderMainContent()}

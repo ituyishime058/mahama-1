@@ -794,3 +794,89 @@ export const generatePullQuotes = async (article: Article, settings: Settings): 
         return [];
     }
 };
+
+// 28. generateInvestigationSummary
+export const generateInvestigationSummary = async (topic: string, settings: Settings): Promise<{ overview: string, status: string }> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'complex');
+    const prompt = `You are an investigative journalist AI. Your task is to provide a summary and the latest status on the topic: "${topic}".
+    Use Google Search to get the most up-to-date information.
+    Return a single JSON object with two keys: "overview" (a 2-3 sentence summary of the entire topic) and "status" (a 1-2 sentence summary of the very latest developments).`;
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            ...config,
+            tools: [{ googleSearch: {} }],
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    overview: { type: Type.STRING },
+                    status: { type: Type.STRING }
+                },
+                required: ["overview", "status"]
+            }
+        }
+    });
+    
+    try {
+        return JSON.parse(response.text.trim());
+    } catch {
+        throw new Error("Failed to generate investigation summary.");
+    }
+};
+
+// 29. identifyKeyPlayers
+export const identifyKeyPlayers = async (topic: string, settings: Settings): Promise<{ nodes: {id: string, type: 'company' | 'country' | 'person'}[], links: {source: string, target: string}[] }> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    const { model, config } = getModelConfig(settings, 'complex');
+    const prompt = `Analyze the topic "${topic}". Identify the 5-7 most critical key players (companies, countries, or people). Then, describe the primary relationships between them (e.g., 'competes with', 'supplies to', 'regulates').
+    Return a single JSON object with two keys: "nodes" and "links".
+    "nodes" should be an array of objects, each with an "id" (the player's name) and a "type" ('company', 'country', or 'person').
+    "links" should be an array of objects, each with a "source" (an id from nodes) and a "target" (an id from nodes).`;
+    
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+            ...config,
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    nodes: { 
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                id: { type: Type.STRING },
+                                type: { type: Type.STRING, enum: ['company', 'country', 'person']}
+                            },
+                             required: ["id", "type"]
+                        }
+                    },
+                    links: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                source: { type: Type.STRING },
+                                target: { type: Type.STRING }
+                            },
+                             required: ["source", "target"]
+                        }
+                    }
+                },
+                required: ["nodes", "links"]
+            }
+        }
+    });
+
+    try {
+        return JSON.parse(response.text.trim());
+    } catch {
+         throw new Error("Failed to identify key players.");
+    }
+};
