@@ -1,16 +1,9 @@
 {
-  "name": "mahama-news-hub",
+  "name": "kirehe-tv",
   "version": "1.0.0",
-  "description": "A cutting-edge, interactive, and elegant news website.",
+  "description": "A cutting-edge, interactive, and elegant news website inspired by the clean layout and credibility of BBC News but more futuristic, visually dynamic, and highly interactive.",
+  "dependencies": {},
   "scripts": {
-    "build": "echo \"Build step placeholder for Netlify. No actual build needed for this setup.\"",
-    "start": "echo \"Serve index.html using a local server.\""
-  },
-  "dependencies": {
-    "@google/genai": "^1.25.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
-  },
-  "author": "",
-  "license": "ISC"
+    "start": "serve"
+  }
 }

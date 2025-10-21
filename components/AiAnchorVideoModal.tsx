@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { generateAnchorVideo } from '../utils/ai';
 import CloseIcon from './icons/CloseIcon';
@@ -14,6 +15,7 @@ interface AiAnchorVideoModalProps {
 const loadingMessages = [
     'videoLoadingMessage1',
     'videoLoadingMessage2',
+
     'videoLoadingMessage3',
     'videoLoadingMessage4',
     'videoLoadingMessage5',

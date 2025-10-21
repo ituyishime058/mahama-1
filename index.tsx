@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+// FIX: The import path for the main 'App' component is updated to point to './App' to match the project structure.
 import App from './App';
 
 const rootElement = document.getElementById('root');
