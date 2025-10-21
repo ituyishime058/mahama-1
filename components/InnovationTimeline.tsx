@@ -9,6 +9,7 @@ import GpsIcon from './icons/GpsIcon';
 import DnaIcon from './icons/DnaIcon';
 import SocialIcon from './icons/SocialIcon';
 import SmartphoneIcon from './icons/SmartphoneIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 const iconMap: { [key: string]: React.FC<any> } = {
   SparklesIcon,
@@ -24,24 +25,37 @@ const iconMap: { [key: string]: React.FC<any> } = {
 
 
 const InnovationTimeline: React.FC = () => {
+  const { t } = useTranslation();
+  const innovationKeys: { [key: string]: { title: string, desc: string } } = {
+    "World Wide Web Invented": { title: "wwwTitle", desc: "wwwDesc" },
+    "GPS Becomes Fully Operational": { title: "gpsTitle", desc: "gpsDesc" },
+    "Google Founded": { title: "googleTitle", desc: "googleDesc" },
+    "Human Genome Project": { title: "genomeTitle", desc: "genomeDesc" },
+    "Social Media Emerges": { title: "socialTitle", desc: "socialDesc" },
+    "First iPhone Released": { title: "iphoneTitle", desc: "iphoneDesc" },
+    "Deep Learning Breakthrough": { title: "deepLearningTitle", desc: "deepLearningDesc" },
+    "Generative AI Goes Mainstream": { title: "genAiTitle", desc: "genAiDesc" },
+  };
+
   return (
     <section className="my-16">
       <h2 className="text-3xl font-extrabold mb-8 text-center border-l-4 border-deep-red pl-4 inline-block">
-        Innovation Timeline
+        {t('innovationTimeline')}
       </h2>
       <div className="relative container mx-auto px-6 flex flex-col space-y-8">
         <div className="absolute z-0 w-2 h-full bg-slate-200 dark:bg-slate-700 shadow-md inset-0 left-1/2 -ml-1"></div>
         {innovations.map((item, index) => {
           const Icon = iconMap[item.icon] || SparklesIcon;
           const isEven = index % 2 === 0;
+          const keys = innovationKeys[item.title] || { title: item.title, desc: item.description };
           return (
             <div key={item.year} className={`relative flex items-center ${isEven ? 'justify-end md:justify-start' : 'justify-end'}`}>
               
               <div className={`w-full md:w-1/2 ${isEven ? 'md:pr-8' : 'md:pl-8'}`}>
                 <div className={`bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg`}>
                   <p className="font-bold text-deep-red dark:text-gold text-right">{item.year}</p>
-                  <h3 className="text-xl font-bold">{item.title}</h3>
-                  <p className="text-slate-600 dark:text-slate-400 mt-2">{item.description}</p>
+                  <h3 className="text-xl font-bold">{t(keys.title)}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 mt-2">{t(keys.desc)}</p>
                 </div>
               </div>
 

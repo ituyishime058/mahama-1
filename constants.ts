@@ -151,6 +151,7 @@ export const mockArticles: Article[] = [
         region: 'Europe',
         sentiment: 'Neutral',
         coordinates: { lat: 35.3999, lon: 26.9324 },
+        hasTimeline: true,
         keyTakeaways: [
             'A Bronze Age underwater city was discovered near Kasos, Greece.',
             'The ruins are well-preserved and include buildings, roads, and tombs.',
@@ -209,6 +210,7 @@ export const mockArticles: Article[] = [
         region: 'North America',
         sentiment: 'Negative',
         coordinates: { lat: 38.9072, lon: -77.0369 },
+        hasTimeline: true,
         keyTakeaways: [
           'Deepfake videos pose a significant threat to upcoming elections.',
           'These AI-generated videos can be used to spread misinformation.',
@@ -526,6 +528,7 @@ export const mockArticles: Article[] = [
         region: 'Europe',
         sentiment: 'Neutral',
         coordinates: { lat: 55.7558, lon: 37.6173 },
+        hasTimeline: true,
         keyTakeaways: [
             'Declassified files reveal a 1983 nuclear close call.',
             'Soviet officer Stanislav Petrov correctly identified a false alarm for a US missile strike.',
@@ -586,6 +589,7 @@ export const mockArticles: Article[] = [
         region: 'Africa',
         sentiment: 'Neutral',
         coordinates: { lat: -1.9403, lon: 29.8739 },
+        hasTimeline: true,
         keyTakeaways: [
             'The Kingdom of Rwanda was a highly centralized pre-colonial state.',
             'Society was structured around Tutsi, Hutu, and Twa groups with the Mwami at its apex.',
@@ -605,6 +609,7 @@ export const mockArticles: Article[] = [
         region: 'Africa',
         sentiment: 'Negative',
         coordinates: { lat: -1.9441, lon: 30.0619 },
+        hasTimeline: true,
         keyTakeaways: [
             'The 1994 Genocide Against the Tutsi resulted in the mass murder of approximately 800,000 people.',
             'It was fueled by extremist Hutu Power ideology and decades of ethnic tension.',
@@ -624,6 +629,7 @@ export const mockArticles: Article[] = [
         region: 'Africa',
         sentiment: 'Positive',
         coordinates: { lat: -1.9535, lon: 30.0913 },
+        hasTimeline: true,
         keyTakeaways: [
             'Rwanda has experienced significant economic growth and social stability since 1994.',
             'Key strategies include national unity programs and transitional justice systems like Gacaca courts.',

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Article } from '../types';
 import ArticleCard from './ArticleCard';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface GlobalHighlightsProps {
   articles: Article[];
@@ -34,11 +35,12 @@ const GlobalHighlights: React.FC<GlobalHighlightsProps> = ({
   onDownloadArticle,
   layout = 'default'
 }) => {
+  const { t } = useTranslation();
   if (!articles || articles.length === 0) {
     return (
       <section className="text-center py-10">
-        <h2 className="text-2xl font-bold">No articles to display.</h2>
-        <p>Please check your content preferences in the settings.</p>
+        <h2 className="text-2xl font-bold">{t('noArticles')}</h2>
+        <p>{t('checkPreferences')}</p>
       </section>
     );
   }

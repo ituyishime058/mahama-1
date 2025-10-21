@@ -1,6 +1,7 @@
 import React from 'react';
 import type { TimelineEvent } from '../types';
 import TimelineIcon from './icons/TimelineIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ArticleTimelineProps {
   events: TimelineEvent[];
@@ -8,9 +9,11 @@ interface ArticleTimelineProps {
 }
 
 const ArticleTimeline: React.FC<ArticleTimelineProps> = ({ events, isLoading }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
-        <div className="my-8 lg:pl-24 p-4 space-y-8 animate-pulse">
+        <div className="my-8 p-4 space-y-8 animate-pulse">
+             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-md w-1/2 mb-6"></div>
             {[...Array(3)].map((_, i) => (
                 <div key={i} className="flex gap-4">
                     <div className="w-16 h-8 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
@@ -29,9 +32,9 @@ const ArticleTimeline: React.FC<ArticleTimelineProps> = ({ events, isLoading }) 
   }
 
   return (
-    <div className="my-8 lg:pl-24 p-4">
+    <div className="my-8">
        <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
-        Historical Timeline
+        {t('historicalTimeline')}
       </h3>
       <div className="relative border-l-4 border-slate-200 dark:border-slate-700 ml-4">
         {events.map((event, index) => (

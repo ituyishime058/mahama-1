@@ -7,6 +7,7 @@ import CopyLinkIcon from './icons/CopyLinkIcon';
 import TwitterIcon from './icons/TwitterIcon';
 import ShareIcon from './icons/ShareIcon';
 import MagicWandIcon from './icons/MagicWandIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ContentGutterProps {
   article: Article;
@@ -44,6 +45,7 @@ const ActionButton: React.FC<{ onClick?: () => void; title: string; children: Re
 const ContentGutter: React.FC<ContentGutterProps> = ({ article, isBookmarked, onToggleBookmark, isZenMode, onToggleZenMode, activeLens, onSetLens }) => {
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const pageUrl = window.location.href;
+  const { t } = useTranslation();
 
   const shareActions = {
     twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(article.title)}`,
@@ -59,23 +61,23 @@ const ContentGutter: React.FC<ContentGutterProps> = ({ article, isBookmarked, on
   return (
     <aside className="absolute top-0 -left-24 hidden lg:block animate-fade-in-up">
         <div className="sticky top-40 space-y-4 flex flex-col items-center">
-            <ActionButton onClick={onToggleBookmark} title={isBookmarked ? 'Remove Bookmark' : 'Bookmark'} isActive={isBookmarked}>
+            <ActionButton onClick={onToggleBookmark} title={isBookmarked ? t('removeBookmark') : t('bookmark')} isActive={isBookmarked}>
                 <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 ${isBookmarked ? 'text-white' : ''}`} />
             </ActionButton>
             
-            <ActionButton onClick={onToggleZenMode} title={isZenMode ? 'Exit Zen Mode' : 'Zen Mode'} isActive={isZenMode}>
+            <ActionButton onClick={onToggleZenMode} title={isZenMode ? t('exitZenMode') : t('zenMode')} isActive={isZenMode}>
                 <GlassesIcon className="w-5 h-5" />
             </ActionButton>
 
             {isZenMode && (
                  <div className="p-2 bg-slate-100 dark:bg-slate-700/50 rounded-full space-y-2">
-                    <ActionButton onClick={() => onSetLens('None')} title="Normal View" isActive={activeLens === 'None'}>
+                    <ActionButton onClick={() => onSetLens('None')} title={t('normalView')} isActive={activeLens === 'None'}>
                         <MagicWandIcon className="w-5 h-5" />
                     </ActionButton>
-                     <ActionButton onClick={() => onSetLens('Simplify')} title="Simplify Text" isActive={activeLens === 'Simplify'}>
+                     <ActionButton onClick={() => onSetLens('Simplify')} title={t('simplifyText')} isActive={activeLens === 'Simplify'}>
                         <span className="font-bold text-lg">A</span>
                     </ActionButton>
-                     <ActionButton onClick={() => onSetLens('DefineTerms')} title="Define Terms" isActive={activeLens === 'DefineTerms'}>
+                     <ActionButton onClick={() => onSetLens('DefineTerms')} title={t('defineTerms')} isActive={activeLens === 'DefineTerms'}>
                         <span className="font-bold text-lg">A+</span>
                     </ActionButton>
                 </div>
@@ -83,16 +85,16 @@ const ContentGutter: React.FC<ContentGutterProps> = ({ article, isBookmarked, on
             
             <div className="w-8 h-px bg-slate-200 dark:bg-slate-700"></div>
 
-            <ActionButton onClick={handleCopyLink} title={isLinkCopied ? "Copied!" : "Copy Link"}>
+            <ActionButton onClick={handleCopyLink} title={isLinkCopied ? t('copied') : t('copyLink')}>
                 <CopyLinkIcon className="w-5 h-5"/>
             </ActionButton>
 
-            <ActionButton href={shareActions.twitter} title="Share on Twitter">
+            <ActionButton href={shareActions.twitter} title={t('shareOnTwitter')}>
                 <TwitterIcon className="w-5 h-5" />
             </ActionButton>
 
             {navigator.share && (
-                <ActionButton onClick={() => navigator.share({ title: article.title, url: pageUrl })} title="More Options">
+                <ActionButton onClick={() => navigator.share({ title: article.title, url: pageUrl })} title={t('moreOptions')}>
                     <ShareIcon />
                 </ActionButton>
             )}

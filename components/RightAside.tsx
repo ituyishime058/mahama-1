@@ -5,13 +5,14 @@ import InteractiveAd from './InteractiveAd';
 import CommunityPoll from './CommunityPoll';
 import WeatherWidget from './WeatherWidget';
 import SubscriptionCard from './SubscriptionCard';
-import ArticleCompanion from './ArticleCompanion';
 import ThisDayInHistory from './ThisDayInHistory';
 import SettingsCompanion from './SettingsCompanion';
 import ProfileCompanion from './ProfileCompanion';
+import ArticleViewAside from './ArticleViewAside';
 
 interface RightAsideProps {
   trendingArticles: Article[];
+  allArticles: Article[];
   onArticleClick: (article: Article) => void;
   activeArticle: Article | null;
   settings: Settings;
@@ -51,20 +52,26 @@ const RightAside: React.FC<RightAsideProps> = (props) => {
       activeArticle, 
       isSettingsOpen, 
       isProfileOpen, 
-      settings, 
-      user, 
-      keyConcepts, 
-      conceptsLoading, 
-      timelineEvents, 
-      timelineLoading 
+      user,
+      allArticles,
+      settings,
+      onArticleClick,
+      onGoPremium,
+      keyConcepts,
+      conceptsLoading,
+      timelineEvents,
+      timelineLoading
     } = props;
 
   const renderAsideContent = () => {
         if (activeArticle) {
             return (
-                <ArticleCompanion 
-                    article={activeArticle} 
+                <ArticleViewAside
+                    article={activeArticle}
+                    allArticles={allArticles}
                     settings={settings}
+                    onArticleClick={onArticleClick}
+                    onGoPremium={onGoPremium}
                     keyConcepts={keyConcepts}
                     conceptsLoading={conceptsLoading}
                     timelineEvents={timelineEvents}

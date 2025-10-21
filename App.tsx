@@ -65,41 +65,6 @@ import OnboardingTour from './components/OnboardingTour';
 import { mockComments } from './constants';
 
 
-const defaultSettings: Settings = {
-    theme: 'system',
-    fontSize: 16,
-    fontFamily: 'sans',
-    aiModelPreference: 'Speed',
-    summaryLength: 'medium',
-    contentPreferences: [],
-    autoTranslate: false,
-    preferredLanguage: 'Kinyarwanda',
-    showCounterpoint: true,
-    showInnovationTimelines: true,
-    showMahama360: true,
-    showNewsMap: true,
-    showDataInsights: true,
-    showNowStreaming: true,
-    interactiveGlossary: true,
-    aiReadingLens: 'None',
-    ttsVoice: 'Zephyr',
-    aiVoicePersonality: 'Friendly',
-    homepageLayout: 'Standard',
-    notificationPreferences: {
-        breakingNews: true,
-        dailyDigest: false,
-        aiRecommendations: true,
-    },
-    subscriptionTier: 'Free',
-    informationDensity: 'Comfortable',
-    highContrast: false,
-    reduceMotion: false,
-};
-
-const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live'];
-const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic'];
-
-
 type ArticleAiData = {
     keyConcepts: KeyConcept[];
     conceptsLoading: boolean;
@@ -117,15 +82,16 @@ type ArticleAiData = {
     highlightsLoading: boolean;
 };
 
-const AppContent: React.FC = () => {
-    const [settings, setSettings] = useState<Settings>(() => {
-        try {
-            const savedSettings = localStorage.getItem('mahamaNewsSettings');
-            return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
-        } catch (error) {
-            return defaultSettings;
-        }
-    });
+interface AppContentProps {
+    settings: Settings;
+    onSettingsChange: (newSettings: Settings) => void;
+}
+
+// FIX: Define constants for AI and premium modals to resolve reference errors.
+const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live'];
+const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic'];
+
+const AppContent: React.FC<AppContentProps> = ({ settings, onSettingsChange }) => {
     
     // Page state
     const [activeArticle, setActiveArticle] = useState<Article | null>(null);
@@ -178,7 +144,7 @@ const AppContent: React.FC = () => {
     const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
     const [showOnboarding, setShowOnboarding] = useState(false);
     
-    const { t } = useTranslation();
+    const { t, isTranslating } = useTranslation();
 
     // Apply theme and accessibility
     useEffect(() => {
@@ -252,7 +218,7 @@ const AppContent: React.FC = () => {
                 }
               },
               (error) => {
-                console.error(`Geolocation error: ${error.message}`);
+                console.warn(`Geolocation error: ${error.message}. Falling back to default location.`);
                 fetchDefaultWeather();
               }
             );
@@ -324,9 +290,6 @@ const AppContent: React.FC = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleSettingsChange = (newSettings: Settings) => {
-        setSettings(newSettings);
-    };
 
     const bookmarkedArticles = useMemo(() => allArticles.filter(a => bookmarkedArticleIds.includes(a.id)), [bookmarkedArticleIds, allArticles]);
 
@@ -338,7 +301,7 @@ const AppContent: React.FC = () => {
               const optimalLayout = await determineOptimalLayout(bookmarkedArticles, settings);
               if (optimalLayout && settings.homepageLayout !== optimalLayout) {
                 const newDensity = optimalLayout === 'Dashboard' ? 'Compact' : 'Comfortable';
-                handleSettingsChange({ ...settings, homepageLayout: optimalLayout, informationDensity: newDensity });
+                onSettingsChange({ ...settings, homepageLayout: optimalLayout, informationDensity: newDensity });
               }
             } catch (e) {
               console.error("Layout optimization failed", e);
@@ -510,13 +473,13 @@ const AppContent: React.FC = () => {
             setSelectedPlan(priceDetails);
             setActiveModal('payment');
         } else {
-            handleSettingsChange({ ...settings, subscriptionTier: plan });
+            onSettingsChange({ ...settings, subscriptionTier: plan });
             setActiveModal(null);
         }
     };
 
     const handlePaymentSuccess = () => {
-        handleSettingsChange({ ...settings, subscriptionTier: 'Premium' });
+        onSettingsChange({ ...settings, subscriptionTier: 'Premium' });
         setActiveModal(null);
         setSelectedPlan(null);
     }
@@ -598,7 +561,7 @@ const AppContent: React.FC = () => {
             return <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} />;
         }
         if (isSettingsOpen) {
-            return <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />;
+            return <SettingsPage settings={settings} onSettingsChange={onSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />;
         }
         if (isProfileOpen) {
             return <ProfilePage user={currentUser} onUserChange={setCurrentUser} settings={settings} onManageSubscription={() => setActiveModal('subscribe')} readingHistory={allArticles.slice(5, 10)} />;
@@ -640,7 +603,7 @@ const AppContent: React.FC = () => {
                 case 'Politics':
                      return (
                         <>
-                            <InteractiveGlobe articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />
+                            {settings.showNewsMap && <InteractiveGlobe articles={worldAndPoliticsArticles} onArticleClick={handleReadMore} />}
                             <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
                         </>
                      );
@@ -650,7 +613,7 @@ const AppContent: React.FC = () => {
                     return (
                         <>
                             <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                            <DataDrivenInsights />
+                            {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
                         </>
                     );
@@ -658,7 +621,7 @@ const AppContent: React.FC = () => {
                     return (
                         <>
                             <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} />
-                            <InnovationTimeline />
+                            {settings.showInnovationTimelines && <InnovationTimeline />}
                             <PodcastHub podcasts={mockPodcasts.slice(0,2)} />
                         </>
                     );
@@ -681,10 +644,12 @@ const AppContent: React.FC = () => {
     };
 
     const isAsideVisible = !(activeMovie || isMoviesPage || currentCategory === 'Mahama Investigates');
+    const newArticlesText = newArticlesQueue.length > 1 ? t('newArticlesPlural') : t('newArticlesSingular');
 
     return (
         <div className="min-h-screen">
             {isCategoryLoading && <CategoryLoadingOverlay />}
+            {isTranslating && <CategoryLoadingOverlay text={t('translating')} />}
             {activeArticle && <ScrollProgressBar />}
             <Header
                 onMenuClick={() => openModal('categoryExplorer')}
@@ -699,7 +664,7 @@ const AppContent: React.FC = () => {
                 onNotificationsClick={() => setIsNotificationCenterOpen(!isNotificationCenterOpen)}
                 notifications={notifications}
                 settings={settings}
-                onSettingsChange={handleSettingsChange}
+                onSettingsChange={onSettingsChange}
             />
 
             <NotificationCenter 
@@ -712,12 +677,12 @@ const AppContent: React.FC = () => {
             {showOnboarding && <OnboardingTour onClose={handleOnboardingComplete} />}
 
             <main className="pt-20">
-                {!activeMovie && !activeArticle && (
+                {isHomePage && (
                     <>
-                        {isHomePage && <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />}
+                        <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />
                         <div className="sticky top-20 z-30">
                             <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={handleSelectSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />
-                            {isHomePage && <StockTicker />}
+                            <StockTicker />
                         </div>
                     </>
                 )}
@@ -725,20 +690,21 @@ const AppContent: React.FC = () => {
                 {newArticlesQueue.length > 0 && isHomePage && (
                      <div className="fixed top-40 left-1/2 -translate-x-1/2 z-40">
                          <button onClick={loadNewArticles} className="px-4 py-2 bg-deep-red text-white font-semibold rounded-full shadow-lg animate-bounce">
-                             {newArticlesQueue.length} {t('newArticles')}{newArticlesQueue.length > 1 ? 's' : ''}
+                             {newArticlesQueue.length} {newArticlesText}
                          </button>
                      </div>
                 )}
                 
-                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie || activeArticle || currentCategory === 'Mahama Investigates' ? 'max-w-full px-0 sm:px-0 lg:px-0' : ''}`}>
-                    <div className={` ${!activeArticle ? 'lg:grid' : ''} ${isAsideVisible ? 'lg:grid-cols-4' : ''} lg:gap-8`}>
-                        <div className={isAsideVisible && !activeArticle ? 'lg:col-span-3' : 'col-span-1'}>
+                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie || currentCategory === 'Mahama Investigates' ? 'max-w-full px-0 sm:px-0 lg:px-0' : ''}`}>
+                    <div className={`${isAsideVisible ? 'lg:grid lg:grid-cols-4 lg:gap-8' : ''}`}>
+                        <div className={isAsideVisible ? 'lg:col-span-3' : ''}>
                             {renderMainContent()}
                         </div>
 
                         {isAsideVisible && 
                             <RightAside 
                                 trendingArticles={allArticles.slice(1, 6)} 
+                                allArticles={allArticles}
                                 onArticleClick={handleReadMore} 
                                 activeArticle={activeArticle} 
                                 settings={settings} 
@@ -794,10 +760,39 @@ const AppContent: React.FC = () => {
     );
 };
 
+const defaultSettings: Settings = {
+    theme: 'system',
+    fontSize: 16,
+    fontFamily: 'sans',
+    aiModelPreference: 'Speed',
+    summaryLength: 'medium',
+    contentPreferences: [],
+    autoTranslate: false,
+    preferredLanguage: 'Kinyarwanda',
+    showCounterpoint: true,
+    showInnovationTimelines: true,
+    showMahama360: true,
+    showNewsMap: true,
+    showDataInsights: true,
+    showNowStreaming: true,
+    interactiveGlossary: true,
+    aiReadingLens: 'None',
+    ttsVoice: 'Zephyr',
+    aiVoicePersonality: 'Friendly',
+    homepageLayout: 'Standard',
+    notificationPreferences: {
+        breakingNews: true,
+        dailyDigest: false,
+        aiRecommendations: true,
+    },
+    subscriptionTier: 'Free',
+    informationDensity: 'Comfortable',
+    highContrast: false,
+    reduceMotion: false,
+};
 
 const App: React.FC = () => {
-    // A small wrapper to extract settings logic for the provider
-    const [settings] = useState<Settings>(() => {
+    const [settings, setSettings] = useState<Settings>(() => {
         try {
             const savedSettings = localStorage.getItem('mahamaNewsSettings');
             return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
@@ -807,8 +802,8 @@ const App: React.FC = () => {
     });
 
     return (
-        <TranslationProvider language={settings.preferredLanguage}>
-            <AppContent />
+        <TranslationProvider language={settings.preferredLanguage} settings={settings}>
+            <AppContent settings={settings} onSettingsChange={setSettings} />
         </TranslationProvider>
     )
 }

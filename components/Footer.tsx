@@ -21,7 +21,7 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
                 <p className="text-slate-600 dark:text-slate-300">{t('newsletterDesc')}</p>
             </div>
             <form className="mt-4 md:mt-0 flex w-full max-w-md">
-                <input type="email" placeholder="Enter your email" className="w-full px-4 py-2 rounded-l-md border-0 focus:ring-2 focus:ring-deep-red dark:bg-slate-800 dark:text-white" />
+                <input type="email" placeholder={t('enterYourEmail')} className="w-full px-4 py-2 rounded-l-md border-0 focus:ring-2 focus:ring-deep-red dark:bg-slate-800 dark:text-white" />
                 <button type="submit" className="bg-deep-red text-white font-semibold px-6 py-2 rounded-r-md hover:bg-red-700 transition-colors">{t('subscribe')}</button>
             </form>
         </div>
@@ -31,44 +31,44 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
           <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('news')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><button className="hover:text-deep-red dark:hover:text-gold">World</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Politics</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Economy</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Technology</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('world')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('politics')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('economy')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('technology')}</button></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('features')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Mahama 360°</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Podcasts & Video</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Mahama Investigates</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Community Forum</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('maham_360')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('podcastsAndVideo')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('mahamaInvestigates')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('communityForum')}</button></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('about')}</h4>
+            <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('aboutMNH')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><button onClick={() => onInfoPageClick('about')} className="hover:text-deep-red dark:hover:text-gold">About Us</button></li>
-              <li><button onClick={() => onInfoPageClick('careers')} className="hover:text-deep-red dark:hover:text-gold">Careers</button></li>
-              <li><button onClick={() => onInfoPageClick('contact')} className="hover:text-deep-red dark:hover:text-gold">Contact</button></li>
-              <li><button onClick={() => onInfoPageClick('advertise')} className="hover:text-deep-red dark:hover:text-gold">Advertise</button></li>
+              <li><button onClick={() => onInfoPageClick('about')} className="hover:text-deep-red dark:hover:text-gold">{t('aboutUs')}</button></li>
+              <li><button onClick={() => onInfoPageClick('careers')} className="hover:text-deep-red dark:hover:text-gold">{t('careers')}</button></li>
+              <li><button onClick={() => onInfoPageClick('contact')} className="hover:text-deep-red dark:hover:text-gold">{t('contact')}</button></li>
+              <li><button onClick={() => onInfoPageClick('advertise')} className="hover:text-deep-red dark:hover:text-gold">{t('advertise')}</button></li>
             </ul>
           </div>
            <div>
             <h4 className="font-bold text-slate-800 dark:text-white mb-4">{t('legal')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Terms of Use</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Privacy Policy</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Cookie Policy</button></li>
-              <li><button className="hover:text-deep-red dark:hover:text-gold">Accessibility</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('termsOfUse')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('privacyPolicy')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('cookiePolicy')}</button></li>
+              <li><button className="hover:text-deep-red dark:hover:text-gold">{t('accessibility')}</button></li>
             </ul>
           </div>
         </div>
 
         {/* Copyright & Socials */}
         <div className="border-t border-slate-200 dark:border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-sm">&copy; {new Date().getFullYear()} Mahama News Hub. All Rights Reserved.</p>
+          <p className="text-sm">&copy; {new Date().getFullYear()} {t('logoText')}. {t('allRightsReserved')}</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-deep-red dark:hover:text-gold" aria-label="Facebook"><FacebookIcon /></a>
             <a href="#" className="hover:text-deep-red dark:hover:text-gold" aria-label="Twitter"><TwitterIcon /></a>

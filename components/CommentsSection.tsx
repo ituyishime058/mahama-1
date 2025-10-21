@@ -5,6 +5,7 @@ import HeartIcon from './icons/HeartIcon';
 import ReplyIcon from './icons/ReplyIcon';
 import ShareIcon from './icons/ShareIcon';
 import SendIcon from './icons/SendIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface CommentsSectionProps {
   initialComments: Comment[];
@@ -64,6 +65,7 @@ const CommentCard: React.FC<{ comment: Comment; onLike: (id: string) => void; on
 const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) => {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
+  const { t } = useTranslation();
 
   const findComment = (id: string, commentList: Comment[]): Comment | null => {
       for (const comment of commentList) {
@@ -131,7 +133,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) =>
   return (
     <div className="mt-12 lg:pl-24">
       <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-deep-red pl-4">
-        Join the Conversation ({comments.length})
+        {t('joinTheConversation')} ({comments.length})
       </h3>
       <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
         {/* New Comment Form */}
@@ -141,7 +143,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) =>
                  <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write your comment here..."
+                    placeholder={t('writeYourComment')}
                     className="w-full p-3 pr-12 rounded-md border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:ring-2 focus:ring-deep-red dark:focus:ring-gold transition"
                     rows={2}
                 ></textarea>
@@ -149,7 +151,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ initialComments }) =>
                     type="submit"
                     className="absolute right-2 bottom-2 p-2 bg-deep-red text-white rounded-full hover:bg-red-700 transition-colors disabled:bg-slate-400"
                     disabled={!newComment.trim()}
-                    aria-label="Post comment"
+                    aria-label={t('postComment')}
                 >
                     <SendIcon className="w-5 h-5"/>
                 </button>

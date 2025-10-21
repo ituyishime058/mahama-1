@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
+// FIX: The 'LiveSession' type is not exported from '@google/genai'. It has been removed.
+import { GoogleGenAI, LiveServerMessage, Modality, Blob as GenaiBlob } from "@google/genai";
 import CloseIcon from './icons/CloseIcon';
 import MicIcon from './icons/MicIcon';
 import { encode, decode, decodeAudioData } from '../utils/audio';
@@ -16,7 +17,7 @@ type TranscriptionEntry = {
 };
 
 const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, onClose }) => {
-  const [session, setSession] = useState<LiveSession | null>(null);
+  // FIX: Removed state for session object to avoid using the non-exported LiveSession type.
   const [isConnecting, setIsConnecting] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +28,8 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
   const outputAudioContextRef = useRef<AudioContext>();
   const mediaStreamRef = useRef<MediaStream>();
   const scriptProcessorRef = useRef<ScriptProcessorNode>();
-  const sessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
+  // FIX: Using `any` since `LiveSession` is not an exported type.
+  const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const nextStartTimeRef = useRef(0);
   const sourcesRef = useRef(new Set<AudioBufferSourceNode>());
   const transcriptEndRef = useRef<HTMLDivElement>(null);
@@ -39,11 +41,10 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcription, interimUserTranscript]);
 
+  // FIX: Refactored to use sessionPromiseRef directly and remove dependency on session state.
   const stopSession = useCallback(() => {
-    if (session) {
-        session.close();
-        setSession(null);
-    }
+    sessionPromiseRef.current?.then(s => s.close());
+    
     if (mediaStreamRef.current) {
         mediaStreamRef.current.getTracks().forEach(track => track.stop());
         mediaStreamRef.current = undefined;
@@ -62,7 +63,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
     setIsListening(false);
     setIsConnecting(false);
     sessionPromiseRef.current = null;
-  }, [session]);
+  }, []);
 
   const handleClose = () => {
     stopSession();
@@ -103,7 +104,7 @@ const LiveConversationModal: React.FC<LiveConversationModalProps> = ({ isOpen, o
             },
             callbacks: {
                 onopen: () => {
-                    sessionPromiseRef.current?.then(s => setSession(s));
+                    // FIX: Removed setSession call as session state is no longer used.
                     setIsConnecting(false);
                     setIsListening(true);
                     

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import type { Article, Settings, TimelineEvent, ReadingLens, KeyConcept, CommunityHighlight } from '../types';
 import { mockComments, mockArticles } from '../constants';
 import { applyReadingLens } from '../utils/ai';
+import { useTranslation } from '../hooks/useTranslation';
 
 import AuthorInfo from './AuthorInfo';
 import ContentGutter from './ContentGutter';
@@ -95,6 +96,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
   const [glossaryTerm, setGlossaryTerm] = useState<{ term: string; definition: string; position: { top: number; left: number } } | null>(null);
   
   const articleRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -232,7 +234,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                      {isModifyingContent && (
                         <div className="flex justify-center items-center my-8 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
                             <LoadingSpinner className="w-6 h-6 mr-3"/>
-                            <span>Applying AI Reading Lens...</span>
+                            <span>{t('applyingLens')}</span>
                         </div>
                     )}
                     <div onClick={handleArticleClick} className="prose prose-lg dark:prose-invert max-w-none text-slate-800 dark:text-slate-300">

@@ -1,12 +1,16 @@
-
 import React from 'react';
 import BookOpenIcon from './icons/BookOpenIcon';
+import { useTranslation } from '../hooks/useTranslation';
+import type { Language } from '../types';
+
+const langToLocale: Record<Language, string> = { English: 'en-US', French: 'fr-FR', Swahili: 'sw-KE', Kinyarwanda: 'rw-RW' };
 
 interface ReadTimeIndicatorProps {
   content: string;
 }
 
 const ReadTimeIndicator: React.FC<ReadTimeIndicatorProps> = ({ content }) => {
+  const { t } = useTranslation();
   const wordsPerMinute = 200;
   // Fallback for empty content
   const words = content ? content.split(/\s+/).length : 0;
@@ -15,7 +19,7 @@ const ReadTimeIndicator: React.FC<ReadTimeIndicatorProps> = ({ content }) => {
   return (
     <div className="flex items-center text-sm text-slate-500">
       <BookOpenIcon className="w-4 h-4 mr-1.5" />
-      <span>{readTime} min read</span>
+      <span>{readTime} {t('minRead')}</span>
     </div>
   );
 };
@@ -27,6 +31,8 @@ interface AuthorInfoProps {
 }
 
 const AuthorInfo: React.FC<AuthorInfoProps> = ({ author, date, content }) => {
+  const { t, language } = useTranslation();
+  const formattedDate = new Date(date).toLocaleDateString(langToLocale[language] || 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   return (
     <div className="flex items-center my-6 border-y border-slate-200 dark:border-slate-700 py-4">
       <img
@@ -36,7 +42,7 @@ const AuthorInfo: React.FC<AuthorInfoProps> = ({ author, date, content }) => {
       />
       <div className="flex-grow">
         <p className="font-bold text-slate-800 dark:text-white">{author}</p>
-        <p className="text-sm text-slate-500">Published on {date}</p>
+        <p className="text-sm text-slate-500">{t('publishedOn')} {formattedDate}</p>
       </div>
       <ReadTimeIndicator content={content} />
     </div>

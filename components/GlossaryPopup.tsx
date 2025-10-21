@@ -1,5 +1,6 @@
 import React from 'react';
 import CloseIcon from './icons/CloseIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface GlossaryPopupProps {
   term: string;
@@ -9,6 +10,7 @@ interface GlossaryPopupProps {
 }
 
 const GlossaryPopup: React.FC<GlossaryPopupProps> = ({ term, definition, position, onClose }) => {
+  const { t } = useTranslation();
   return (
     <div
       className="absolute z-30 w-64 p-4 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-700 animate-fade-in-down"

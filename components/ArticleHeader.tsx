@@ -4,6 +4,7 @@ import ReadAloudIcon from './icons/ReadAloudIcon';
 import SummarizeIcon from './icons/SummarizeIcon';
 import BookmarkIcon from './icons/BookmarkIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ArticleHeaderProps {
     article: Article;
@@ -22,6 +23,7 @@ const PrimaryActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode
 );
 
 const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextToSpeech, onSummarize, isBookmarked, onToggleBookmark }) => {
+    const { t } = useTranslation();
     return (
         <header className="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 mb-8 text-white min-h-[60vh] max-h-[700px] flex flex-col justify-between p-4 sm:p-8 lg:p-12 rounded-b-2xl overflow-hidden animate-fade-in">
             <div 
@@ -32,7 +34,7 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
 
             <div className="relative z-10">
                 <button onClick={onClose} className="flex items-center gap-1 text-sm font-semibold text-slate-300 hover:text-white hover:underline">
-                    <ChevronLeftIcon className="w-5 h-5"/> Back to Home
+                    <ChevronLeftIcon className="w-5 h-5"/> {t('backToHome')}
                 </button>
             </div>
 
@@ -46,9 +48,9 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
                 </p>
 
                 <div className="mt-6 flex flex-wrap items-center gap-4">
-                    <PrimaryActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label="Listen" />
-                    <PrimaryActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
-                    <PrimaryActionButton onClick={onToggleBookmark} icon={<BookmarkIcon filled={isBookmarked} className="w-5 h-5" />} label={isBookmarked ? "Bookmarked" : "Bookmark"} />
+                    <PrimaryActionButton onClick={() => onTextToSpeech(article)} icon={<ReadAloudIcon className="w-5 h-5" />} label={t('listen')} />
+                    <PrimaryActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label={t('summarize')} />
+                    <PrimaryActionButton onClick={onToggleBookmark} icon={<BookmarkIcon filled={isBookmarked} className="w-5 h-5" />} label={isBookmarked ? t('bookmarked') : t('bookmark')} />
                 </div>
             </div>
         </header>

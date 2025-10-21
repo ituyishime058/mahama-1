@@ -44,7 +44,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   featured = false,
   layout = 'default',
 }) => {
-  const isAudioPlaying = audioState.playingArticleId === article.id;
   const isOffline = offlineArticleIds.includes(article.id);
   const isDownloading = downloadingArticleId === article.id;
   const { t } = useTranslation();
@@ -96,13 +95,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             <ActionButton onClick={() => onTextToSpeech(article)} icon={<TextToSpeechIcon className="w-5 h-5" />} label={t('listen')} />
           </div>
           <div className={`flex items-center gap-2 ${isGridLayout ? 'order-1 self-end mb-2' : ''}`}>
-            <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? 'Remove bookmark' : 'Bookmark article'}>
+            <button onClick={() => onToggleBookmark(article.id)} title={isBookmarked ? t('removeBookmark') : t('bookmark')}>
               <BookmarkIcon filled={isBookmarked} className={`w-5 h-5 transition-colors ${isBookmarked ? 'text-deep-red' : 'text-slate-400 hover:text-deep-red'}`} />
             </button>
             <button
               onClick={() => onDownloadArticle(article)}
               disabled={isOffline || isDownloading}
-              title={isOffline ? 'Article saved for offline' : 'Save for offline'}
+              title={isOffline ? t('articleSavedForOffline') : t('saveForOffline')}
             >
               {isDownloading ? <LoadingSpinner className="text-slate-400"/> : isOffline ? <CheckIcon className="text-green-500" /> : <DownloadIcon className="text-slate-400 hover:text-deep-red" />}
             </button>

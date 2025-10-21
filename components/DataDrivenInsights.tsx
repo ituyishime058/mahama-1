@@ -5,17 +5,17 @@ const chartData = {
   labels: ['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'],
   datasets: [
     {
-      label: 'Emerging Markets',
+      label: 'EmergingMarkets',
       data: [10, 30, 25, 50, 45, 70],
       color: '#b91c1c', // deep-red
     },
     {
-      label: 'Green Tech',
+      label: 'GreenTech',
       data: [5, 15, 40, 35, 60, 80],
       color: '#16a34a', // green-600
     },
     {
-      label: 'AI & Automation',
+      label: 'AI&Automation',
       data: [20, 25, 50, 60, 75, 90],
       color: '#d97706', // gold
     },
@@ -78,7 +78,7 @@ const DataDrivenInsights: React.FC = () => {
                     className="flex items-center gap-2 cursor-pointer"
                 >
                     <div className="w-3 h-3 rounded-full" style={{backgroundColor: dataset.color}}></div>
-                    <span className="text-sm font-semibold">{dataset.label}</span>
+                    <span className="text-sm font-semibold">{t(dataset.label)}</span>
                 </div>
             ))}
         </div>

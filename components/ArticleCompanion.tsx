@@ -128,7 +128,7 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
 };
 
 const ArticleCompanion: React.FC<ArticleCompanionProps> = (props) => {
-    const { article, timelineEvents } = props;
+    const { article } = props;
     const [activeTab, setActiveTab] = useState('Chat');
 
     const tabs = [
@@ -145,7 +145,7 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = (props) => {
             case 'Concepts':
                 return <KeyConcepts {...props} />;
             case 'Timeline':
-                return <ArticleTimeline events={props.timelineEvents} isLoading={props.timelineLoading} />;
+                return <div className="p-4 h-full overflow-y-auto"><ArticleTimeline events={props.timelineEvents} isLoading={props.timelineLoading} /></div>;
             case 'Chat':
             default:
                 return <ChatPanel article={props.article} settings={props.settings} />;

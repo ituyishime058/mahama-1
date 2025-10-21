@@ -1,8 +1,6 @@
 import React from 'react';
 import type { Podcast } from '../types';
 import PlayIcon from './icons/PlayIcon';
-import EqualizerIcon from './icons/EqualizerIcon';
-import PauseIcon from './icons/PauseIcon';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface PodcastHubProps {

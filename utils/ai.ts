@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Content, Type, Modality } from "@google/genai";
-import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData, AiSearchResult, StreamingContent } from '../types';
+import type { Article, Settings, QuizQuestion, ExpertPersona, ChatMessage, TimelineEvent, KeyConcept, CommunityHighlight, HomepageLayout, Comment, InfographicData, AiSearchResult, StreamingContent, Language } from '../types';
 
 const getModelConfig = (settings: Settings, taskComplexity: 'simple' | 'complex' = 'simple') => {
     if (settings.subscriptionTier === 'Premium' && settings.aiModelPreference === 'Quality') {
@@ -878,5 +878,39 @@ export const identifyKeyPlayers = async (topic: string, settings: Settings): Pro
         return JSON.parse(response.text.trim());
     } catch {
          throw new Error("Failed to identify key players.");
+    }
+};
+
+// 30. batchTranslate
+export const batchTranslate = async (sourceTexts: Record<string, string>, targetLanguage: Language, settings: Settings): Promise<Record<string, string>> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+    // Use the fastest model for translation
+    const model = 'gemini-2.5-flash';
+
+    const prompt = `You are a professional translator. Translate the values of the following JSON object from English to ${targetLanguage}.
+    Respond ONLY with the resulting JSON object, with the exact same keys. Do not add any explanatory text, markdown formatting, or any characters before or after the JSON object.
+
+    Source JSON:
+    ${JSON.stringify(sourceTexts, null, 2)}
+    `;
+
+    const response = await ai.models.generateContent({
+        model: model,
+        contents: prompt,
+        config: {
+            responseMimeType: 'application/json',
+            // We can't use responseSchema here because the keys are dynamic.
+            // The prompt is heavily engineered to return only JSON.
+        }
+    });
+
+    try {
+        const jsonText = response.text.trim();
+        // Sometimes the model might wrap the JSON in markdown, so we try to clean it.
+        const cleanedJson = jsonText.replace(/^```json\n/, '').replace(/\n```$/, '');
+        return JSON.parse(cleanedJson) as Record<string, string>;
+    } catch (e) {
+        console.error("Failed to parse batch translation JSON:", e, "Received text:", response.text);
+        throw new Error(`Could not get a valid translation from the AI for ${targetLanguage}.`);
     }
 };

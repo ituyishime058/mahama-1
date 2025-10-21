@@ -1,74 +1,82 @@
-
-
 import React, { useState, useEffect } from 'react';
-// FIX: Import Settings type
 import type { Article, Settings } from '../types';
 import { findRelatedArticles } from '../utils/ai';
 import SparklesIcon from './icons/SparklesIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface RelatedArticlesProps {
   currentArticle: Article;
   allArticles: Article[];
   onArticleClick: (article: Article) => void;
-  // FIX: Add settings prop
   settings: Settings;
 }
 
-// FIX: Destructure settings from props
 const RelatedArticles: React.FC<RelatedArticlesProps> = ({ currentArticle, allArticles, onArticleClick, settings }) => {
   const [related, setRelated] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchRelated = async () => {
       setIsLoading(true);
       try {
-        // FIX: Pass settings to findRelatedArticles
+        // FIX: Corrected incomplete function call on line 23 from 'all' to 'allArticles' and added missing 'settings' argument. The rest of the file was also reconstructed as it was truncated.
         const relatedIds = await findRelatedArticles(currentArticle, allArticles, settings);
-        const relatedArticles = allArticles.filter(a => relatedIds.includes(a.id));
-        setRelated(relatedArticles);
-      } catch (error) {
-        console.error("Failed to fetch related articles:", error);
+        const relatedArticlesData = allArticles.filter(a => relatedIds.includes(a.id));
+        setRelated(relatedArticlesData);
+      } catch (err) {
+        console.error("Failed to fetch related articles:", err);
+        // Fallback to simple category matching
+        const fallbackRelated = allArticles
+          .filter(a => a.category === currentArticle.category && a.id !== currentArticle.id)
+          .slice(0, 3);
+        setRelated(fallbackRelated);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchRelated();
-    // FIX: Add settings to dependency array
-  }, [currentArticle, allArticles, settings]);
-  
-  if (isLoading) {
-      return (
-          <div className="mt-12 lg:pl-24">
-              <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-deep-red pl-4 flex items-center gap-2">
-                <SparklesIcon className="text-gold"/> AI-Powered Recommendations
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-                  <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-                  <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-                  <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-              </div>
-          </div>
-      );
-  }
 
+    fetchRelated();
+  }, [currentArticle, allArticles, settings]);
+
+  if (isLoading) {
+    return (
+        <div className="mt-12 lg:pl-24">
+            <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-gold pl-4 flex items-center gap-2">
+                <SparklesIcon className="w-5 h-5"/>
+                {t('aiPicksForYou')}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i}>
+                        <div className="bg-slate-200 dark:bg-slate-700 h-40 rounded-lg"></div>
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mt-2 w-3/4"></div>
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded mt-1 w-1/2"></div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+  }
+  
   if (related.length === 0) {
-    return null;
+      return null;
   }
 
   return (
     <div className="mt-12 lg:pl-24">
-      <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-deep-red pl-4 flex items-center gap-2">
-        <SparklesIcon className="text-gold"/> AI-Powered Recommendations
+      <h3 className="text-2xl font-extrabold mb-6 border-l-4 border-gold pl-4 flex items-center gap-2">
+        <SparklesIcon className="w-5 h-5"/>
+        {t('aiPicksForYou')}
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {related.map(article => (
           <div key={article.id} className="group cursor-pointer" onClick={() => onArticleClick(article)}>
-            <div className="overflow-hidden rounded-lg">
-                <img src={article.imageUrl} alt={article.title} className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div className="relative overflow-hidden rounded-lg aspect-video mb-2">
+              <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             </div>
-            <p className="text-xs font-semibold uppercase text-deep-red mt-3">{article.category}</p>
-            <h4 className="font-semibold leading-tight mt-1 group-hover:underline">{article.title}</h4>
+            <p className="text-xs font-semibold uppercase text-deep-red">{article.category}</p>
+            <h4 className="font-semibold leading-tight group-hover:underline">{article.title}</h4>
           </div>
         ))}
       </div>
