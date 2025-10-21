@@ -226,7 +226,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
             onSummarize={onSummarize}
         />
 
-        <div className={`transition-all duration-300 max-w-4xl mx-auto mt-8`}>
+        <div className={`transition-all duration-300 max-w-4xl mx-auto mt-8 container sm:px-6 lg:px-8`}>
             <div className="relative">
                 <ContentGutter 
                     article={article}

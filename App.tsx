@@ -657,7 +657,7 @@ const App: React.FC = () => {
             />
 
             <main className="pt-20">
-                {!activeMovie && (
+                {!activeMovie && !activeArticle && (
                     <>
                         {isHomePage && <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />}
                         <div className="sticky top-20 z-30">
@@ -674,9 +674,9 @@ const App: React.FC = () => {
                      </div>
                 )}
                 
-                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie ? 'max-w-full' : ''}`}>
-                    <div className={`lg:grid ${isAsideVisible ? 'lg:grid-cols-4' : 'lg:grid-cols-1'} lg:gap-8`}>
-                        <div className={isAsideVisible ? 'lg:col-span-3' : 'lg:col-span-1'}>
+                <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${activeMovie || activeArticle ? 'max-w-full px-0 sm:px-0 lg:px-0' : ''}`}>
+                    <div className={` ${!activeArticle ? 'lg:grid' : ''} ${isAsideVisible ? 'lg:grid-cols-4' : ''} lg:gap-8`}>
+                        <div className={isAsideVisible && !activeArticle ? 'lg:col-span-3' : 'col-span-1'}>
                             {renderMainContent()}
                         </div>
 

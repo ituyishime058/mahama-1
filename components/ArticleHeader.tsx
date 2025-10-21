@@ -36,7 +36,7 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
                 </button>
             </div>
 
-            <div className="relative z-10 animate-fade-in-up max-w-4xl">
+            <div className="relative z-10 animate-fade-in-up max-w-4xl mx-auto container">
                 <p className="font-semibold uppercase tracking-wider text-gold mb-2">{article.category}</p>
                 <h1 className="text-4xl md:text-6xl font-extrabold !leading-tight tracking-tight mb-4 drop-shadow-lg">
                     {article.title}

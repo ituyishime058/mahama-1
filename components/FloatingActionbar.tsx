@@ -108,12 +108,13 @@ const FloatingActionbar: React.FC<FloatingActionbarProps> = ({
       <div className="bg-white/80 dark:bg-navy/80 backdrop-blur-md rounded-full shadow-2xl p-2 flex items-center gap-1 border border-slate-200 dark:border-slate-700">
         <ActionButton onClick={() => onSummarize(article)} icon={<SummarizeIcon className="w-5 h-5" />} label="Summarize" />
         <ActionButton onClick={() => onExplainSimply(article)} icon={<BrainIcon className="w-5 h-5" />} label="Explain" />
-        <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
-        <ActionButton onClick={() => handlePremiumFeature(onDeepDive)} icon={<DeepDiveIcon className="w-5 h-5" />} label="Deep Dive" isPremiumFeature={true} />
-        <ActionButton onClick={() => handlePremiumFeature(onInfographic)} icon={<ChartBarIcon className="w-5 h-5" />} label="Infographic" isPremiumFeature={true} />
         <ActionButton onClick={() => onQuiz(article)} icon={<QuizIcon className="w-5 h-5" />} label="Quiz" />
-        <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
+        <ActionButton onClick={() => handlePremiumFeature(onAskAuthor)} icon={<AuthorIcon className="w-5 h-5" />} label="Ask Author" isPremiumFeature={true}/>
+        <ActionButton onClick={() => handlePremiumFeature(onExpertAnalysis)} icon={<AnalysisIcon className="w-5 h-5" />} label="Analysis" isPremiumFeature={true} />
+        <ActionButton onClick={() => handlePremiumFeature(onDeepDive)} icon={<DeepDiveIcon className="w-5 h-5" />} label="Deep Dive" isPremiumFeature={true} />
         {showCounterpoint && <ActionButton onClick={() => handlePremiumFeature(onCounterpoint)} icon={<BalanceIcon className="w-5 h-5" />} label="Counterpoint" isPremiumFeature={true} />}
+        <ActionButton onClick={() => handlePremiumFeature(onFactCheckPage)} icon={<ShieldCheckIcon className="w-5 h-5" />} label="Fact-Check" isPremiumFeature={true}/>
+        <ActionButton onClick={() => handlePremiumFeature(onInfographic)} icon={<ChartBarIcon className="w-5 h-5" />} label="Infographic" isPremiumFeature={true} />
       </div>
     </div>
   );
