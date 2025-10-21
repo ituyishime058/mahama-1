@@ -1,8 +1,11 @@
+
 import React from 'react';
 
 export type Language = 'English' | 'French' | 'Swahili' | 'Kinyarwanda';
 
-export type Article = {
+export type AiTtsVoice = 'Zephyr' | 'Puck' | 'fr-FR-A' | 'sw-KE-A' | 'rw-RW-A' | string;
+
+export interface Article {
   id: number;
   title: string;
   excerpt: string;
@@ -16,18 +19,11 @@ export type Article = {
   sentiment: 'Positive' | 'Neutral' | 'Negative';
   keyTakeaways: string[];
   hasTimeline?: boolean;
-  imageUrlBase64?: string;
-  tags?: string[];
   coordinates?: { lat: number; lon: number };
-};
+  imageUrlBase64?: string; // For offline storage
+}
 
-export type Category = {
-  name: string;
-  icon: React.FC<React.SVGProps<SVGSVGElement>>;
-  subcategories?: string[];
-};
-
-export type Podcast = {
+export interface Podcast {
   id: number;
   title: string;
   excerpt: string;
@@ -36,9 +32,52 @@ export type Podcast = {
   duration: string;
   episode: number;
   audioUrl: string;
-};
+}
 
-export type User = {
+export interface Category {
+  name: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  subcategories?: string[];
+}
+
+export interface Stock {
+  symbol: string;
+  price: number;
+  change: string;
+  changePercent: string;
+}
+
+export interface Innovation {
+  year: number;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface StreamingContent {
+  id: number;
+  title: string;
+  posterUrl: string;
+  trailerUrl: string;
+  description: string;
+  isNew: boolean;
+  genre: string;
+  rating: string;
+  year: number;
+  duration: string;
+  isTrending: boolean;
+  isAwardWinner?: boolean;
+}
+
+export interface SubscriptionPlan {
+  name: string;
+  price: string;
+  priceYearly: string;
+  features: string[];
+  isRecommended?: boolean;
+}
+
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -47,84 +86,42 @@ export type User = {
   bio: string;
   joinDate: string;
   isProfilePublic: boolean;
-};
+}
 
-export type Comment = {
+export interface Comment {
   id: string;
-  user: {
-    id: string;
-    name: string;
-    avatar: string;
-  };
+  user: Pick<User, 'id' | 'name' | 'avatar'>;
   text: string;
   timestamp: string;
   likes: number;
   replies: Comment[];
-};
+}
 
-export type Stock = {
-  symbol: string;
-  price: number;
-  change: string;
-  changePercent: string;
-};
-
-export type Innovation = {
-  year: number;
-  title: string;
-  description: string;
-  icon: string;
-};
-
-export type StreamingContent = {
+export interface Notification {
   id: number;
-  title: string;
-  posterUrl: string;
-  trailerUrl: string;
-  description: string;
-  isNew?: boolean;
-  genre: 'Sci-Fi' | 'Drama' | 'Action' | 'Thriller' | 'Animation' | 'Comedy' | 'History';
-  rating: string;
-  year: number;
-  duration: string;
-  isTrending?: boolean;
-  isAwardWinner?: boolean;
-};
-
-export type SubscriptionPlan = {
-  name: string;
-  price: string;
-  priceYearly: string;
-  features: string[];
-  isRecommended?: boolean;
-};
-
-// FIX: Add Notification type definition.
-export type Notification = {
-  id: number;
-  type: 'briefing' | 'comment' | 'news' | 'mention';
   message: string;
   timestamp: string;
   read: boolean;
-};
+  type: 'news' | 'briefing' | 'comment' | 'mention';
+}
 
-export type AiTtsVoice = 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'en-US-A' | 'en-US-B' | 'en-US-C' | 'en-US-D' | 'en-US-E' | 'en-US-F' | 'en-GB-A' | 'en-GB-B' | 'en-GB-C' | 'en-GB-D' | 'en-GB-F' | 'fr-FR-A' | 'fr-FR-B' | 'fr-FR-C' | 'fr-FR-D' | 'fr-FR-E' | 'es-ES-A' | 'es-ES-B' | 'es-ES-C' | 'es-ES-D' | 'de-DE-A' | 'de-DE-B' | 'de-DE-C' | 'de-DE-D' | 'ja-JP-A' | 'ja-JP-B' | 'ja-JP-C' | 'ja-JP-D' | 'ru-RU-A' | 'ru-RU-B' | 'ru-RU-C' | 'ru-RU-D' | 'cmn-CN-A' | 'cmn-CN-B' | 'cmn-CN-C' | 'rw-RW-A' | 'rw-RW-B' | 'sw-KE-A' | 'sw-KE-B' | 'ar-XA-A' | 'ar-XA-B' | 'it-IT-A' | 'it-IT-B' | 'ko-KR-A' | 'ko-KR-B';
+export type SubscriptionTier = 'Free' | 'Premium';
 
-export type AiSummaryLength = 'short' | 'medium' | 'long';
-export type AiModelPreference = 'Speed' | 'Quality';
 export type Theme = 'light' | 'dark' | 'system';
 export type FontFamily = 'sans' | 'serif';
-export type HomepageLayout = 'Standard' | 'Dashboard';
+export type AiModelPreference = 'Speed' | 'Quality';
+export type SummaryLength = 'short' | 'medium' | 'long';
 export type ReadingLens = 'None' | 'Simplify' | 'DefineTerms';
-export type SubscriptionTier = 'Free' | 'Premium';
 export type AiVoicePersonality = 'Friendly' | 'Professional' | 'Witty';
+export type HomepageLayout = 'Standard' | 'Dashboard';
+export type InformationDensity = 'Comfortable' | 'Compact';
 
 export interface Settings {
     theme: Theme;
     fontSize: number;
     fontFamily: FontFamily;
     aiModelPreference: AiModelPreference;
-    summaryLength: AiSummaryLength;
+    summaryLength: SummaryLength;
     contentPreferences: string[];
     autoTranslate: boolean;
     preferredLanguage: Language;
@@ -140,85 +137,83 @@ export interface Settings {
     aiVoicePersonality: AiVoicePersonality;
     homepageLayout: HomepageLayout;
     notificationPreferences: {
-      breakingNews: boolean;
-      dailyDigest: boolean;
-      aiRecommendations: boolean;
+        breakingNews: boolean;
+        dailyDigest: boolean;
+        aiRecommendations: boolean;
     };
     subscriptionTier: SubscriptionTier;
-    informationDensity: 'Comfortable' | 'Compact';
-    // FIX: Add missing properties for accessibility settings
-    highContrast: boolean;
-    reduceMotion: boolean;
+    informationDensity: InformationDensity;
+    highContrast?: boolean;
+    reduceMotion?: boolean;
 }
 
-export type TimelineEvent = {
-    year: string;
-    description: string;
-};
-
-export type FactCheckResult = {
-  status: 'Verified' | 'Mixed' | 'Unverified';
-  summary: string;
-  sources: { uri: string; title: string }[];
-};
-
-export type KeyConcept = {
-    term: string;
-    description: string;
-    type: 'Person' | 'Location' | 'Organization' | 'Concept';
-};
-
-export type CommunityHighlight = {
-    viewpoint: string;
-    summary: string;
-};
-
-export type ChatMessage = {
-    role: 'user' | 'model';
-    content: string;
-    id: number; // Mandatory for stable React keys
-};
-
-export type QuizQuestion = {
-    question: string;
-    options: string[];
-    correctAnswer: string;
-};
-
-export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';
-
-export type AudioPlayerState = {
-    article: Article;
-    playlist?: Article[];
-    voiceOverride?: AiTtsVoice;
-};
-
-export type InfographicData = {
-  title: string;
-  items: { label: string; value: number }[];
-};
-
-export type WeatherData = {
+export interface WeatherData {
     locationName: string;
     temperature: number;
     condition: 'Sunny' | 'Cloudy' | 'Rainy';
     icon: React.FC<React.SVGProps<SVGSVGElement>>;
-};
+}
 
-export type AiSearchResult = {
+export interface KeyConcept {
+  term: string;
+  description: string;
+  type: 'Person' | 'Organization' | 'Location' | 'Concept';
+}
+
+export interface TimelineEvent {
+  year: string;
+  description: string;
+}
+
+export interface AiSearchResult {
+    summary?: string;
+    relatedArticleIds?: number[];
+    relatedMovieIds?: number[];
+    suggestedQuestions: string[];
+}
+
+export interface FactCheckResult {
+  status: 'Verified' | 'Mixed' | 'Unverified';
   summary: string;
-  relatedArticleIds: number[];
-  relatedMovieIds: number[];
-  suggestedQuestions: string[];
-};
+  sources?: { uri: string; title: string }[];
+}
 
-// FIX: Add types for investigation network graph
-export type NetworkNode = {
-  id: string;
-  type: 'company' | 'country' | 'person';
-};
+export interface ChatMessage {
+  id: number;
+  role: 'user' | 'model';
+  content: string;
+}
 
-export type NetworkLink = {
-  source: string;
-  target: string;
-};
+export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface InfographicData {
+  title: string;
+  items: { label: string; value: number }[];
+}
+
+export interface NetworkNode {
+    id: string;
+    type: 'company' | 'person' | 'country';
+}
+
+export interface NetworkLink {
+    source: string;
+    target: string;
+}
+
+export interface AudioPlayerState {
+    article: Article;
+    playlist?: Article[];
+    voiceOverride?: AiTtsVoice;
+}
+
+export interface CommunityHighlight {
+  viewpoint: string;
+  summary: string;
+}
