@@ -18,7 +18,7 @@ const CareersPage: React.FC<PageProps> = ({ isOpen, onClose }) => {
         <li><strong>Growth:</strong> We invest in our people with continuous learning and development opportunities.</li>
         <li><strong>Culture:</strong> A collaborative, fast-paced, and mission-driven environment.</li>
       </ul>
-      <p>We are always looking for talented individuals to join our team. Please check our open listings or send your resume to careers@kirehetv.com.</p>
+      <p>We are always looking for talented individuals to join our team. Please check our open listings or send your resume to <a href="mailto:careers@kirehetv.com" className="text-deep-red dark:text-gold hover:underline">careers@kirehetv.com</a>.</p>
     </InfoPage>
   );
 };

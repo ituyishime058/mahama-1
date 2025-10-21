@@ -18,7 +18,7 @@ import NewsTicker from './NewsTicker';
 import FilterBar from './FilterBar';
 import ArticlePage from './ArticlePage';
 // FIX: Corrected import path for Kirehe360 component.
-import Kirehe360 from './Mahama360';
+import Kirehe360 from './Kirehe360';
 import DataDrivenInsights from './DataDrivenInsights';
 import PodcastHub from './PodcastHub';
 import InnovationTimeline from './InnovationTimeline';
@@ -26,7 +26,6 @@ import Footer from './Footer';
 import ScrollProgressBar from './ScrollProgressBar';
 import MoviesTVPage from './MoviesTVPage';
 import SponsoredBanners from './SponsoredBanners';
-import InteractiveGlobe from './InteractiveGlobe';
 import KireheInvestigatesPage from './KireheInvestigatesPage';
 import NowStreaming from './NowStreaming';
 
@@ -81,7 +80,7 @@ const defaultSettings: Settings = {
     showCounterpoint: true,
     showInnovationTimelines: true,
     showKirehe360: true,
-    showNewsMap: true,
+    showNewsMap: false,
     showDataInsights: true,
     showNowStreaming: true,
     interactiveGlossary: true,
@@ -107,7 +106,7 @@ const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis'
 const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
         try {
-            const savedSettings = localStorage.getItem('mahamaNewsSettings');
+            const savedSettings = localStorage.getItem('kireheTVSettings');
             return savedSettings ? { ...defaultSettings, ...JSON.parse(savedSettings) } : defaultSettings;
         } catch (error) {
             return defaultSettings;
@@ -178,7 +177,7 @@ const App: React.FC = () => {
     
     // Apply theme
     useEffect(() => {
-        localStorage.setItem('mahamaNewsSettings', JSON.stringify(settings));
+        localStorage.setItem('kireheTVSettings', JSON.stringify(settings));
         const root = window.document.documentElement;
         if (settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             root.classList.add('dark');
@@ -196,7 +195,7 @@ const App: React.FC = () => {
     useEffect(() => {
         // Bookmarks
         try {
-            const savedBookmarks = localStorage.getItem('mahamaNewsBookmarks');
+            const savedBookmarks = localStorage.getItem('kireheTVBookmarks');
             if (savedBookmarks) setBookmarkedArticleIds(JSON.parse(savedBookmarks));
         } catch (error) { console.error("Failed to load bookmarks", error); }
         
@@ -318,7 +317,7 @@ const App: React.FC = () => {
             ? bookmarkedArticleIds.filter(bId => bId !== id)
             : [...bookmarkedArticleIds, id];
         setBookmarkedArticleIds(newBookmarks);
-        localStorage.setItem('mahamaNewsBookmarks', JSON.stringify(newBookmarks));
+        localStorage.setItem('kireheTVBookmarks', JSON.stringify(newBookmarks));
     };
 
     const handleDownloadArticle = useCallback(async (article: Article) => {
@@ -360,7 +359,7 @@ const App: React.FC = () => {
     
     const handleClearAllBookmarks = () => {
         setBookmarkedArticleIds([]);
-        localStorage.removeItem('mahamaNewsBookmarks');
+        localStorage.removeItem('kireheTVBookmarks');
     }
 
     const handleLogin = () => {
@@ -539,14 +538,13 @@ const App: React.FC = () => {
                 ) : isInvestigatesPage ? (
                     <KireheInvestigatesPage onArticleClick={handleReadMore} />
                 ) : (
-                    <div className="lg:grid lg:grid-cols-3 lg:gap-8">
-                        <div className="lg:col-span-2">
+                    <div className="md:grid md:grid-cols-3 md:gap-8">
+                        <div className="md:col-span-2">
                            {currentCategory === 'For You' && <Hero article={allArticles[0]} onReadMore={() => handleReadMore(allArticles[0])}/>}
                            <div className="mt-8">
                                 <GlobalHighlights articles={filteredArticles} onSummarize={article => openModal('summarize', article)} onExplainSimply={article => openModal('explain', article)} onTextToSpeech={handleOpenTtsModal} onReadMore={handleReadMore} audioState={{ playingArticleId: audioPlayerState?.article?.id || null, isGenerating: false }} bookmarkedArticleIds={bookmarkedArticleIds} onToggleBookmark={toggleBookmark} offlineArticleIds={offlineArticleIds} downloadingArticleId={downloadingArticleId} onDownloadArticle={handleDownloadArticle} comparisonList={comparisonList.map(a => a.id)} onAddToCompare={addToCompare} layout={settings.homepageLayout === 'Dashboard' ? 'grid' : 'default'} />
                            </div>
                             {settings.showKirehe360 && <Kirehe360 articles={allArticles.slice(7, 10)} onArticleClick={handleReadMore}/>}
-                            {settings.showNewsMap && <InteractiveGlobe articles={allArticles} onArticleClick={handleReadMore} />}
                             {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts} />
                             {settings.showInnovationTimelines && <InnovationTimeline />}

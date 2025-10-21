@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 
@@ -30,7 +31,7 @@ const categoryIcons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } 
   "History": HistoryIcon,
   "Culture": CultureIcon,
   "Entertainment": EntertainmentIcon,
-  "Mahama Investigates": InvestigatesIcon,
+  "Kirehe TV Investigates": InvestigatesIcon,
 };
 
 const CategoryDropdown: React.FC<CategoryDropdownProps> = ({ categories, onSelect }) => {

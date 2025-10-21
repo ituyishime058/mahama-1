@@ -41,7 +41,7 @@ export const translations = {
     podcastsAndVideo: 'Podcasts & Video',
     kireheInvestigates: 'Kirehe TV Investigates',
     communityForum: 'Community Forum',
-    aboutKTV: 'About KTV',
+    aboutKTV: 'About Kirehe TV',
     aboutUs: 'About Us',
     careers: 'Careers',
     contact: 'Contact',

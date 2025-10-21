@@ -6,33 +6,11 @@ import LoadingSpinner from './icons/LoadingSpinner';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Settings } from '../types';
 
-// Mock settings to pass to the AI function
-const mockSettings: Settings = {
-    theme: 'system',
-    fontSize: 16,
-    fontFamily: 'sans',
-    aiModelPreference: 'Speed',
-    summaryLength: 'medium',
-    contentPreferences: [],
-    autoTranslate: false,
-    preferredLanguage: 'English',
-    showCounterpoint: true,
-    showInnovationTimelines: true,
-    showKirehe360: true,
-    showNewsMap: true,
-    showDataInsights: true,
-    showNowStreaming: true,
-    interactiveGlossary: true,
-    aiReadingLens: 'None',
-    ttsVoice: 'Zephyr',
-    aiVoicePersonality: 'Friendly',
-    homepageLayout: 'Standard',
-    notificationPreferences: { breakingNews: true, dailyDigest: false, aiRecommendations: true },
-    subscriptionTier: 'Free',
-    informationDensity: 'Comfortable',
-};
+interface ThisDayInHistoryProps {
+  settings: Settings;
+}
 
-const ThisDayInHistory: React.FC = () => {
+const ThisDayInHistory: React.FC<ThisDayInHistoryProps> = ({ settings }) => {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,7 +20,7 @@ const ThisDayInHistory: React.FC = () => {
     const fetchHistory = async () => {
       setIsLoading(true);
       try {
-        const settingsWithLang = { ...mockSettings, preferredLanguage: language };
+        const settingsWithLang = { ...settings, preferredLanguage: language };
         const historyContent = await getThisDayInHistory(settingsWithLang);
         setContent(historyContent);
       } catch (err) {
@@ -53,7 +31,7 @@ const ThisDayInHistory: React.FC = () => {
       }
     };
     fetchHistory();
-  }, [language]);
+  }, [language, settings]);
 
   const formattedContent = useMemo(() => {
     if (!content) return [];

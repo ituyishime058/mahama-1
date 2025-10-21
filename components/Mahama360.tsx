@@ -44,7 +44,7 @@ const Kirehe360: React.FC<Kirehe360Props> = ({ articles, onArticleClick }) => {
                 Kirehe 360°
                 <FireIcon className="absolute -top-2 -right-8 w-8 h-8 text-deep-red transform rotate-12" />
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">{t('mahama360Desc')}</p>
+            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">{t('kirehe360Desc')}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">

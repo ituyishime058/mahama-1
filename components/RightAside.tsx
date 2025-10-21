@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Article, Settings, WeatherData, User, KeyConcept, TimelineEvent } from '../types';
 import TrendingNews from './TrendingNews';
@@ -39,7 +40,7 @@ const HomeAside: React.FC<Pick<RightAsideProps, 'trendingArticles' | 'onArticleC
     <div className="space-y-8 animate-fade-in-up">
         {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
         <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
-        <ThisDayInHistory />
+        <ThisDayInHistory settings={settings} />
         <WeatherWidget weatherData={weatherData} isLoading={isWeatherLoading} />
         <CommunityPoll />
         {settings.subscriptionTier === 'Free' && <InteractiveAd />}
@@ -90,8 +91,8 @@ const RightAside: React.FC<RightAsideProps> = (props) => {
     }
 
   return (
-    <div className="lg:col-span-1 mt-8 lg:mt-0">
-      <div className="lg:sticky top-28">
+    <div className="md:col-span-1 mt-8 md:mt-0">
+      <div className="md:sticky top-28">
         {renderAsideContent()}
       </div>
     </div>
