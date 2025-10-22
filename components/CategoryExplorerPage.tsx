@@ -17,10 +17,10 @@ interface CategoryExplorerPageProps {
   onSettingsClick: () => void;
 }
 
-const CategoryExplorerPage: React.FC<CategoryExplorerPageProps> = ({ 
-  isOpen, 
-  onClose, 
-  categories, 
+const CategoryExplorerPage: React.FC<CategoryExplorerPageProps> = ({
+  isOpen,
+  onClose,
+  categories,
   onCategorySelect,
   onSubCategorySelect,
   onBookmarksClick,
@@ -31,7 +31,6 @@ const CategoryExplorerPage: React.FC<CategoryExplorerPageProps> = ({
 
   useEffect(() => {
     if (!isOpen) {
-        // Reset active category when menu closes
         const timer = setTimeout(() => setActiveCategory(null), 300);
         return () => clearTimeout(timer);
     }
@@ -52,9 +51,13 @@ const CategoryExplorerPage: React.FC<CategoryExplorerPageProps> = ({
     }
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <div
-      className={`fixed inset-0 z-[70] bg-black/50 backdrop-blur-md transition-opacity duration-500 ease-in-out ${
+      className={`fixed inset-0 z-[70] bg-white/80 dark:bg-navy/80 backdrop-blur-md transition-opacity duration-500 ease-in-out ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={onClose}
