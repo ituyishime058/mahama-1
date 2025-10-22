@@ -217,3 +217,11 @@ export interface CommunityHighlight {
   viewpoint: string;
   summary: string;
 }
+
+// FIX: Added ServiceItem type to be used by CampMap and other related components.
+export interface ServiceItem {
+  name: string;
+  category: 'Health' | 'Education' | 'Markets' | 'Transport' | 'Work & Skills' | 'Community Groups' | 'Official Services' | 'Safety & Security';
+  coords: { x: number; y: number };
+  description?: string;
+}

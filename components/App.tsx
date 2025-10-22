@@ -513,14 +513,14 @@ const App: React.FC = () => {
 
             <div className={`w-full px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300`}>
                 {isMahamaServicesPageOpen ? (
-                    <MahamaServicesPage 
-                        onClose={handleCloseContent} 
-                        weatherData={weatherData} 
-                        isWeatherLoading={isWeatherLoading}
+                     <MahamaServicesPage
+                        onClose={handleCloseContent}
                         trendingArticles={allArticles.slice(1, 6)}
                         onArticleClick={handleReadMore}
                         settings={settings}
                         onGoPremium={() => setActiveModal('subscribe')}
+                        weatherData={weatherData}
+                        isWeatherLoading={isWeatherLoading}
                     />
                 ) : activeArticle ? (
                     <ArticlePage 
