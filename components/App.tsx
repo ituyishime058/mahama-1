@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
 import type { Article, Settings, StreamingContent, AudioPlayerState, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, FactCheckResult, ChatMessage } from '../types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from '../utils/db';
-import { determineOptimalLayout, findRelatedArticles } from '../utils/ai';
+import { findRelatedArticles } from '../utils/ai';
 import { fetchWeather } from '../utils/weather';
 import { TranslationProvider } from '../contexts/TranslationContext';
 

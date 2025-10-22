@@ -133,11 +133,11 @@ const ChatPanel: React.FC<{ article: Article; settings: Settings }> = ({ article
 
 const ArticleCompanion: React.FC<ArticleCompanionProps> = (props) => {
     const { article } = props;
-    const [activeTab, setActiveTab] = useState('Concepts');
+    const [activeTab, setActiveTab] = useState('Chat');
 
     const tabs = [
-        { name: 'Concepts', icon: KeyIcon },
         { name: 'Chat', icon: ChatBubbleIcon },
+        { name: 'Concepts', icon: KeyIcon },
     ];
     
     if (article.hasTimeline) {
@@ -146,13 +146,13 @@ const ArticleCompanion: React.FC<ArticleCompanionProps> = (props) => {
 
     const renderTabContent = () => {
         switch (activeTab) {
-            case 'Chat':
-                return <ChatPanel article={props.article} settings={props.settings} />;
+            case 'Concepts':
+                return <KeyConcepts {...props} />;
             case 'Timeline':
                 return <div className="p-4 h-full overflow-y-auto"><ArticleTimeline events={props.timelineEvents} isLoading={props.timelineLoading} /></div>;
-            case 'Concepts':
+            case 'Chat':
             default:
-                return <KeyConcepts {...props} />;
+                return <ChatPanel article={props.article} settings={props.settings} />;
         }
     };
     
