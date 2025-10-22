@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
@@ -515,22 +516,6 @@ const App: React.FC = () => {
                 {isMahamaServicesPageOpen ? (
                      <MahamaServicesPage
                         onClose={handleCloseContent}
-                        rightAside={<RightAside 
-                            trendingArticles={allArticles.slice(1, 6)} 
-                            onArticleClick={handleReadMore} 
-                            settings={settings} 
-                            onGoPremium={() => setActiveModal('subscribe')} 
-                            weatherData={weatherData} 
-                            isWeatherLoading={isWeatherLoading}
-                            activeArticle={null}
-                            allArticles={allArticles}
-                            isSettingsOpen={false}
-                            user={currentUser}
-                            keyConcepts={[]}
-                            conceptsLoading={false}
-                            timelineEvents={[]}
-                            timelineLoading={false}
-                        />}
                     />
                 ) : activeArticle ? (
                     <ArticlePage 
