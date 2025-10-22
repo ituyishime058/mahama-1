@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 // FIX: The ServiceItem type is now imported from the central types.ts file to follow project conventions.
-import type { ServiceItem } from '../types';
+// FIX: Import the 'Article' type to resolve 'Cannot find name' errors.
+import type { ServiceItem, Article } from '../types';
 
 interface InteractiveGlobeProps {
   articles: Article[];

@@ -3,6 +3,8 @@ import type { Article, Settings, KeyConcept, TimelineEvent } from '../types';
 import ArticleCompanion from './ArticleCompanion';
 import SubscriptionCard from './SubscriptionCard';
 import TrendingNews from './TrendingNews';
+import ThisDayInHistory from './ThisDayInHistory';
+import CommunityPoll from './CommunityPoll';
 
 interface ArticleViewAsideProps {
   article: Article;
@@ -25,6 +27,8 @@ const ArticleViewAside: React.FC<ArticleViewAsideProps> = (props) => {
       <ArticleCompanion {...props} />
       {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
       <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
+      <ThisDayInHistory settings={settings} />
+      <CommunityPoll />
     </div>
   );
 };

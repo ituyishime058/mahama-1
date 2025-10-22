@@ -6,11 +6,14 @@ import UsersIcon from './icons/UsersIcon';
 import PhoneIcon from './icons/PhoneIcon';
 import AmbulanceIcon from './icons/AmbulanceIcon';
 import ShieldExclamationIcon from './icons/ShieldExclamationIcon';
-import { mockArticles } from '../constants'; // For Kirehe News
+import MusicIcon from './icons/MusicIcon';
+import ScrollIcon from './icons/ScrollIcon';
+import PlayCircleIcon from './icons/PlayCircleIcon';
+import { mockArticles } from '../constants';
 
 import { useTranslation } from '../hooks/useTranslation';
 import type { Article, Settings, WeatherData } from '../types';
-import RightAside from './RightAside'; // Re-importing the RightAside
+import RightAside from './RightAside';
 
 // Mock Data for new sections
 const kireheNews = mockArticles.filter(a => a.category === 'World' || a.region === 'Africa').slice(0, 5);
@@ -28,6 +31,30 @@ const opportunities = [
     { title: "Market Stall Assistant", organization: "Central Market Vendors", type: "Job" },
 ];
 
+const featuredTalent = {
+    name: "Samuel 'Sami' Izere",
+    bio: "A gifted singer-songwriter from Mahama, Sami blends traditional Rwandan sounds with modern acoustic folk. His music tells stories of hope, resilience, and community.",
+    avatar: "https://i.pravatar.cc/150?u=samuel",
+    mediaUrl: "#", // Placeholder
+};
+
+const entertainmentEvents = [
+    { date: "SAT", time: "7:00 PM", title: "Open Mic Night", location: "Community Hall Stage" },
+    { date: "SUN", time: "3:00 PM", title: "Traditional Dance Showcase", location: "Central Field" },
+];
+
+const kireheHistory = [
+    { year: "1962", event: "Kirehe District is formally established as part of the newly independent Republic of Rwanda." },
+    { year: "1994", event: "The district is profoundly affected by the Genocide against the Tutsi, a period of immense loss and subsequent rebuilding." },
+    { year: "2006", event: "As part of national administrative reforms, Kirehe's boundaries are redefined to their current state within the Eastern Province." },
+    { year: "2015", event: "Mahama Refugee Camp is established to host Burundian refugees, becoming one of the largest in the country." },
+    { year: "2020s", event: "Focus on modern agriculture, cross-border trade with Tanzania, and sustainable development projects." },
+];
+
+const diasporaStories = [
+    { quote: "Though I live in Canada, my heart remembers the hills of Kirehe. I support the local youth center to give back.", author: "Marie, Toronto" },
+    { quote: "The skills I learned in Kirehe have helped me build a business in Belgium. I am proud of my roots.", author: "David, Brussels" },
+];
 
 interface MahamaServicesPageProps {
     onClose: () => void;
@@ -41,7 +68,8 @@ interface MahamaServicesPageProps {
 
 const MahamaServicesPage: React.FC<MahamaServicesPageProps> = (props) => {
     const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState<'events' | 'notices'>('events');
+    const [communityTab, setCommunityTab] = useState<'events' | 'notices'>('events');
+    const [entertainmentTab, setEntertainmentTab] = useState<'spotlight' | 'shows' | 'signup'>('spotlight');
 
     const eventsData = [
         { date: "25", month: "DEC", title: "Community Christmas Celebration", time: "2:00 PM @ Community Hall" },
@@ -52,7 +80,6 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = (props) => {
         { title: "Water distribution schedule update", content: "New schedule will be effective from next Monday.", posted: "3 days ago" },
         { title: "Youth vocational training registration", content: "Registration is now open. Visit the youth center.", posted: "1 week ago" },
     ];
-
 
     const NewsCard: React.FC<{ article: Article }> = ({ article }) => (
         <div className="flex-shrink-0 w-72 group cursor-pointer" onClick={() => props.onArticleClick(article)}>
@@ -84,7 +111,6 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = (props) => {
             <p className="text-sm text-slate-500">{opp.organization}</p>
         </div>
     );
-
 
     return (
         <div className="animate-fade-in">
@@ -118,7 +144,6 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = (props) => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <main className="md:col-span-2 space-y-8">
-
                     <section className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
                         <h2 className="text-2xl font-bold mb-4">Camp Location</h2>
                         <div className="aspect-video w-full rounded-lg overflow-hidden border-2 border-slate-200 dark:border-slate-700">
@@ -148,14 +173,87 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = (props) => {
                            {opportunities.map(opp => <OpportunityCard key={opp.title} opp={opp} />)}
                         </div>
                     </section>
+
+                    <section className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><MusicIcon/> Entertainment & Talent Hub</h2>
+                        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-4">
+                            <button onClick={() => setEntertainmentTab('spotlight')} className={`px-4 py-2 font-semibold ${entertainmentTab === 'spotlight' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Talent Spotlight</button>
+                            <button onClick={() => setEntertainmentTab('shows')} className={`px-4 py-2 font-semibold ${entertainmentTab === 'shows' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Upcoming Shows</button>
+                            <button onClick={() => setEntertainmentTab('signup')} className={`px-4 py-2 font-semibold ${entertainmentTab === 'signup' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Open Mic Signup</button>
+                        </div>
+                        <div className="animate-fade-in">
+                            {entertainmentTab === 'spotlight' && (
+                                <div className="flex flex-col sm:flex-row items-center gap-6 bg-slate-100 dark:bg-slate-800 p-4 rounded-lg">
+                                    <img src={featuredTalent.avatar} alt={featuredTalent.name} className="w-24 h-24 rounded-full flex-shrink-0" />
+                                    <div>
+                                        <h4 className="text-xl font-bold">{featuredTalent.name}</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 my-2">{featuredTalent.bio}</p>
+                                        <button className="flex items-center gap-2 text-sm font-semibold text-deep-red dark:text-gold hover:underline">
+                                            <PlayCircleIcon className="w-5 h-5"/> Listen to their latest track
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            {entertainmentTab === 'shows' && (
+                                <div className="space-y-3">
+                                    {entertainmentEvents.map((event, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                            <div className="text-center font-bold text-deep-red dark:text-gold">{event.date}</div>
+                                            <div>
+                                                <p className="font-semibold">{event.title}</p>
+                                                <p className="text-sm text-slate-500">{event.time} @ {event.location}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {entertainmentTab === 'signup' && (
+                                <form className="space-y-3 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                    <h4 className="font-bold">Sign up for the next Open Mic!</h4>
+                                    <input type="text" placeholder="Your Name" className="w-full p-2 rounded bg-white dark:bg-slate-700"/>
+                                    <input type="text" placeholder="Type of Talent (e.g., Singer, Poet)" className="w-full p-2 rounded bg-white dark:bg-slate-700"/>
+                                    <button type="submit" className="w-full py-2 bg-deep-red text-white font-semibold rounded-lg">Submit</button>
+                                </form>
+                            )}
+                        </div>
+                    </section>
+
+                    <section className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
+                        <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><ScrollIcon/> History of Kirehe</h2>
+                        <div className="relative mb-6">
+                            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-slate-700"></div>
+                            <div className="relative flex justify-between">
+                                {kireheHistory.map((item, index) => (
+                                    <div key={index} className="flex-1 flex flex-col items-center group">
+                                        <div className="w-3 h-3 bg-slate-300 dark:bg-slate-600 rounded-full group-hover:bg-gold transition-colors"></div>
+                                        <div className="absolute top-6 w-40 text-center">
+                                            <p className="font-bold text-sm">{item.year}</p>
+                                            <p className="text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">{item.event}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                         <div className="mt-20">
+                            <h3 className="text-xl font-bold mb-4 text-center">Voices of the Diaspora</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {diasporaStories.map((story, i) => (
+                                    <blockquote key={i} className="p-4 border-l-4 border-gold bg-slate-100 dark:bg-slate-800 rounded-r-lg">
+                                        <p className="italic">"{story.quote}"</p>
+                                        <cite className="block text-right not-italic font-semibold text-sm mt-2">- {story.author}</cite>
+                                    </blockquote>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
                     
                      <section className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
                         <h2 className="text-2xl font-bold mb-4">Community Updates</h2>
                         <div className="flex border-b border-slate-200 dark:border-slate-700 mb-4">
-                            <button onClick={() => setActiveTab('events')} className={`px-4 py-2 font-semibold ${activeTab === 'events' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Events</button>
-                            <button onClick={() => setActiveTab('notices')} className={`px-4 py-2 font-semibold ${activeTab === 'notices' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Notices</button>
+                            <button onClick={() => setCommunityTab('events')} className={`px-4 py-2 font-semibold ${communityTab === 'events' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Events</button>
+                            <button onClick={() => setCommunityTab('notices')} className={`px-4 py-2 font-semibold ${communityTab === 'notices' ? 'border-b-2 border-deep-red text-deep-red dark:text-gold' : 'text-slate-500'}`}>Notices</button>
                         </div>
-                        {activeTab === 'events' ? (
+                        {communityTab === 'events' ? (
                             <div className="space-y-4 animate-fade-in">
                                 {eventsData.map((event, i) => (
                                     <div key={i} className="flex items-center gap-4">
