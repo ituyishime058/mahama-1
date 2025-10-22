@@ -25,7 +25,7 @@ import TourismPage from './TourismPage';
 import EntertainmentPage from './EntertainmentPage';
 import SportsPage from './SportsPage';
 import EnvironmentPage from './EnvironmentPage';
-import { mockServiceItems } from '../constants';
+import MahamaServicesAside from './MahamaServicesAside';
 
 const serviceCategories = [
   { name: 'Health', icon: HealthIcon, component: HealthSectorPage },
@@ -81,17 +81,27 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ onClose }) => {
         </button>
       </header>
 
-      {ActiveComponent ? (
-        <ServiceDetailPage title={activeCategory!} onBack={() => setActiveCategory(null)}>
-          <ActiveComponent />
-        </ServiceDetailPage>
-      ) : (
-         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {serviceCategories.map(cat => (
-                <ServiceCard key={cat.name} name={cat.name} icon={cat.icon} onSelect={() => setActiveCategory(cat.name)} />
-            ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <main className="md:col-span-2">
+            {ActiveComponent ? (
+                <ServiceDetailPage title={activeCategory!} onBack={() => setActiveCategory(null)}>
+                <ActiveComponent />
+                </ServiceDetailPage>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {serviceCategories.map(cat => (
+                        <ServiceCard key={cat.name} name={cat.name} icon={cat.icon} onSelect={() => setActiveCategory(cat.name)} />
+                    ))}
+                </div>
+            )}
+        </main>
+        <aside className="md:col-span-1">
+            <div className="sticky top-28">
+                <MahamaServicesAside />
+            </div>
+        </aside>
+      </div>
+
     </div>
   );
 };

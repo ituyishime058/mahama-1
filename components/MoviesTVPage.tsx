@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { StreamingContent, Settings } from '../types';
 import { mockStreamingContent } from '../constants';
@@ -122,14 +123,47 @@ export const MoviesTVPage: React.FC<MoviesTVPageProps> = ({ onWatchMovie, onWatc
             <div className="relative rounded-lg overflow-hidden h-[60vh] md:h-[80vh] group mb-8" >
                 <div 
                     className="absolute inset-0 bg-cover bg-center animate-hero-bg-parallax" 
-                    style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original/shrRraKjYlV2sL0zT3tKgsg4O0J.jpg)`}}
+                    style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original/6PGweuFma9fH72z2363tAGp9gM.jpg)`}}
                 ></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
                 <div className="relative h-full flex flex-col justify-center sm:justify-end p-4 sm:p-8 md:p-12">
-                    <h1 className="text-3xl sm:--- START OF FILE TextToSpeechPlayer.tsx ---
+                    <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4 max-w-2xl">{featuredMovie.title}</h1>
+                    <p className="max-w-xl text-slate-300 mb-6 hidden sm:block">{featuredMovie.description}</p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <button onClick={() => onWatchTrailer(featuredMovie.trailerUrl)} className="flex items-center gap-2 bg-white text-black font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 duration-300">
+                            <PlayCircleIcon className="w-6 h-6"/> Watch Trailer
+                        </button>
+                        <button onClick={() => onWatchMovie(featuredMovie)} className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-full transition-transform transform hover:scale-105 duration-300">
+                            <InfoIcon className="w-6 h-6"/> More Info
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-// This file is deprecated. The active component is located at /components/TextToSpeechPlayer.tsx
-import React from 'react';
-const Placeholder = () => null;
-export default Placeholder;
+            <div className="px-4 sm:px-6 lg:px-8 space-y-12">
+                <Carousel title="AI Recommendations" items={recommended} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                <Carousel title="Trending Now" items={trending} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                <Carousel title="New Releases" items={newReleases} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                <Carousel title="Award Winners" items={awardWinners} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+
+                <section>
+                    <h2 className="text-3xl font-extrabold mb-6">Explore All</h2>
+                    <FilterControls genres={genres} filters={filters} onFilterChange={handleFilterChange} onClear={clearFilters} />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                        {filteredContent.slice(0, visibleCount).map(item => (
+                            <MovieCard key={item.id} item={item} onWatchMovie={onWatchMovie} onWatchTrailer={onWatchTrailer} />
+                        ))}
+                    </div>
+                     {visibleCount < filteredContent.length && (
+                        <div className="text-center mt-8">
+                            <button onClick={handleLoadMore} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-full transition-colors">
+                                Load More
+                            </button>
+                        </div>
+                    )}
+                </section>
+            </div>
+        </div>
+    );
+};

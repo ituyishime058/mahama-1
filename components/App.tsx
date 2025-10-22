@@ -581,7 +581,7 @@ const App: React.FC = () => {
                             {settings.showDataInsights && <DataDrivenInsights />}
                             <PodcastHub podcasts={mockPodcasts} />
                             {settings.showInnovationTimelines && <InnovationTimeline />}
-                            {settings.showNowStreaming && <NowStreaming onWatchMovie={handleWatchMovie} />}
+                            {settings.showNowStreaming && <NowStreaming onWatchMovie={handleWatchMovie} onWatchTrailer={handleWatchTrailer} />}
                             <SponsoredBanners />
                         </div>
                         <RightAside allArticles={allArticles} trendingArticles={allArticles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => setActiveModal('subscribe')} weatherData={weatherData} isWeatherLoading={isWeatherLoading} isSettingsOpen={isSettingsOpen} user={currentUser} keyConcepts={keyConcepts} conceptsLoading={conceptsLoading} timelineEvents={timelineEvents} timelineLoading={timelineLoading} />
