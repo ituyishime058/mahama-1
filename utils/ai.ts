@@ -1,7 +1,3 @@
-
-
-
-
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
 // FIX: Added AiSearchResult to the import list from types.
 import type { Article, Settings, QuizQuestion, ExpertPersona, InfographicData, ChatMessage, Language, AiTtsVoice, StreamingContent, KeyConcept, TimelineEvent, FactCheckResult, CommunityHighlight, AiSearchResult } from '../types';
@@ -158,8 +154,7 @@ export async function performAiSearch(query: string, articles: Article[], movies
     return JSON.parse(response.text);
 }
 
-// FIX: Added missing getMahamaInfo function to provide information about the Mahama community using Google Maps grounding.
-export async function getMahamaInfo(query: string, location: {latitude: number, longitude: number} | null, settings: Settings): Promise<string> {
+export async function getMahamaInfo(query: string, location: {latitude: number, longitude: number} | null, settings: Settings): Promise<GenerateContentResponse> {
     const model = getModelForPreference(settings.aiModelPreference);
     
     const config: any = {
@@ -183,7 +178,7 @@ export async function getMahamaInfo(query: string, location: {latitude: number, 
         config,
     });
 
-    return response.text;
+    return response;
 }
 
 

@@ -18,13 +18,9 @@ import ContentFilterIcon from './icons/ContentFilterIcon';
 import LayoutStandardIcon from './icons/LayoutStandardIcon';
 import LayoutDashboardIcon from './icons/LayoutDashboardIcon';
 import NotificationIcon from './icons/NotificationIcon';
-import SecurityIcon from './icons/SecurityIcon';
 import ConfirmationModal from './ConfirmationModal';
-import GoogleIcon from './icons/GoogleIcon';
-import AppleIcon from './icons/AppleIcon';
 import AccessibilityIcon from './icons/AccessibilityIcon';
 import EditIcon from './icons/EditIcon';
-import HistoryIcon from './icons/HistoryIcon';
 import CreditCardIcon from './icons/CreditCardIcon';
 import DensityIcon from './icons/DensityIcon';
 
@@ -43,11 +39,11 @@ interface SettingsPageProps {
 const settingsNav = [
   { name: 'Profile', icon: ProfileIcon },
   { name: 'Appearance', icon: PaletteIcon },
+  { name: 'Accessibility', icon: AccessibilityIcon },
   { name: 'Personalization', icon: ContentFilterIcon },
   { name: 'AI & Reading', icon: SparklesIcon },
   { name: 'Notifications', icon: NotificationIcon },
   { name: 'Data & Privacy', icon: ShieldCheckIcon },
-  { name: 'Accessibility', icon: AccessibilityIcon },
 ];
 
 const ToggleSwitch: React.FC<{label: string, enabled: boolean, onChange: (enabled: boolean) => void, isPremium?: boolean, userIsPremium?: boolean}> = ({ label, enabled, onChange, isPremium=false, userIsPremium=false }) => (
@@ -309,6 +305,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onUserChange, setting
             <h3 className="text-2xl font-bold">Accessibility</h3>
             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-1 divide-y divide-slate-200 dark:divide-slate-700">
                 <p className="text-sm text-slate-500 dark:text-slate-400 pb-4">Customize the experience to meet your needs.</p>
+                <ToggleSwitch label="Dyslexia-Friendly Font" enabled={localSettings.dyslexiaFont || false} onChange={(val) => handleSettingChange('dyslexiaFont', val)} />
                 <ToggleSwitch label="High Contrast Mode" enabled={localSettings.highContrast || false} onChange={(val) => handleSettingChange('highContrast', val)} />
                 <ToggleSwitch label="Reduce Motion" enabled={localSettings.reduceMotion || false} onChange={(val) => handleSettingChange('reduceMotion', val)} />
             </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Article, Settings, WeatherData, User, KeyConcept, TimelineEvent } from '../types';
 import TrendingNews from './TrendingNews';
@@ -8,7 +7,6 @@ import WeatherWidget from './WeatherWidget';
 import SubscriptionCard from './SubscriptionCard';
 import ThisDayInHistory from './ThisDayInHistory';
 import SettingsCompanion from './SettingsCompanion';
-import ProfileCompanion from './ProfileCompanion';
 import ArticleViewAside from './ArticleViewAside';
 
 interface RightAsideProps {
@@ -21,7 +19,6 @@ interface RightAsideProps {
   weatherData: WeatherData | null;
   isWeatherLoading: boolean;
   isSettingsOpen: boolean;
-  isProfileOpen: boolean;
   user: User;
   keyConcepts: KeyConcept[];
   conceptsLoading: boolean;
@@ -52,8 +49,6 @@ const RightAside: React.FC<RightAsideProps> = (props) => {
   const { 
       activeArticle, 
       isSettingsOpen, 
-      isProfileOpen, 
-      user,
       allArticles,
       settings,
       onArticleClick,
@@ -82,9 +77,6 @@ const RightAside: React.FC<RightAsideProps> = (props) => {
         }
         if (isSettingsOpen) {
             return <SettingsCompanion />;
-        }
-        if (isProfileOpen) {
-            return <ProfileCompanion user={user} />;
         }
         // Default homepage aside
         return <HomeAside {...props} />;

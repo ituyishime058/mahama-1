@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import type { ChatMessage, Settings } from '../types';
+import { getMahamaInfo } from '../utils/ai';
+import { GenerateContentResponse } from '@google/genai';
 import CloseIcon from './icons/CloseIcon';
 import HealthIcon from './icons/HealthIcon';
 import EducationIcon from './icons/EducationIcon';
@@ -15,6 +18,9 @@ import TourismIcon from './icons/TourismIcon';
 import EntertainmentIcon from './icons/EntertainmentIcon';
 import SportsIcon from './icons/SportsIcon';
 import EnvironmentIcon from './icons/EnvironmentIcon';
+import SendIcon from './icons/SendIcon';
+import MahamaServicesIcon from './icons/MahamaServicesIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 import CampMap from './CampMap';
 import HealthSectorPage from './HealthSectorPage';
@@ -50,7 +56,6 @@ interface MahamaServicesPageProps {
   onClose: () => void;
 }
 
-// FIX: Moved ServiceCard outside the main component and added explicit props typing to fix TypeScript error.
 interface ServiceCardProps {
   name: string;
   icon: React.FC<any>;
@@ -69,8 +74,136 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ name, icon: Icon, onSelect })
   </button>
 );
 
+const MahamaAssistant: React.FC<{ settings: Settings }> = ({ settings }) => {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [location, setLocation] = useState<{latitude: number, longitude: number} | null>(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
+
+    useEffect(() => {
+        setMessages([{ role: 'model', content: t('mahamaWelcome'), id: Date.now() }]);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setLocation({
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                });
+            },
+            () => {
+                setError(t('mahamaGeolocation'));
+            }
+        );
+    }, [t]);
+
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, isLoading]);
+
+    const handleSubmit = async (e: React.FormEvent | string) => {
+        if (typeof e !== 'string') e.preventDefault();
+        const question = (typeof e === 'string') ? e : input;
+        if (!question.trim() || isLoading) return;
+
+        const userMessage: ChatMessage = { role: 'user', content: question, id: Date.now() };
+        setMessages(prev => [...prev, userMessage]);
+        if (typeof e !== 'string') setInput('');
+        setIsLoading(true);
+        setError('');
+
+        try {
+            const response = await getMahamaInfo(question, location, settings);
+            let content = response.text;
+            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+            
+            if (sources.length > 0) {
+                content += '\n\n**Sources:**\n';
+                const uniqueSources = sources.filter((v:any, i:number, a:any[]) => a.findIndex((t:any) => (t.maps?.uri === v.maps?.uri)) === i);
+                uniqueSources.forEach((source: any) => {
+                    if (source.maps) {
+                        content += `* [${source.maps.title}](${source.maps.uri})\n`;
+                    }
+                });
+            }
+            const modelMessage: ChatMessage = { role: 'model', content: content, id: Date.now() + 1 };
+            setMessages(prev => [...prev, modelMessage]);
+        } catch (err: any) {
+            setError(err.message || 'Failed to get information.');
+            const errorMessage: ChatMessage = { role: 'model', content: 'Sorry, I encountered an error. Please try again.', id: Date.now() + 1 };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const starterPrompts = [t('mahamaPrompt1'), t('mahamaPrompt2'), t('mahamaPrompt3')];
+
+    return (
+        <div className="bg-white dark:bg-slate-800/50 rounded-lg shadow-md flex flex-col h-[80vh] max-h-[700px]">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <MahamaServicesIcon className="w-6 h-6 text-deep-red dark:text-gold" />
+                    <div>
+                        <h3 className="font-bold text-lg">Mahama Assistant</h3>
+                        <p className="text-xs text-slate-500">{t('mahamaServicesDesc')}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="p-4 flex-grow overflow-y-auto space-y-4">
+                {messages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] p-3 rounded-lg text-sm prose dark:prose-invert max-w-none ${msg.role === 'user' ? 'bg-deep-red text-white' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                            <div dangerouslySetInnerHTML={{__html: msg.content.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\* (.*?)(<br \/>|$)/g, '<li>$1</li>')}} />
+                        </div>
+                    </div>
+                ))}
+                {isLoading && (
+                    <div className="flex justify-start">
+                        <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-700">
+                            <span className="inline-block w-2 h-4 bg-slate-500 dark:bg-slate-300 animate-blink"></span>
+                        </div>
+                    </div>
+                )}
+                <div ref={chatEndRef}></div>
+            </div>
+            
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
+                {messages.length <= 1 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                        {starterPrompts.map(prompt => (
+                            <button key={prompt} onClick={() => handleSubmit(prompt)} className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-full text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                                {prompt}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {error && <p className="text-red-500 text-sm text-center mb-2">{error}</p>}
+                <form onSubmit={handleSubmit}>
+                    <div className="relative">
+                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t('mahamaAskPlaceholder')} disabled={isLoading} className="w-full p-3 pr-12 bg-slate-100 dark:bg-slate-700 rounded-full border-transparent focus:ring-2 focus:ring-deep-red"/>
+                    <button type="submit" disabled={isLoading || !input.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-deep-red text-white rounded-full flex items-center justify-center disabled:bg-slate-400 dark:disabled:bg-slate-600 transition-colors">
+                        <SendIcon className="w-5 h-5" />
+                    </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ onClose }) => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [settings] = useState<Settings>(() => {
+        try {
+            const savedSettings = localStorage.getItem('mahamaHubSettings');
+            return savedSettings ? JSON.parse(savedSettings) : {};
+        } catch (error) {
+            return {};
+        }
+    });
 
   const ActiveComponent = serviceCategories.find(c => c.name === activeCategory)?.component;
 
@@ -91,14 +224,21 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ onClose }) => {
           <ActiveComponent />
         </ServiceDetailPage>
       ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
-            {serviceCategories.map(cat => (
-              <ServiceCard key={cat.name} name={cat.name} icon={cat.icon} onSelect={() => setActiveCategory(cat.name)} />
-            ))}
-          </div>
-          <CampMap />
-        </>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+                    {serviceCategories.map(cat => (
+                        <ServiceCard key={cat.name} name={cat.name} icon={cat.icon} onSelect={() => setActiveCategory(cat.name)} />
+                    ))}
+                </div>
+            </div>
+            <div className="lg:col-span-2 row-start-1 lg:row-start-auto">
+                <div className="sticky top-28 space-y-8">
+                    <MahamaAssistant settings={settings} />
+                    <CampMap />
+                </div>
+            </div>
+        </div>
       )}
     </div>
   );

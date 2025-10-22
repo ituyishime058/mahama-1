@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
-import type { Article, Settings, StreamingContent, AudioPlayerState, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, FactCheckResult } from '../types';
+import type { Article, Settings, StreamingContent, AudioPlayerState, WeatherData, User, KeyConcept, TimelineEvent, CommunityHighlight, FactCheckResult, ChatMessage } from '../types';
 import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, deleteOfflineArticle, clearAllOfflineArticles } from '../utils/db';
 import { determineOptimalLayout, findRelatedArticles } from '../utils/ai';
 import { fetchWeather } from '../utils/weather';
@@ -183,18 +182,21 @@ const App: React.FC = () => {
     useEffect(() => {
         localStorage.setItem('mahamaHubSettings', JSON.stringify(settings));
         const root = window.document.documentElement;
-        if (settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            root.classList.add('dark');
-        } else {
-            root.classList.remove('dark');
-        }
+        
+        root.classList.toggle('dark', settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+
         root.style.fontSize = `${settings.fontSize}px`;
+        
         root.classList.remove('font-sans', 'font-serif', 'font-dyslexic');
         if (settings.dyslexiaFont) {
             root.classList.add('font-dyslexic');
         } else {
             root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
         }
+        
+        root.classList.toggle('high-contrast', settings.highContrast);
+        root.classList.toggle('reduce-motion', settings.reduceMotion);
+
         document.body.classList.remove('density-comfortable', 'density-compact');
         document.body.classList.add(`density-${settings.informationDensity.toLowerCase()}`);
     }, [settings]);
