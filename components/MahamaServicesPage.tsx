@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 // Icons
@@ -11,6 +10,12 @@ import HealthIcon from './icons/HealthIcon';
 import EducationIcon from './icons/EducationIcon';
 import UsersIcon from './icons/UsersIcon';
 import BellIcon from './icons/BellIcon';
+import EntertainmentIcon from './icons/EntertainmentIcon';
+import SportsIcon from './icons/SportsIcon';
+import FinanceIcon from './icons/FinanceIcon';
+import YouthIcon from './icons/YouthIcon';
+import EnvironmentIcon from './icons/EnvironmentIcon';
+
 
 // Page Components
 import MiningSectorPage from './MiningSectorPage';
@@ -20,12 +25,17 @@ import TourismPage from './TourismPage';
 import HealthSectorPage from './HealthSectorPage';
 import EducationSectorPage from './EducationSectorPage';
 import CommunitySectorPage from './CommunitySectorPage';
+import EntertainmentPage from './EntertainmentPage';
+import SportsPage from './SportsPage';
+import FinancePage from './FinancePage';
+import YouthDevelopmentPage from './YouthDevelopmentPage';
+import EnvironmentPage from './EnvironmentPage';
 
 interface MahamaServicesPageProps {
   onClose: () => void;
 }
 
-type CategoryID = 'Mining' | 'Agriculture' | 'Industry' | 'Tourism' | 'Health' | 'Education' | 'Community';
+type CategoryID = 'Mining' | 'Agriculture' | 'Industry' | 'Tourism' | 'Health' | 'Education' | 'Community' | 'Entertainment' | 'Sports' | 'Finance' | 'Youth' | 'Environment';
 
 const categories: { id: CategoryID; title: string; icon: React.ReactNode; description: string; gradient: string }[] = [
     { id: 'Health', title: 'Health & Wellness', icon: <HealthIcon className="w-8 h-8"/>, description: "Access clinics, health info, and wellness programs.", gradient: "from-red-500/20 to-red-700/20" },
@@ -35,6 +45,11 @@ const categories: { id: CategoryID; title: string; icon: React.ReactNode; descri
     { id: 'Industry', title: 'Industry & Skills', icon: <IndustryIcon className="w-8 h-8"/>, description: "Vocational training and local businesses.", gradient: "from-blue-500/20 to-blue-700/20" },
     { id: 'Mining', title: 'Mining', icon: <MiningIcon className="w-8 h-8"/>, description: "Discover the region's mineral resources.", gradient: "from-gray-500/20 to-gray-700/20" },
     { id: 'Tourism', title: 'Tourism & Culture', icon: <TourismIcon className="w-8 h-8"/>, description: "Discover beautiful local attractions.", gradient: "from-amber-500/20 to-amber-700/20" },
+    { id: 'Entertainment', title: 'Entertainment & Talent', icon: <EntertainmentIcon className="w-8 h-8"/>, description: "Support local artists and find events.", gradient: "from-purple-500/20 to-purple-700/20" },
+    { id: 'Sports', title: 'Sports Hub', icon: <SportsIcon className="w-8 h-8"/>, description: "Follow local clubs, players, and matches.", gradient: "from-orange-500/20 to-orange-700/20" },
+    { id: 'Finance', title: 'Microfinance & Cooperatives', icon: <FinanceIcon className="w-8 h-8"/>, description: "Access savings, loans, and cooperative services.", gradient: "from-teal-500/20 to-teal-700/20" },
+    { id: 'Youth', title: 'Youth Development', icon: <YouthIcon className="w-8 h-8"/>, description: "Opportunities for learning and growth.", gradient: "from-cyan-500/20 to-cyan-700/20" },
+    { id: 'Environment', title: 'Environmental Action', icon: <EnvironmentIcon className="w-8 h-8"/>, description: "Join local conservation and green initiatives.", gradient: "from-lime-500/20 to-lime-700/20" },
 ];
 
 const notices = [
@@ -55,6 +70,11 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ onClose }) => {
       case 'Health': return <HealthSectorPage />;
       case 'Education': return <EducationSectorPage />;
       case 'Community': return <CommunitySectorPage />;
+      case 'Entertainment': return <EntertainmentPage />;
+      case 'Sports': return <SportsPage />;
+      case 'Finance': return <FinancePage />;
+      case 'Youth': return <YouthDevelopmentPage />;
+      case 'Environment': return <EnvironmentPage />;
       default: return null; 
     }
   };
@@ -78,7 +98,7 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ onClose }) => {
               {renderActiveCategory()}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {categories.map(cat => (
                     <button 
                         key={cat.id} 
