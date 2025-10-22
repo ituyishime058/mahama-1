@@ -183,6 +183,7 @@ export const translations = {
     factCheck: 'Fact-Check',
     infographic: 'Infographic',
     // Mahama Services
+    servicesButton: 'Services',
     mahamaServices: 'Mahama Services',
     mahamaServicesDesc: 'Your AI guide to Mahama. Ask anything about locations, services, and more.',
     mahamaPrompt1: 'Where is the camp office?',

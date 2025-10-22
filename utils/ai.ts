@@ -1,5 +1,6 @@
 
 
+
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
 // FIX: Added AiSearchResult to the import list from types.
 import type { Article, Settings, QuizQuestion, ExpertPersona, InfographicData, ChatMessage, Language, AiTtsVoice, StreamingContent, KeyConcept, TimelineEvent, FactCheckResult, CommunityHighlight, AiSearchResult } from '../types';
@@ -154,6 +155,34 @@ export async function performAiSearch(query: string, articles: Article[], movies
     });
 
     return JSON.parse(response.text);
+}
+
+// FIX: Added missing getMahamaInfo function to provide information about the Mahama community using Google Maps grounding.
+export async function getMahamaInfo(query: string, location: {latitude: number, longitude: number} | null, settings: Settings): Promise<string> {
+    const model = getModelForPreference(settings.aiModelPreference);
+    
+    const config: any = {
+        tools: [{googleMaps: {}}],
+    };
+
+    if (location) {
+        config.toolConfig = {
+            retrievalConfig: {
+                latLng: {
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                }
+            }
+        };
+    }
+
+    const response = await ai.models.generateContent({
+        model,
+        contents: `You are an AI assistant for the Mahama community. Answer the following user query about Mahama: "${query}"`,
+        config,
+    });
+
+    return response.text;
 }
 
 
@@ -361,26 +390,6 @@ export async function batchTranslate(englishStrings: { [key: string]: string }, 
         return englishStrings; // Fallback to English
     }
 }
-
-export async function getMahamaInfo(query: string, location: { latitude: number; longitude: number } | null, settings: Settings): Promise<string> {
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `The user is asking about Mahama, Rwanda. Their query is: "${query}". Answer them as a helpful local guide in ${settings.preferredLanguage}.`,
-        config: {
-            tools: [{ googleMaps: {} }],
-            toolConfig: location ? {
-                retrievalConfig: {
-                    latLng: {
-                        latitude: location.latitude,
-                        longitude: location.longitude,
-                    },
-                },
-            } : undefined,
-        },
-    });
-    return response.text;
-}
-
 
 export async function generateAnchorVideo(script: string): Promise<string> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });

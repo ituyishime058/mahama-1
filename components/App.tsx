@@ -63,7 +63,7 @@ import ProfilePage from './ProfilePage';
 import TrailerModal from './TrailerModal';
 import CategoryLoadingOverlay from './CategoryLoadingOverlay';
 import NotificationCenter from './NotificationCenter';
-import MahamaServicesModal from './MahamaServicesModal';
+import MahamaServicesPage from './MahamaServicesPage';
 import CompareNowButton from './CompareNowButton';
 import ComparisonModal from './ComparisonModal';
 import AiAnchorVideoModal from './AiAnchorVideoModal';
@@ -102,7 +102,7 @@ const defaultSettings: Settings = {
     reduceMotion: false,
 };
 
-const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'mahama', 'movieDeepDive', 'analyzeImage'];
+const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'movieDeepDive', 'analyzeImage'];
 const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'aiAnchorVideo', 'movieDeepDive', 'analyzeImage'];
 
 
@@ -127,6 +127,7 @@ const App: React.FC = () => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeInfoPage, setActiveInfoPage] = useState<string | null>(null);
     const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+    const [isMahamaServicesPageOpen, setIsMahamaServicesPageOpen] = useState(false);
 
     // Modal states
     const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -335,6 +336,7 @@ const App: React.FC = () => {
         setIsSettingsOpen(false);
         setIsProfileOpen(false);
         setActiveInfoPage(null);
+        setIsMahamaServicesPageOpen(false);
     };
 
     const toggleBookmark = (id: number) => {
@@ -415,6 +417,7 @@ const App: React.FC = () => {
         setIsSettingsOpen(false);
         setIsProfileOpen(false);
         setIsMoviesPage(false);
+        setIsMahamaServicesPageOpen(false);
         setCurrentCategory('For You');
         setCurrentSubCategory(null);
         window.scrollTo(0, 0);
@@ -486,7 +489,7 @@ const App: React.FC = () => {
         <Header
             onMenuClick={() => openModal('categoryExplorer')}
             onSearchClick={() => openModal('search')}
-            onMahamaServicesClick={() => openModal('mahama')}
+            onMahamaServicesClick={() => setIsMahamaServicesPageOpen(true)}
             onSettingsClick={() => setIsSettingsOpen(true)}
             onProfileClick={() => setIsProfileOpen(true)}
             onLogoClick={handleLogoClick}
@@ -501,17 +504,19 @@ const App: React.FC = () => {
             isTranslating={false}
         />
         <main className="pt-20">
-          {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && (
+          {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && !isMahamaServicesPageOpen && (
             <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />
           )}
            <div className="sticky top-20 z-30">
-               {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && (
+               {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && !isMahamaServicesPageOpen && (
                   <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={handleSelectSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />
                )}
            </div>
 
             <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${isMoviesPage ? 'max-w-full' : ''}`}>
-                {activeArticle ? (
+                {isMahamaServicesPageOpen ? (
+                    <MahamaServicesPage onClose={handleCloseContent} weatherData={weatherData} isWeatherLoading={isWeatherLoading} />
+                ) : activeArticle ? (
                     <ArticlePage 
                         article={activeArticle} 
                         onClose={handleCloseContent}
@@ -582,7 +587,7 @@ const App: React.FC = () => {
                 )}
             </div>
         </main>
-        {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && <Footer onInfoPageClick={setActiveInfoPage} />}
+        {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && !isMahamaServicesPageOpen && <Footer onInfoPageClick={setActiveInfoPage} />}
         
         <SummarizerModal isOpen={activeModal === 'summarize'} article={modalArticle} settings={settings} onClose={closeModal} />
         <ExplainSimplyModal isOpen={activeModal === 'explain'} article={modalArticle} settings={settings} onClose={closeModal} />
@@ -603,7 +608,7 @@ const App: React.FC = () => {
         <PaymentModal isOpen={activeModal === 'payment'} onClose={closeModal} onSuccess={handlePaymentSuccess} plan={selectedPlan} />
         <NewsBriefingModal isOpen={activeModal === 'briefing'} onClose={closeModal} settings={settings} articles={allArticles} onPlayBriefing={(briefing) => setAudioPlayerState({ article: briefing })} onGenerateVideo={(script) => {setVideoScript(script); openModal('aiAnchorVideo');}} />
         <LiveConversationModal isOpen={activeModal === 'live'} onClose={closeModal} />
-        <MahamaServicesModal isOpen={activeModal === 'mahama'} onClose={closeModal} settings={settings} />
+        
         <TextToSpeechModal isOpen={!!ttsModalArticle} article={ttsModalArticle} settings={settings} onClose={() => setTtsModalArticle(null)} onPlay={(originalArticle, translatedText, voice) => setAudioPlayerState({ article: {...originalArticle, content: translatedText}, voiceOverride: voice })} />
         <TrailerModal isOpen={!!activeTrailer} onClose={() => setActiveTrailer(null)} trailerUrl={activeTrailer} />
         <NotificationCenter isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} onMarkAsRead={() => {}} onMarkAllAsRead={() => {}} />
