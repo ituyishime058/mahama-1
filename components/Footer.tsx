@@ -14,7 +14,7 @@ const Footer: React.FC<FooterProps> = ({ onInfoPageClick }) => {
   const { t } = useTranslation();
   return (
     <footer className="bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
         {/* Newsletter Section */}
         <div className="bg-slate-100 dark:bg-navy p-8 rounded-lg mb-12 flex flex-col md:flex-row items-center justify-between">
             <div>
