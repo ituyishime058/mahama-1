@@ -27,9 +27,11 @@ const attractions = [
 
 const TourismPage: React.FC = () => {
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-6 animate-fade-in bg-white dark:bg-slate-800/50 rounded-lg">
       <div className="flex items-center gap-4 mb-6">
-        <TourismIcon className="w-10 h-10 text-amber-500" />
+        <div className="p-3 bg-amber-500/10 rounded-lg">
+          <TourismIcon className="w-10 h-10 text-amber-500" />
+        </div>
         <div>
             <h2 className="text-3xl font-bold">Tourism & Culture</h2>
             <p className="text-slate-500 dark:text-slate-400">Discover the natural beauty and rich heritage of the region.</p>
@@ -37,9 +39,9 @@ const TourismPage: React.FC = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {attractions.map(attraction => (
-          <div key={attraction.name} className="group relative rounded-xl overflow-hidden shadow-lg h-64 transform transition-transform duration-300 hover:scale-105">
-            <img src={attraction.imageUrl} alt={attraction.name} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent group-hover:from-black/90 transition-all duration-300"></div>
+          <div key={attraction.name} className="group relative rounded-xl overflow-hidden shadow-lg h-80 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/20">
+            <img src={attraction.imageUrl} alt={attraction.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent transition-all duration-300 group-hover:from-black/90"></div>
             <div className="absolute bottom-0 left-0 p-6 text-white">
               <h4 className="font-bold text-xl">{attraction.name}</h4>
               <p className="text-sm opacity-90 mt-1">{attraction.description}</p>

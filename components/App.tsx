@@ -97,6 +97,7 @@ const defaultSettings: Settings = {
     informationDensity: 'Comfortable',
     highContrast: false,
     reduceMotion: false,
+    dyslexiaFont: false,
 };
 
 const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'movieDeepDive', 'analyzeImage'];
@@ -514,7 +515,6 @@ const App: React.FC = () => {
                 {isMahamaServicesPageOpen ? (
                      <MahamaServicesPage
                         onClose={handleCloseContent}
-                        settings={settings}
                         rightAside={<RightAside 
                             trendingArticles={allArticles.slice(1, 6)} 
                             onArticleClick={handleReadMore} 
@@ -526,10 +526,10 @@ const App: React.FC = () => {
                             allArticles={allArticles}
                             isSettingsOpen={false}
                             user={currentUser}
-                            keyConcepts={keyConcepts}
-                            conceptsLoading={conceptsLoading}
-                            timelineEvents={timelineEvents}
-                            timelineLoading={timelineLoading}
+                            keyConcepts={[]}
+                            conceptsLoading={false}
+                            timelineEvents={[]}
+                            timelineLoading={false}
                         />}
                     />
                 ) : activeArticle ? (

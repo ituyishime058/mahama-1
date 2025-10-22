@@ -21,14 +21,26 @@ const miningActivities = [
     name: 'Mineral Washing Station',
     description: 'A central station where extracted ore is washed and prepared for processing, improving efficiency.',
     imageUrl: 'https://picsum.photos/seed/mining4/400/300'
+  },
+  {
+    name: 'Coltan Extraction Site',
+    description: 'Exploring a site for coltan, a critical mineral used in modern electronics.',
+    imageUrl: 'https://picsum.photos/seed/mining5/400/300'
+  },
+  {
+    name: 'Community Cooperative Meeting',
+    description: 'Miners discussing fair trade practices and cooperative management.',
+    imageUrl: 'https://picsum.photos/seed/mining6/400/300'
   }
 ];
 
 const MiningSectorPage: React.FC = () => {
   return (
-    <div className="p-6 animate-fade-in">
+    <div className="p-6 animate-fade-in bg-white dark:bg-slate-800/50 rounded-lg">
       <div className="flex items-center gap-4 mb-6">
-        <MiningIcon className="w-10 h-10 text-slate-500" />
+        <div className="p-3 bg-gray-500/10 rounded-lg">
+            <MiningIcon className="w-10 h-10 text-gray-500" />
+        </div>
         <div>
           <h2 className="text-3xl font-bold">Mining Sector</h2>
           <p className="text-slate-500 dark:text-slate-400">Promoting responsible and safe resource extraction.</p>
@@ -37,12 +49,12 @@ const MiningSectorPage: React.FC = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {miningActivities.map(activity => (
-          <div key={activity.name} className="group relative rounded-lg overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-105">
-            <img src={activity.imageUrl} alt={activity.name} className="w-full h-48 object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+          <div key={activity.name} className="group relative rounded-xl overflow-hidden shadow-lg h-64 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-gray-500/20">
+            <img src={activity.imageUrl} alt={activity.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent transition-all duration-300 group-hover:from-black/90"></div>
             <div className="absolute bottom-0 left-0 p-4 text-white">
-              <h4 className="font-bold">{activity.name}</h4>
-              <p className="text-xs opacity-80 mt-1">{activity.description}</p>
+              <h4 className="font-bold text-lg">{activity.name}</h4>
+              <p className="text-sm opacity-90 mt-1">{activity.description}</p>
             </div>
           </div>
         ))}
