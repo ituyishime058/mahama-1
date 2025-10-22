@@ -1,4 +1,4 @@
-import type { Article, Podcast, Category, Stock, Innovation, StreamingContent, SubscriptionPlan, Comment, User, Language, AiTtsVoice } from './types';
+import type { Article, Podcast, Category, Stock, Innovation, StreamingContent, SubscriptionPlan, Comment, User, Language, AiTtsVoice, ServiceItem } from './types';
 
 // Import all category icons
 import AllIcon from './components/icons/AllIcon';
@@ -258,4 +258,16 @@ export const TTS_VOICES: { value: AiTtsVoice; name: string }[] = [
   { value: 'fr-FR-A', name: 'Amelie (French)' },
   { value: 'sw-KE-A', name: 'Asha (Swahili)' },
   { value: 'rw-RW-A', name: 'Anathalie (Kinyarwanda)' },
+];
+
+// FIX: Added mockServiceItems for use in the CampMap component.
+export const mockServiceItems: ServiceItem[] = [
+  { name: 'Mahama Hospital', category: 'Health', coords: { x: 25, y: 30 }, description: 'Main health facility providing emergency and general care.' },
+  { name: 'Primary School 1', category: 'Education', coords: { x: 45, y: 25 } },
+  { name: 'Central Market', category: 'Markets', coords: { x: 50, y: 50 } },
+  { name: 'Bus Stop', category: 'Transport', coords: { x: 80, y: 55 } },
+  { name: 'Vocational Training Center', category: 'Work & Skills', coords: { x: 35, y: 65 } },
+  { name: 'Community Hall', category: 'Community Groups', coords: { x: 60, y: 40 } },
+  { name: 'Registration Office', category: 'Official Services', coords: { x: 15, y: 15 } },
+  { name: 'Police Post', category: 'Safety & Security', coords: { x: 90, y: 20 } },
 ];
