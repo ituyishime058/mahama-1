@@ -10,7 +10,11 @@ import UsersIcon from './icons/UsersIcon';
 import BuildingIcon from './icons/BuildingIcon';
 import ShieldCheckIcon from './icons/ShieldCheckIcon';
 import { useTranslation } from '../hooks/useTranslation';
-import type { WeatherData } from '../types';
+import type { WeatherData, Article, Settings } from '../types';
+import SubscriptionCard from './SubscriptionCard';
+import TrendingNews from './TrendingNews';
+import ThisDayInHistory from './ThisDayInHistory';
+import CommunityPoll from './CommunityPoll';
 
 const directoryData = {
     Health: [
@@ -69,7 +73,25 @@ const categoryIcons: { [key: string]: React.FC<any> } = {
     'Safety & Security': ShieldCheckIcon,
 };
 
-const MahamaServicesPage: React.FC<{onClose: () => void; weatherData: WeatherData | null; isWeatherLoading: boolean}> = ({ onClose, weatherData, isWeatherLoading }) => {
+interface MahamaServicesPageProps {
+    onClose: () => void;
+    weatherData: WeatherData | null;
+    isWeatherLoading: boolean;
+    trendingArticles: Article[];
+    onArticleClick: (article: Article) => void;
+    settings: Settings;
+    onGoPremium: () => void;
+}
+
+const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ 
+    onClose, 
+    weatherData, 
+    isWeatherLoading,
+    trendingArticles,
+    onArticleClick,
+    settings,
+    onGoPremium,
+}) => {
     const { t } = useTranslation();
     const [activeCategory, setActiveCategory] = useState<string | null>('Health');
 
@@ -151,21 +173,11 @@ const MahamaServicesPage: React.FC<{onClose: () => void; weatherData: WeatherDat
 
                 <aside className="md:col-span-1 space-y-8">
                     <div className="sticky top-28 space-y-8">
+                        {settings.subscriptionTier === 'Free' && <SubscriptionCard onClick={onGoPremium} />}
+                        <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
+                        <ThisDayInHistory settings={settings} />
                         <WeatherWidget weatherData={weatherData} isLoading={isWeatherLoading} />
-                        <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
-                             <h2 className="text-2xl font-bold mb-4">Camp Map</h2>
-                             <div className="aspect-square bg-slate-200 dark:bg-slate-700 rounded-md flex items-center justify-center">
-                                 <p className="text-slate-500 text-sm">Interactive Map Placeholder</p>
-                             </div>
-                        </div>
-                         <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
-                             <h2 className="text-2xl font-bold mb-4">Quick Links</h2>
-                              <ul className="space-y-2 text-deep-red dark:text-gold font-semibold">
-                                 <li><a href="#" className="hover:underline">Emergency Contacts</a></li>
-                                 <li><a href="#" className="hover:underline">Distribution Schedule</a></li>
-                                 <li><a href="#" className="hover:underline">Report an Issue</a></li>
-                              </ul>
-                        </div>
+                        <CommunityPoll />
                     </div>
                 </aside>
             </div>

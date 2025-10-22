@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
@@ -515,7 +513,15 @@ const App: React.FC = () => {
 
             <div className={`container mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${isMoviesPage ? 'max-w-full' : ''}`}>
                 {isMahamaServicesPageOpen ? (
-                    <MahamaServicesPage onClose={handleCloseContent} weatherData={weatherData} isWeatherLoading={isWeatherLoading} />
+                    <MahamaServicesPage 
+                        onClose={handleCloseContent} 
+                        weatherData={weatherData} 
+                        isWeatherLoading={isWeatherLoading}
+                        trendingArticles={allArticles.slice(1, 6)}
+                        onArticleClick={handleReadMore}
+                        settings={settings}
+                        onGoPremium={() => setActiveModal('subscribe')}
+                    />
                 ) : activeArticle ? (
                     <ArticlePage 
                         article={activeArticle} 
