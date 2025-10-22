@@ -6,18 +6,21 @@ import GlobeIcon from './icons/GlobeIcon';
 import UserMenu from './UserMenu';
 import BellIcon from './icons/BellIcon';
 import LanguageDropdown from './LanguageDropdown';
-import type { User, Notification, Settings, Language } from '../types';
+import type { User, Notification, Settings, Language, Theme } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import UserIcon from './icons/UserIcon';
 import RingLoader from './RingLoader';
 import CommunityHubIcon from './icons/CommunityHubIcon';
+import SettingsIcon from './icons/SettingsIcon';
+import SunIcon from './icons/SunIcon';
+import MoonIcon from './icons/MoonIcon';
+import SystemIcon from './icons/SystemIcon';
 
 interface HeaderProps {
   onMenuClick: () => void;
   onSearchClick: () => void;
   onMahamaServicesClick: () => void;
-  onSettingsClick: () => void;
-  onProfileClick: () => void;
+  onProfileAndSettingsClick: () => void;
   onLogoClick: () => void;
   isAuthenticated: boolean;
   onLoginClick: () => void;
@@ -30,12 +33,37 @@ interface HeaderProps {
   isTranslating: boolean;
 }
 
+const ThemeToggleButton: React.FC<{ settings: Settings; onSettingsChange: (newSettings: Settings) => void; }> = ({ settings, onSettingsChange }) => {
+    const themes: Theme[] = ['light', 'dark', 'system'];
+    const { theme } = settings;
+
+    const toggleTheme = () => {
+        const currentIndex = themes.indexOf(theme);
+        const nextTheme = themes[(currentIndex + 1) % themes.length];
+        onSettingsChange({ ...settings, theme: nextTheme });
+    };
+
+    const getIcon = () => {
+        switch (theme) {
+            case 'light': return <SunIcon className="w-5 h-5" />;
+            case 'dark': return <MoonIcon className="w-5 h-5" />;
+            case 'system': return <SystemIcon className="w-5 h-5" />;
+        }
+    }
+
+    return (
+        <button onClick={toggleTheme} aria-label="Toggle theme" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+            {getIcon()}
+        </button>
+    )
+}
+
+
 const Header: React.FC<HeaderProps> = ({ 
   onMenuClick,
   onSearchClick,
   onMahamaServicesClick,
-  onSettingsClick,
-  onProfileClick,
+  onProfileAndSettingsClick,
   onLogoClick,
   isAuthenticated,
   onLoginClick,
@@ -126,6 +154,8 @@ const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
+            <ThemeToggleButton settings={settings} onSettingsChange={onSettingsChange} />
+
             {isAuthenticated && (
               <button onClick={onNotificationsClick} aria-label={t('openNotifications')} className="relative p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                   <BellIcon />
@@ -139,7 +169,12 @@ const Header: React.FC<HeaderProps> = ({
             )}
 
             {isAuthenticated ? (
-                <UserMenu user={user} onLogout={onLogout} onProfileClick={onProfileClick} />
+                <div className="flex items-center gap-2">
+                    <UserMenu user={user} onLogout={onLogout} />
+                    <button onClick={onProfileAndSettingsClick} aria-label="Open Settings" className="p-2 text-slate-600 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        <SettingsIcon />
+                    </button>
+                </div>
             ) : (
                  <div className="flex items-center gap-2">
                     <button 

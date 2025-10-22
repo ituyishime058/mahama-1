@@ -7,10 +7,9 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 interface UserMenuProps {
   user: User;
   onLogout: () => void;
-  onProfileClick: () => void;
 }
 
-const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout, onProfileClick }) => {
+const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -42,15 +41,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogout, onProfileClick }) =
             <p className="text-sm text-slate-500 truncate">{user.email}</p>
           </div>
           <ul className="p-2">
-            <li>
-              <button
-                onClick={() => { onProfileClick(); setIsOpen(false); }}
-                className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-medium text-slate-700 dark:text-slate-300 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
-              >
-                <ProfileIcon className="w-5 h-5 text-slate-500" />
-                Profile & Settings
-              </button>
-            </li>
             <li>
               <button
                 onClick={() => { onLogout(); setIsOpen(false); }}

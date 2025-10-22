@@ -145,6 +145,7 @@ export interface Settings {
     informationDensity: InformationDensity;
     highContrast?: boolean;
     reduceMotion?: boolean;
+    dyslexiaFont?: boolean;
 }
 
 export interface WeatherData {

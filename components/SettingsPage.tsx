@@ -1,7 +1,5 @@
-
-
 import React, { useState } from 'react';
-import type { Settings } from '../types';
+import type { Settings, User, Article } from '../types';
 import { TTS_VOICES, categories } from '../constants';
 
 import SunIcon from './icons/SunIcon';
@@ -25,23 +23,29 @@ import ConfirmationModal from './ConfirmationModal';
 import GoogleIcon from './icons/GoogleIcon';
 import AppleIcon from './icons/AppleIcon';
 import AccessibilityIcon from './icons/AccessibilityIcon';
+import EditIcon from './icons/EditIcon';
+import HistoryIcon from './icons/HistoryIcon';
+import CreditCardIcon from './icons/CreditCardIcon';
+import DensityIcon from './icons/DensityIcon';
 
 interface SettingsPageProps {
+  user: User;
+  onUserChange: (newUser: User) => void;
   settings: Settings;
   onSettingsChange: (newSettings: Settings) => void;
   onClose: () => void;
   onClearBookmarks: () => void;
   onClearOffline: () => void;
   onManageSubscription: () => void;
+  readingHistory: Article[];
 }
 
 const settingsNav = [
+  { name: 'Profile', icon: ProfileIcon },
   { name: 'Appearance', icon: PaletteIcon },
-  { name: 'Personalization', icon: ProfileIcon },
+  { name: 'Personalization', icon: ContentFilterIcon },
   { name: 'AI & Reading', icon: SparklesIcon },
   { name: 'Notifications', icon: NotificationIcon },
-  { name: 'Account', icon: CrownIcon },
-  { name: 'Security', icon: SecurityIcon },
   { name: 'Data & Privacy', icon: ShieldCheckIcon },
   { name: 'Accessibility', icon: AccessibilityIcon },
 ];
@@ -64,17 +68,23 @@ const ToggleSwitch: React.FC<{label: string, enabled: boolean, onChange: (enable
     </div>
 );
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onClose, onClearBookmarks, onClearOffline, onManageSubscription }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ user, onUserChange, settings, onSettingsChange, onClose, onClearBookmarks, onClearOffline, onManageSubscription, readingHistory }) => {
   const [localSettings, setLocalSettings] = useState(settings);
-  const [activeTab, setActiveTab] = useState('Appearance');
+  const [localUser, setLocalUser] = useState(user);
+  const [activeTab, setActiveTab] = useState('Profile');
   const [confirmClear, setConfirmClear] = useState<'bookmarks' | 'offline' | null>(null);
   
   const handleSettingChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     setLocalSettings(prev => ({ ...prev, [key]: value }));
   };
+  
+  const handleUserFieldChange = <K extends keyof User>(key: K, value: User[K]) => {
+    setLocalUser(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleSave = () => {
     onSettingsChange(localSettings);
+    onUserChange(localUser);
     onClose();
   };
   
@@ -103,12 +113,50 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
 
   const renderContent = () => {
     switch (activeTab) {
+        case 'Profile':
+            return (
+                 <div className="space-y-8 animate-fade-in">
+                    <h3 className="text-2xl font-bold">Your Profile</h3>
+                    <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg flex flex-col sm:flex-row items-center gap-6">
+                        <div className="relative group w-24 h-24 flex-shrink-0">
+                            <img src={localUser.avatar} alt="User" className="w-24 h-24 rounded-full"/>
+                            <button className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                <EditIcon className="w-6 h-6"/>
+                            </button>
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="text-xl font-bold">{localUser.name}</h4>
+                            <p className="text-slate-500">@{localUser.handle}</p>
+                            <p className="text-sm text-slate-500 mt-1">Joined on {new Date(localUser.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        </div>
+                         <div className="mt-2 self-start sm:self-center">
+                             <span className={`px-3 py-1 text-sm font-bold rounded-full ${isPremium ? 'bg-gold/20 text-gold' : 'bg-slate-200 dark:bg-slate-700'}`}>{localSettings.subscriptionTier} Member</span>
+                        </div>
+                    </div>
+                    <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4">
+                        <div>
+                            <label htmlFor="name" className="text-sm font-semibold">Full Name</label>
+                            <input type="text" id="name" value={localUser.name} onChange={(e) => handleUserFieldChange('name', e.target.value)} className="w-full p-2 mt-1 bg-slate-100 dark:bg-slate-800 rounded-lg"/>
+                        </div>
+                        <div>
+                            <label htmlFor="bio" className="text-sm font-semibold">Bio</label>
+                            <textarea id="bio" value={localUser.bio} onChange={(e) => handleUserFieldChange('bio', e.target.value)} rows={3} className="w-full p-2 mt-1 bg-slate-100 dark:bg-slate-800 rounded-lg"/>
+                        </div>
+                    </div>
+                     <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
+                        <h4 className="font-semibold text-lg mb-2 flex items-center gap-2"><CreditCardIcon /> Subscription & Billing</h4>
+                        <button onClick={onManageSubscription} className="w-full text-center py-3 bg-deep-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
+                            Manage Subscription
+                        </button>
+                    </div>
+                </div>
+            )
       case 'Appearance':
         return (
           <div className="space-y-8 animate-fade-in">
             <h3 className="text-2xl font-bold">Appearance</h3>
-            <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-6 divide-y divide-slate-200 dark:divide-slate-700">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6">
                   <label className="font-semibold mb-2 sm:mb-0">Theme</label>
                   <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                     <button onClick={() => handleSettingChange('theme', 'light')} className={`px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 ${localSettings.theme === 'light' ? 'bg-white dark:bg-slate-800 shadow' : ''}`}><SunIcon className="w-5 h-5"/>Light</button>
@@ -116,18 +164,25 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                     <button onClick={() => handleSettingChange('theme', 'system')} className={`px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 ${localSettings.theme === 'system' ? 'bg-white dark:bg-slate-800 shadow' : ''}`}><SystemIcon className="w-5 h-5"/>System</button>
                   </div>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center pt-6">
                   <label htmlFor="font-size" className="font-semibold flex items-center gap-2"><FontSizeIcon /> Font Size</label>
                   <div className='flex items-center gap-4 w-1/2'>
                     <input type="range" id="font-size" min="14" max="20" step="1" value={localSettings.fontSize} onChange={(e) => handleSettingChange('fontSize', parseInt(e.target.value, 10))} className="w-full" />
                     <span className="font-bold">{localSettings.fontSize}px</span>
                   </div>
                 </div>
-                 <div className="flex justify-between items-center">
+                 <div className="flex justify-between items-center pt-6">
                   <label className="font-semibold">Font Family</label>
                   <div className="flex items-center gap-2 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                     <button onClick={() => handleSettingChange('fontFamily', 'sans')} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${localSettings.fontFamily === 'sans' ? 'bg-white dark:bg-navy shadow' : ''}`}><SansFontIcon /> Sans-serif</button>
                     <button onClick={() => handleSettingChange('fontFamily', 'serif')} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${localSettings.fontFamily === 'serif' ? 'bg-white dark:bg-navy shadow' : ''}`}><SerifFontIcon /> Serif</button>
+                  </div>
+                </div>
+                 <div className="flex justify-between items-center pt-6">
+                  <label className="font-semibold flex items-center gap-2"><DensityIcon/> Information Density</label>
+                  <div className="flex items-center gap-1 p-1 bg-slate-200 dark:bg-slate-700 rounded-full">
+                    <button onClick={() => handleSettingChange('informationDensity', 'Comfortable')} className={`px-3 py-1.5 rounded-full text-sm font-semibold ${localSettings.informationDensity === 'Comfortable' ? 'bg-white dark:bg-navy shadow' : ''}`}>Comfortable</button>
+                    <button onClick={() => handleSettingChange('informationDensity', 'Compact')} className={`px-3 py-1.5 rounded-full text-sm font-semibold ${localSettings.informationDensity === 'Compact' ? 'bg-white dark:bg-navy shadow' : ''}`}>Compact</button>
                   </div>
                 </div>
             </div>
@@ -168,6 +223,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                     <ToggleSwitch label="Show Mahama 360°" enabled={localSettings.showMahama360} onChange={(val) => handleSettingChange('showMahama360', val)} />
                     <ToggleSwitch label="Show Data Insights" enabled={localSettings.showDataInsights} onChange={(val) => handleSettingChange('showDataInsights', val)} />
                     <ToggleSwitch label="Show Innovation Timeline" enabled={localSettings.showInnovationTimelines} onChange={(val) => handleSettingChange('showInnovationTimelines', val)} />
+                    <ToggleSwitch label="Show Now Streaming" enabled={localSettings.showNowStreaming} onChange={(val) => handleSettingChange('showNowStreaming', val)} />
                 </div>
             </div>
         );
@@ -219,61 +275,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                 </div>
             </div>
         )
-      case 'Account':
-        return (
-            <div className="space-y-8 animate-fade-in">
-                <h3 className="text-2xl font-bold">Account</h3>
-                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg flex items-center gap-6">
-                    <img src="https://i.pravatar.cc/150?u=currentuser" alt="User" className="w-24 h-24 rounded-full"/>
-                    <div>
-                        <h4 className="text-xl font-bold">Eleanor Vance</h4>
-                        <p className="text-slate-500">eleanor.v@example.com</p>
-                        <div className="mt-2">
-                             <span className={`px-3 py-1 text-sm font-bold rounded-full ${isPremium ? 'bg-gold/20 text-gold' : 'bg-slate-200 dark:bg-slate-700'}`}>{localSettings.subscriptionTier} Member</span>
-                        </div>
-                    </div>
-                </div>
-                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
-                    <h4 className="font-semibold text-lg mb-4">Connected Accounts</h4>
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
-                            <div className="flex items-center gap-3"><GoogleIcon className="w-6 h-6"/> <span className="font-semibold">Google</span></div>
-                            <button className="text-sm font-semibold text-red-500 hover:underline">Disconnect</button>
-                        </div>
-                         <div className="flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
-                            <div className="flex items-center gap-3"><AppleIcon className="w-6 h-6 text-black dark:text-white"/> <span className="font-semibold">Apple</span></div>
-                            <button className="text-sm font-semibold text-red-500 hover:underline">Disconnect</button>
-                        </div>
-                    </div>
-                 </div>
-                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
-                    <button onClick={onManageSubscription} className="w-full text-center py-3 bg-deep-red text-white font-bold rounded-lg hover:bg-red-700 transition-colors">
-                        Manage Subscription
-                    </button>
-                 </div>
-            </div>
-        );
-      case 'Security':
-        return (
-            <div className="space-y-8 animate-fade-in">
-                <h3 className="text-2xl font-bold">Security</h3>
-                <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-1 divide-y divide-slate-200 dark:divide-slate-700">
-                    <ToggleSwitch label="Two-Factor Authentication" enabled={false} onChange={() => {}} />
-                    <div className="py-4">
-                        <h4 className="font-semibold">Password</h4>
-                        <button className="mt-2 text-sm font-semibold text-deep-red dark:text-gold hover:underline">Change Password</button>
-                    </div>
-                    <div className="py-4">
-                        <h4 className="font-semibold">Login History</h4>
-                        <button className="mt-2 text-sm font-semibold text-deep-red dark:text-gold hover:underline">View Recent Activity</button>
-                    </div>
-                </div>
-            </div>
-        );
       case 'Data & Privacy':
         return (
             <div className="space-y-8 animate-fade-in">
                 <h3 className="text-2xl font-bold">Data & Privacy</h3>
+                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-1 divide-y divide-slate-200 dark:divide-slate-700">
+                    <ToggleSwitch label="Public Profile" enabled={localUser.isProfilePublic} onChange={(val) => handleUserFieldChange('isProfilePublic', val)} />
+                    <div className="py-4">
+                        <p className="text-sm text-slate-500">When your profile is public, others can see your name, handle, bio, and activity. When private, this information is hidden.</p>
+                    </div>
+                </div>
                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-4">
                     <p className="text-sm text-slate-500 dark:text-slate-400">Manage your locally stored data. These actions cannot be undone.</p>
                     <button onClick={() => setConfirmClear('bookmarks')} className="w-full flex justify-between items-center p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
@@ -285,6 +296,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
                         <TrashIcon className="w-5 h-5 text-red-500" />
                     </button>
                 </div>
+                 <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
+                    <button className="w-full text-center py-3 bg-slate-200 dark:bg-slate-700 font-bold rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                        Export My Data
+                    </button>
+                 </div>
             </div>
         );
       case 'Accessibility':
@@ -293,8 +309,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange,
             <h3 className="text-2xl font-bold">Accessibility</h3>
             <div className="p-6 bg-white dark:bg-slate-800/50 rounded-lg space-y-1 divide-y divide-slate-200 dark:divide-slate-700">
                 <p className="text-sm text-slate-500 dark:text-slate-400 pb-4">Customize the experience to meet your needs.</p>
-                <ToggleSwitch label="High Contrast Mode" enabled={localSettings.highContrast} onChange={(val) => handleSettingChange('highContrast', val)} />
-                <ToggleSwitch label="Reduce Motion" enabled={localSettings.reduceMotion} onChange={(val) => handleSettingChange('reduceMotion', val)} />
+                <ToggleSwitch label="High Contrast Mode" enabled={localSettings.highContrast || false} onChange={(val) => handleSettingChange('highContrast', val)} />
+                <ToggleSwitch label="Reduce Motion" enabled={localSettings.reduceMotion || false} onChange={(val) => handleSettingChange('reduceMotion', val)} />
             </div>
             </div>
         );

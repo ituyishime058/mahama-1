@@ -57,7 +57,6 @@ import AboutPage from './AboutPage';
 import CareersPage from './CareersPage';
 import ContactPage from './ContactPage';
 import AdvertisePage from './AdvertisePage';
-import ProfilePage from './ProfilePage';
 import TrailerModal from './TrailerModal';
 import CategoryLoadingOverlay from './CategoryLoadingOverlay';
 import NotificationCenter from './NotificationCenter';
@@ -122,7 +121,6 @@ const App: React.FC = () => {
     const [currentCategory, setCurrentCategory] = useState('For You');
     const [currentSubCategory, setCurrentSubCategory] = useState<string | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeInfoPage, setActiveInfoPage] = useState<string | null>(null);
     const [isCategoryLoading, setIsCategoryLoading] = useState(false);
     const [isMahamaServicesPageOpen, setIsMahamaServicesPageOpen] = useState(false);
@@ -189,8 +187,12 @@ const App: React.FC = () => {
             root.classList.remove('dark');
         }
         root.style.fontSize = `${settings.fontSize}px`;
-        root.classList.remove('font-sans', 'font-serif');
-        root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
+        root.classList.remove('font-sans', 'font-serif', 'font-dyslexic');
+        if (settings.dyslexiaFont) {
+            root.classList.add('font-dyslexic');
+        } else {
+            root.classList.add(settings.fontFamily === 'sans' ? 'font-sans' : 'font-serif');
+        }
         document.body.classList.remove('density-comfortable', 'density-compact');
         document.body.classList.add(`density-${settings.informationDensity.toLowerCase()}`);
     }, [settings]);
@@ -332,7 +334,6 @@ const App: React.FC = () => {
         setActiveArticle(null);
         setActiveMovie(null);
         setIsSettingsOpen(false);
-        setIsProfileOpen(false);
         setActiveInfoPage(null);
         setIsMahamaServicesPageOpen(false);
     };
@@ -413,7 +414,6 @@ const App: React.FC = () => {
         setActiveArticle(null);
         setActiveMovie(null);
         setIsSettingsOpen(false);
-        setIsProfileOpen(false);
         setIsMoviesPage(false);
         setIsMahamaServicesPageOpen(false);
         setCurrentCategory('For You');
@@ -488,8 +488,7 @@ const App: React.FC = () => {
             onMenuClick={() => openModal('categoryExplorer')}
             onSearchClick={() => openModal('search')}
             onMahamaServicesClick={() => setIsMahamaServicesPageOpen(true)}
-            onSettingsClick={() => setIsSettingsOpen(true)}
-            onProfileClick={() => setIsProfileOpen(true)}
+            onProfileAndSettingsClick={() => setIsSettingsOpen(true)}
             onLogoClick={handleLogoClick}
             isAuthenticated={isAuthenticated}
             onLoginClick={() => setActiveModal('login')}
@@ -502,11 +501,11 @@ const App: React.FC = () => {
             isTranslating={false}
         />
         <main className="pt-20">
-          {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && !isMahamaServicesPageOpen && (
+          {!activeArticle && !activeMovie && !isSettingsOpen && !activeInfoPage && !isMahamaServicesPageOpen && (
             <NewsTicker headlines={allArticles.slice(0, 5).map(a => a.title)} />
           )}
            <div className="sticky top-20 z-30">
-               {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && !isMahamaServicesPageOpen && (
+               {!activeArticle && !activeMovie && !isSettingsOpen && !activeInfoPage && !isMahamaServicesPageOpen && (
                   <FilterBar categories={categories} currentCategory={currentCategory} currentSubCategory={currentSubCategory} onSelectCategory={handleSelectCategory} onSelectSubCategory={handleSelectSubCategory} onGenerateBriefing={() => openModal('briefing')} subscriptionTier={settings.subscriptionTier} />
                )}
            </div>
@@ -526,7 +525,6 @@ const App: React.FC = () => {
                             activeArticle={null}
                             allArticles={allArticles}
                             isSettingsOpen={false}
-                            isProfileOpen={false}
                             user={currentUser}
                             keyConcepts={keyConcepts}
                             conceptsLoading={conceptsLoading}
@@ -572,9 +570,7 @@ const App: React.FC = () => {
                 ) : activeMovie ? (
                      <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} onDeepDive={handleDeepDiveMovie} />
                 ) : isSettingsOpen ? (
-                    <SettingsPage settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} />
-                ) : isProfileOpen ? (
-                    <ProfilePage user={currentUser} onUserChange={setCurrentUser} settings={settings} onManageSubscription={() => setActiveModal('subscribe')} readingHistory={allArticles.slice(5, 10)} />
+                    <SettingsPage user={currentUser} onUserChange={setCurrentUser} settings={settings} onSettingsChange={handleSettingsChange} onClose={handleCloseContent} onClearBookmarks={handleClearAllBookmarks} onClearOffline={handleClearAllOffline} onManageSubscription={() => setActiveModal('subscribe')} readingHistory={allArticles.slice(5, 10)} />
                 ) : activeInfoPage ? (
                     <>
                         {activeInfoPage === 'about' && <AboutPage isOpen={true} onClose={() => setActiveInfoPage(null)} />}
@@ -600,12 +596,12 @@ const App: React.FC = () => {
                             {settings.showNowStreaming && <NowStreaming onWatchMovie={handleWatchMovie} />}
                             <SponsoredBanners />
                         </div>
-                        <RightAside allArticles={allArticles} trendingArticles={allArticles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => setActiveModal('subscribe')} weatherData={weatherData} isWeatherLoading={isWeatherLoading} isSettingsOpen={isSettingsOpen} isProfileOpen={isProfileOpen} user={currentUser} keyConcepts={keyConcepts} conceptsLoading={conceptsLoading} timelineEvents={timelineEvents} timelineLoading={timelineLoading} />
+                        <RightAside allArticles={allArticles} trendingArticles={allArticles.slice(1, 6)} onArticleClick={handleReadMore} activeArticle={activeArticle} settings={settings} onGoPremium={() => setActiveModal('subscribe')} weatherData={weatherData} isWeatherLoading={isWeatherLoading} isSettingsOpen={isSettingsOpen} user={currentUser} keyConcepts={keyConcepts} conceptsLoading={conceptsLoading} timelineEvents={timelineEvents} timelineLoading={timelineLoading} />
                     </div>
                 )}
             </div>
         </main>
-        {!activeArticle && !activeMovie && !isSettingsOpen && !isProfileOpen && !activeInfoPage && !isMahamaServicesPageOpen && <Footer onInfoPageClick={setActiveInfoPage} />}
+        {!activeArticle && !activeMovie && !isSettingsOpen && !activeInfoPage && !isMahamaServicesPageOpen && <Footer onInfoPageClick={setActiveInfoPage} />}
         
         <SummarizerModal isOpen={activeModal === 'summarize'} article={modalArticle} settings={settings} onClose={closeModal} />
         <ExplainSimplyModal isOpen={activeModal === 'explain'} article={modalArticle} settings={settings} onClose={closeModal} />
