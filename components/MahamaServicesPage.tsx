@@ -23,7 +23,6 @@ import NewspaperIcon from './icons/NewspaperIcon';
 
 // Component Imports
 import { useTranslation } from '../hooks/useTranslation';
-import CampMap from './CampMap';
 import ServiceDetailPage from './ServiceDetailPage';
 import HealthSectorPage from './HealthSectorPage';
 import EducationSectorPage from './EducationSectorPage';
@@ -147,8 +146,16 @@ const MahamaServicesPage: React.FC<MahamaServicesPageProps> = ({ onClose, settin
             </ServiceDetailPage>
           ) : (
             <div className="space-y-8">
-              <div className="h-[400px] rounded-lg overflow-hidden shadow-lg">
-                <CampMap />
+              <div className="h-[400px] rounded-lg overflow-hidden shadow-lg border-2 border-slate-200 dark:border-slate-700">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d33720.905719681876!2d30.62771907143557!3d-2.2624932009653294!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1skirehe%20nyakarambi!5e1!3m2!1sen!2srw!4v1761059383673!5m2!1sen!2srw" 
+                    width="100%" 
+                    height="100%" 
+                    style={{border:0}} 
+                    allowFullScreen={true} 
+                    loading="lazy" 
+                    referrerPolicy="no-referrer-when-downgrade">
+                </iframe>
               </div>
               <div>
                 <h2 className="text-2xl font-bold mb-4">Explore Service Sectors</h2>
