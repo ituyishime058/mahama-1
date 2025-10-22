@@ -1,80 +1,28 @@
-
 import React from 'react';
 
 export type Language = 'English' | 'French' | 'Swahili' | 'Kinyarwanda';
-
-export type AiTtsVoice = 'Zephyr' | 'Puck' | 'fr-FR-A' | 'sw-KE-A' | 'rw-RW-A' | string;
+export type Theme = 'light' | 'dark' | 'system';
+export type SubscriptionTier = 'Free' | 'Premium';
+export type AiTtsVoice = 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir';
+export type ReadingLens = 'None' | 'Simplify' | 'DefineTerms';
+export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';
 
 export interface Article {
   id: number;
   title: string;
   excerpt: string;
   content: string;
-  imageUrl: string;
   author: string;
   date: string;
   category: string;
-  live?: boolean;
-  region: string;
-  sentiment: 'Positive' | 'Neutral' | 'Negative';
-  keyTakeaways: string[];
-  hasTimeline?: boolean;
-  coordinates?: { lat: number; lon: number };
-  imageUrlBase64?: string; // For offline storage
-}
-
-export interface Podcast {
-  id: number;
-  title: string;
-  excerpt: string;
   imageUrl: string;
-  author: string;
-  duration: string;
-  episode: number;
-  audioUrl: string;
-}
-
-export interface Category {
-  name: string;
-  icon: React.FC<React.SVGProps<SVGSVGElement>>;
-  subcategories?: string[];
-}
-
-export interface Stock {
-  symbol: string;
-  price: number;
-  change: string;
-  changePercent: string;
-}
-
-export interface Innovation {
-  year: number;
-  title: string;
-  description: string;
-  icon: string;
-}
-
-export interface StreamingContent {
-  id: number;
-  title: string;
-  posterUrl: string;
-  trailerUrl: string;
-  description: string;
-  isNew: boolean;
-  genre: string;
-  rating: string;
-  year: number;
-  duration: string;
-  isTrending: boolean;
-  isAwardWinner?: boolean;
-}
-
-export interface SubscriptionPlan {
-  name: string;
-  price: string;
-  priceYearly: string;
-  features: string[];
-  isRecommended?: boolean;
+  imageUrlBase64?: string; // For offline storage
+  live?: boolean;
+  sentiment?: 'Positive' | 'Neutral' | 'Negative';
+  keyTakeaways?: string[];
+  region?: string;
+  coordinates?: { lat: number; lon: number };
+  hasTimeline?: boolean;
 }
 
 export interface User {
@@ -83,18 +31,9 @@ export interface User {
   email: string;
   avatar: string;
   handle: string;
-  bio: string;
   joinDate: string;
+  bio: string;
   isProfilePublic: boolean;
-}
-
-export interface Comment {
-  id: string;
-  user: Pick<User, 'id' | 'name' | 'avatar'>;
-  text: string;
-  timestamp: string;
-  likes: number;
-  replies: Comment[];
 }
 
 export interface Notification {
@@ -105,54 +44,108 @@ export interface Notification {
   type: 'news' | 'briefing' | 'comment' | 'mention';
 }
 
-export type SubscriptionTier = 'Free' | 'Premium';
-
-export type Theme = 'light' | 'dark' | 'system';
-export type FontFamily = 'sans' | 'serif';
-export type AiModelPreference = 'Speed' | 'Quality';
-export type SummaryLength = 'short' | 'medium' | 'long';
-export type ReadingLens = 'None' | 'Simplify' | 'DefineTerms';
-export type AiVoicePersonality = 'Friendly' | 'Professional' | 'Witty';
-export type HomepageLayout = 'Standard' | 'Dashboard';
-export type InformationDensity = 'Comfortable' | 'Compact';
-
 export interface Settings {
-    theme: Theme;
-    fontSize: number;
-    fontFamily: FontFamily;
-    aiModelPreference: AiModelPreference;
-    summaryLength: SummaryLength;
-    contentPreferences: string[];
-    autoTranslate: boolean;
-    preferredLanguage: Language;
-    showCounterpoint: boolean;
-    showInnovationTimelines: boolean;
-    showMahama360: boolean;
-    showNewsMap: boolean;
-    showDataInsights: boolean;
-    showNowStreaming: boolean;
-    interactiveGlossary: boolean;
-    aiReadingLens: ReadingLens;
-    ttsVoice: AiTtsVoice;
-    aiVoicePersonality: AiVoicePersonality;
-    homepageLayout: HomepageLayout;
-    notificationPreferences: {
-        breakingNews: boolean;
-        dailyDigest: boolean;
-        aiRecommendations: boolean;
-    };
-    subscriptionTier: SubscriptionTier;
-    informationDensity: InformationDensity;
-    highContrast?: boolean;
-    reduceMotion?: boolean;
-    dyslexiaFont?: boolean;
+  theme: Theme;
+  fontSize: number;
+  fontFamily: 'sans' | 'serif';
+  aiModelPreference: 'Speed' | 'Quality';
+  summaryLength: 'short' | 'medium' | 'long';
+  contentPreferences: string[];
+  autoTranslate: boolean;
+  preferredLanguage: Language;
+  showCounterpoint: boolean;
+  showInnovationTimelines: boolean;
+  showMahama360: boolean;
+  showNewsMap: boolean;
+  showDataInsights: boolean;
+  showNowStreaming: boolean;
+  interactiveGlossary: boolean;
+  aiReadingLens: ReadingLens;
+  ttsVoice: AiTtsVoice;
+  aiVoicePersonality: 'Friendly' | 'Professional' | 'Witty';
+  homepageLayout: 'Standard' | 'Dashboard';
+  notificationPreferences: {
+    breakingNews: boolean;
+    dailyDigest: boolean;
+    aiRecommendations: boolean;
+  };
+  subscriptionTier: SubscriptionTier;
+  informationDensity: 'Comfortable' | 'Compact';
+  highContrast: boolean;
+  reduceMotion: boolean;
+  dyslexiaFont: boolean;
+}
+
+export interface Podcast {
+  id: number;
+  title: string;
+  excerpt: string;
+  author: string;
+  imageUrl: string;
+  audioUrl: string;
+  duration: string;
+  episode: number;
+}
+
+export interface Category {
+  name: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  subcategories?: string[];
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface InfographicData {
+    title: string;
+    items: {
+        label: string;
+        value: number;
+    }[];
+}
+
+export interface ChatMessage {
+    id: number;
+    role: 'user' | 'model';
+    content: string;
+}
+
+export interface AiSearchResult {
+    summary: string;
+    relatedArticleIds: number[];
+    relatedMovieIds: number[];
+    suggestedQuestions: string[];
+}
+
+export interface StreamingContent {
+    id: number;
+    title: string;
+    description: string;
+    posterUrl: string;
+    trailerUrl: string;
+    genre: string;
+    year: number;
+    rating: string;
+    duration: string;
+    isNew?: boolean;
+    isTrending?: boolean;
+    isAwardWinner?: boolean;
+}
+
+export interface AudioPlayerState {
+  article: Article;
+  playlist?: Article[];
+  voiceOverride?: AiTtsVoice;
 }
 
 export interface WeatherData {
-    locationName: string;
-    temperature: number;
-    condition: 'Sunny' | 'Cloudy' | 'Rainy';
-    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  locationName: string;
+  temperature: number;
+  condition: 'Sunny' | 'Cloudy' | 'Rainy';
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
 export interface KeyConcept {
@@ -166,36 +159,32 @@ export interface TimelineEvent {
   description: string;
 }
 
-export interface AiSearchResult {
-    summary?: string;
-    relatedArticleIds?: number[];
-    relatedMovieIds?: number[];
-    suggestedQuestions: string[];
-}
-
 export interface FactCheckResult {
   status: 'Verified' | 'Mixed' | 'Unverified';
   summary: string;
   sources?: { uri: string; title: string }[];
 }
 
-export interface ChatMessage {
-  id: number;
-  role: 'user' | 'model';
-  content: string;
+export interface CommunityHighlight {
+  viewpoint: string;
+  summary: string;
 }
 
-export type ExpertPersona = 'Economist' | 'Political Analyst' | 'Sociologist' | 'Technologist' | 'Environmental Scientist';
-
-export interface QuizQuestion {
-  question: string;
-  options: string[];
-  correctAnswer: string;
+export interface Comment {
+  id: string;
+  user: { id: string, name: string; avatar: string };
+  text: string;
+  timestamp: string;
+  likes: number;
+  replies: Comment[];
 }
 
-export interface InfographicData {
-  title: string;
-  items: { label: string; value: number }[];
+export interface SubscriptionPlan {
+  name: string;
+  price: string;
+  priceYearly: string;
+  features: string[];
+  isRecommended?: boolean;
 }
 
 export interface NetworkNode {
@@ -208,21 +197,9 @@ export interface NetworkLink {
     target: string;
 }
 
-export interface AudioPlayerState {
-    article: Article;
-    playlist?: Article[];
-    voiceOverride?: AiTtsVoice;
-}
-
-export interface CommunityHighlight {
-  viewpoint: string;
-  summary: string;
-}
-
-// FIX: Added ServiceItem type to be used by CampMap and other related components.
 export interface ServiceItem {
   name: string;
   category: 'Health' | 'Education' | 'Markets' | 'Transport' | 'Work & Skills' | 'Community Groups' | 'Official Services' | 'Safety & Security';
-  coords: { x: number; y: number };
   description?: string;
+  coords: { x: number; y: number };
 }
