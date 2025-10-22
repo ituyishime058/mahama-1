@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import type { SubscriptionPlan } from '../types';
 import { subscriptionPlans } from '../constants';
 import CloseIcon from './icons/CloseIcon';
 import CheckIcon from './icons/CheckIcon';
 import CrownIcon from './icons/CrownIcon';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface SubscriptionModalProps {
 
 const PlanCard: React.FC<{ plan: SubscriptionPlan, onSelect: () => void, billingCycle: 'monthly' | 'annually' }> = ({ plan, onSelect, billingCycle }) => {
     const isPremium = plan.name === 'Premium';
+    const { t } = useTranslation();
     
     // Parse prices to numbers for calculation
     const monthlyPriceNum = parseFloat(plan.price.replace('$', ''));
@@ -43,10 +44,10 @@ const PlanCard: React.FC<{ plan: SubscriptionPlan, onSelect: () => void, billing
                 </div>
                 {isPremium && billingCycle === 'annually' && <p className="text-sm text-slate-500 -mt-3 mb-4">Billed as {plan.priceYearly} annually.</p>}
                 <ul className="my-6 space-y-3">
-                    {plan.features.map((feature, i) => (
+                    {plan.features.map((featureKey, i) => (
                         <li key={i} className="flex items-start gap-3">
                             <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span>{feature}</span>
+                            <span>{t(featureKey)}</span>
                         </li>
                     ))}
                 </ul>

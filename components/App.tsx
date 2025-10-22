@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { mockArticles, hiddenArticles, mockPodcasts, categories, mockCurrentUser, mockStreamingContent } from '../constants';
 // FIX: Added FactCheckResult to the import list from ../types.
@@ -7,6 +6,7 @@ import { getOfflineArticleIds, saveArticleForOffline, getOfflineArticles, delete
 import { findRelatedArticles } from '../utils/ai';
 import { fetchWeather } from '../utils/weather';
 import { TranslationProvider } from '../contexts/TranslationContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Component Imports
 import Header from './Header';
@@ -67,6 +67,7 @@ import ComparisonModal from './ComparisonModal';
 import AiAnchorVideoModal from './AiAnchorVideoModal';
 import MovieDeepDiveModal from './MovieDeepDiveModal';
 import ImageAnalysisModal from './ImageAnalysisModal';
+import RingLoader from './RingLoader';
 
 
 const defaultSettings: Settings = {
@@ -104,6 +105,17 @@ const defaultSettings: Settings = {
 const aiModals = ['summarize', 'explain', 'quiz', 'counterpoint', 'behindTheNews', 'expertAnalysis', 'askAuthor', 'briefing', 'factCheckPage', 'deepDive', 'infographic', 'live', 'compare', 'aiAnchorVideo', 'movieDeepDive', 'analyzeImage'];
 const premiumModals = ['askAuthor', 'deepDive', 'counterpoint', 'expertAnalysis', 'factCheckPage', 'infographic', 'briefing', 'aiAnchorVideo', 'movieDeepDive', 'analyzeImage'];
 
+
+const TranslationStatusBanner = () => {
+    const { isTranslating, language } = useTranslation();
+    if (!isTranslating) return null;
+    return (
+        <div className="fixed bottom-4 left-4 z-[100] bg-slate-800 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+            <RingLoader className="text-gold"/>
+            <span className="text-sm font-semibold">Translating UI to {language}...</span>
+        </div>
+    );
+}
 
 const App: React.FC = () => {
     const [settings, setSettings] = useState<Settings>(() => {
@@ -521,40 +533,62 @@ const App: React.FC = () => {
                         onClose={handleCloseContent}
                     />
                 ) : activeArticle ? (
-                    <ArticlePage 
-                        article={activeArticle} 
-                        onClose={handleCloseContent}
-                        isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
-                        onToggleBookmark={toggleBookmark}
-                        onReadMore={handleReadMore}
-                        onSummarize={(article) => openModal('summarize', article)}
-                        onExplainSimply={(article) => openModal('explain', article)}
-                        onTextToSpeech={handleOpenTtsModal}
-                        onQuiz={(article) => openModal('quiz', article)}
-                        onCounterpoint={(article) => openModal('counterpoint', article)}
-                        onBehindTheNews={(article) => openModal('behindTheNews', article)}
-                        onExpertAnalysis={(article) => openModal('expertAnalysis', article)}
-                        onAskAuthor={(article) => openModal('askAuthor', article)}
-                        onFactCheckPage={(article) => openModal('factCheckPage', article)}
-                        onDeepDive={(article) => openModal('deepDive', article)}
-                        onInfographic={(article) => openModal('infographic', article)}
-                        onAnalyzeImage={handleAnalyzeImage}
-                        settings={settings}
-                        onPremiumClick={() => setActiveModal('subscribe')}
-                        keyConcepts={keyConcepts}
-                        timelineEvents={timelineEvents}
-                        timelineLoading={timelineLoading}
-                        pullQuotes={pullQuotes}
-                        pullQuotesLoading={pullQuotesLoading}
-                        tags={tags}
-                        tagsLoading={tagsLoading}
-                        factCheckResult={factCheckResult}
-                        factCheckLoading={factCheckLoading}
-                        aiTakeaways={aiTakeaways}
-                        takeawaysLoading={takeawaysLoading}
-                        communityHighlights={communityHighlights}
-                        highlightsLoading={highlightsLoading}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-8">
+                        <div className="md:col-span-2 lg:col-span-8">
+                            <ArticlePage 
+                                article={activeArticle} 
+                                onClose={handleCloseContent}
+                                isBookmarked={bookmarkedArticleIds.includes(activeArticle.id)}
+                                onToggleBookmark={toggleBookmark}
+                                onReadMore={handleReadMore}
+                                onSummarize={(article) => openModal('summarize', article)}
+                                onExplainSimply={(article) => openModal('explain', article)}
+                                onTextToSpeech={handleOpenTtsModal}
+                                onQuiz={(article) => openModal('quiz', article)}
+                                onCounterpoint={(article) => openModal('counterpoint', article)}
+                                onBehindTheNews={(article) => openModal('behindTheNews', article)}
+                                onExpertAnalysis={(article) => openModal('expertAnalysis', article)}
+                                onAskAuthor={(article) => openModal('askAuthor', article)}
+                                onFactCheckPage={(article) => openModal('factCheckPage', article)}
+                                onDeepDive={(article) => openModal('deepDive', article)}
+                                onInfographic={(article) => openModal('infographic', article)}
+                                onAnalyzeImage={handleAnalyzeImage}
+                                settings={settings}
+                                onPremiumClick={() => setActiveModal('subscribe')}
+                                keyConcepts={keyConcepts}
+                                timelineEvents={timelineEvents}
+                                timelineLoading={timelineLoading}
+                                pullQuotes={pullQuotes}
+                                pullQuotesLoading={pullQuotesLoading}
+                                tags={tags}
+                                tagsLoading={tagsLoading}
+                                factCheckResult={factCheckResult}
+                                factCheckLoading={factCheckLoading}
+                                aiTakeaways={aiTakeaways}
+                                takeawaysLoading={takeawaysLoading}
+                                communityHighlights={communityHighlights}
+                                highlightsLoading={highlightsLoading}
+                            />
+                        </div>
+                        <div className="md:col-span-1 lg:col-span-4">
+                            <RightAside
+                                allArticles={allArticles}
+                                trendingArticles={allArticles.slice(1, 6)}
+                                onArticleClick={handleReadMore}
+                                activeArticle={activeArticle}
+                                settings={settings}
+                                onGoPremium={() => setActiveModal('subscribe')}
+                                weatherData={weatherData}
+                                isWeatherLoading={isWeatherLoading}
+                                isSettingsOpen={isSettingsOpen}
+                                user={currentUser}
+                                keyConcepts={keyConcepts}
+                                conceptsLoading={conceptsLoading}
+                                timelineEvents={timelineEvents}
+                                timelineLoading={timelineLoading}
+                            />
+                        </div>
+                    </div>
                 ) : activeMovie ? (
                      <MoviePlayerPage movie={activeMovie} onClose={handleCloseContent} onWatchMovie={handleWatchMovie} onDeepDive={handleDeepDiveMovie} />
                 ) : isSettingsOpen ? (
@@ -629,6 +663,7 @@ const App: React.FC = () => {
         <TranslationProvider language={settings.preferredLanguage} settings={settings}>
             <div className="bg-slate-50 dark:bg-navy text-slate-900 dark:text-slate-200 min-h-screen">
                 {pageContent}
+                 <TranslationStatusBanner />
             </div>
         </TranslationProvider>
     );

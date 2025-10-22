@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Article } from '../types';
 import ReadAloudIcon from './icons/ReadAloudIcon';
 import SummarizeIcon from './icons/SummarizeIcon';
@@ -26,11 +26,29 @@ const PrimaryActionButton: React.FC<{ onClick: () => void; icon: React.ReactNode
 
 const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextToSpeech, onSummarize, isBookmarked, onToggleBookmark, onAnalyzeImage }) => {
     const { t } = useTranslation();
+    const [scrollY, setScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrollY(window.scrollY);
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const imageScale = 1 + scrollY / 2000;
+    const contentOpacity = Math.max(0, 1 - scrollY / 350);
+    const contentScale = Math.max(0.95, 1 - scrollY / 1500);
+    const contentTranslateY = scrollY * 0.2;
+
     return (
-        <header className="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 mb-8 text-white min-h-[60vh] max-h-[700px] flex flex-col justify-between p-4 sm:p-8 lg:p-12 rounded-b-2xl overflow-hidden animate-fade-in">
+        <header className="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 mb-8 text-white min-h-[70vh] max-h-[800px] flex flex-col justify-between p-4 sm:p-8 lg:p-12 rounded-b-2xl overflow-hidden animate-fade-in">
             <div 
-                className="absolute inset-0 bg-cover bg-center animate-hero-bg-parallax" 
-                style={{ backgroundImage: `url(${article.imageUrl})` }}
+                className="absolute inset-0 bg-cover bg-center" 
+                style={{ 
+                    backgroundImage: `url(${article.imageUrl})`,
+                    transform: `translateY(${scrollY * 0.4}px) scale(${imageScale})` 
+                }}
             ></div>
             <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/60 to-transparent"></div>
 
@@ -40,7 +58,13 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, onClose, onTextT
                 </button>
             </div>
 
-            <div className="relative z-10 animate-fade-in-up max-w-4xl mx-auto container">
+            <div 
+                className="relative z-10 animate-fade-in-up max-w-4xl mx-auto container"
+                style={{
+                    opacity: contentOpacity,
+                    transform: `scale(${contentScale}) translateY(${contentTranslateY}px)`
+                }}
+            >
                 <p className="font-semibold uppercase tracking-wider text-gold mb-2">{t(article.category.toLowerCase()) || article.category}</p>
                 <h1 className="text-4xl md:text-6xl font-extrabold !leading-tight tracking-tight mb-4 drop-shadow-lg">
                     {article.title}

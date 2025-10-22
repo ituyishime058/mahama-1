@@ -1,54 +1,41 @@
 import React from 'react';
+import ImageGallery from './ImageGallery';
 import KeyStats from './KeyStats';
-import ClockIcon from './icons/ClockIcon';
-import LocationPinIcon from './icons/LocationPinIcon';
-import ScrollIcon from './icons/ScrollIcon';
-
-const programs = [
-    { name: 'Early Childhood Development (ECD)', description: 'Centers for children aged 3-6.' },
-    { name: 'Primary Education', description: 'Full curriculum for grades 1-6.' },
-    { name: 'Secondary Education', description: 'Comprehensive secondary schooling.' },
-    { name: 'Adult Literacy Programs', description: 'Basic reading and writing classes for adults.' },
-    { name: 'Vocational & Skills Training', description: 'Courses in IT, tailoring, and carpentry.' },
-];
 
 const EducationSectorPage: React.FC = () => {
+  const stats = [
+    { label: 'Schools', value: '8' },
+    { label: 'Students Enrolled', value: '15,000+' },
+    { label: 'Teachers', value: '300+' },
+    { label: 'Literacy Rate', value: '85%' },
+  ];
+
+  const images = [
+    { src: 'https://picsum.photos/seed/edu1/600/400', caption: 'Students in a primary school classroom.' },
+    { src: 'https://picsum.photos/seed/edu2/600/400', caption: 'Vocational training for young adults.' },
+  ];
+
   return (
-    <div className="space-y-6">
-        <p className="text-slate-600 dark:text-slate-400">
-            Access to quality education for all ages is a cornerstone of our community. We offer a range of programs from early childhood to adult learning.
-        </p>
+    <div>
+      <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-4">Education Sector</h2>
+      <p className="mb-6 text-slate-600 dark:text-slate-400">
+        Ensuring access to quality education for all ages, from early childhood learning to adult literacy and vocational training programs.
+      </p>
+      
+      <KeyStats stats={stats} />
+      
+      <h3 className="text-2xl font-bold mt-8 mb-4">Programs Offered</h3>
+      <ul className="list-disc list-inside space-y-2 mb-6">
+        <li>Early Childhood Development Centers</li>
+        <li>Primary and Secondary Education</li>
+        <li>Accelerated Learning Programs</li>
+        <li>Vocational and Skills Training</li>
+        <li>Adult Literacy and Language Classes</li>
+      </ul>
 
-        <KeyStats stats={[
-            { label: 'Schools', value: '10' },
-            { label: 'Students Enrolled', value: '18,000+' },
-            { label: 'Teachers & Staff', value: '300+' },
-            { label: 'Literacy Rate', value: '85%' },
-        ]} />
-
-        <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
-            <h3 className="font-bold text-lg mb-3">Educational Programs</h3>
-            <ul className="space-y-3 list-disc list-inside">
-                {programs.map(p => (
-                    <li key={p.name}>
-                        <span className="font-semibold">{p.name}:</span> {p.description}
-                    </li>
-                ))}
-            </ul>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                <h4 className="font-semibold flex items-center gap-2 mb-2"><ClockIcon className="w-5 h-5"/> School Hours</h4>
-                <p>Monday - Friday</p>
-                <p>8:00 AM - 4:00 PM</p>
-            </div>
-             <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                <h4 className="font-semibold flex items-center gap-2 mb-2"><ScrollIcon className="w-5 h-5"/> Enrollment</h4>
-                <p>Enrollment takes place at the start of each term. Visit the Education Office in Zone A for details.</p>
-            </div>
-        </div>
+      <ImageGallery images={images} />
     </div>
   );
 };
+
 export default EducationSectorPage;

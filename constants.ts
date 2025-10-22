@@ -1,5 +1,3 @@
-
-
 // FIX: Import the 'Language' type to resolve type errors.
 import type { Article, Podcast, Category, User, StreamingContent, AiTtsVoice, SubscriptionPlan, ServiceItem, Comment, Language } from './types';
 
@@ -100,24 +98,27 @@ export const TTS_VOICES: { name: string, value: AiTtsVoice }[] = [
     { name: 'Fenrir', value: 'Fenrir' },
 ];
 
-export const LANGUAGES: Language[] = ['English', 'French', 'Swahili', 'Kinyarwanda'];
+export const LANGUAGES: Language[] = ['English', 'French', 'Swahili', 'Kinyarwanda', 'Spanish', 'German', 'Portuguese'];
 
 export const LANGUAGE_VOICE_MAP: Record<Language, AiTtsVoice> = {
     English: 'Zephyr',
     French: 'Puck',
     Swahili: 'Kore',
     Kinyarwanda: 'Fenrir',
+    Spanish: 'Puck', // Placeholder, Gemini supports Spanish voices
+    German: 'Charon', // Placeholder, Gemini supports German voices
+    Portuguese: 'Puck', // Placeholder
 };
 
 export const innovations = [
-    { year: 1991, title: "World Wide Web Invented", description: "Tim Berners-Lee launches the first public website, changing communication forever.", icon: "GlobeIcon" },
-    { year: 1995, title: "GPS Becomes Fully Operational", description: "The US satellite system becomes available for civilian use, revolutionizing navigation.", icon: "GpsIcon" },
-    { year: 1998, title: "Google Founded", description: "Larry Page and Sergey Brin start a company that would come to dominate internet search.", icon: "SearchIcon" },
-    { year: 2003, title: "Human Genome Project", description: "The complete mapping of the human genome is finished, opening new doors in medicine.", icon: "DnaIcon" },
-    { year: 2004, title: "Social Media Emerges", description: "Facebook launches, kicking off a new era of social networking and digital identity.", icon: "SocialIcon" },
-    { year: 2007, title: "First iPhone Released", description: "Apple introduces the iPhone, popularizing the modern smartphone and mobile apps.", icon: "SmartphoneIcon" },
-    { year: 2012, title: "Deep Learning Breakthrough", description: "AlexNet wins the ImageNet competition, showcasing the power of deep neural networks.", icon: "SparklesIcon" },
-    { year: 2022, title: "Generative AI Goes Mainstream", description: "Tools like ChatGPT and Midjourney bring advanced AI capabilities to the public.", icon: "UserIcon" },
+    { year: 1991, titleKey: "wwwTitle", descriptionKey: "wwwDesc", icon: "GlobeIcon" },
+    { year: 1995, titleKey: "gpsTitle", descriptionKey: "gpsDesc", icon: "GpsIcon" },
+    { year: 1998, titleKey: "googleTitle", descriptionKey: "googleDesc", icon: "SearchIcon" },
+    { year: 2003, titleKey: "genomeTitle", descriptionKey: "genomeDesc", icon: "DnaIcon" },
+    { year: 2004, titleKey: "socialTitle", descriptionKey: "socialDesc", icon: "SocialIcon" },
+    { year: 2007, titleKey: "iphoneTitle", descriptionKey: "iphoneDesc", icon: "SmartphoneIcon" },
+    { year: 2012, titleKey: "deepLearningTitle", descriptionKey: "deepLearningDesc", icon: "SparklesIcon" },
+    { year: 2022, titleKey: "genAiTitle", descriptionKey: "genAiDesc", icon: "UserIcon" },
 ];
 
 export const mockUsers = [
@@ -133,8 +134,8 @@ export const mockComments: Comment[] = [
 ];
 
 export const subscriptionPlans: SubscriptionPlan[] = [
-    { name: 'Free', price: '$0', priceYearly: '$0', features: ['Access to standard news articles', 'Limited AI summaries', 'Ad-supported'] },
-    { name: 'Premium', price: '$9.99', priceYearly: '$99.99', features: ['Ad-free experience', 'Unlimited AI features', 'Exclusive deep-dive content', 'Podcast transcripts', 'Early access to investigations'], isRecommended: true },
+    { name: 'Free', price: '$0', priceYearly: '$0', features: ['subFeatureFree1', 'subFeatureFree2', 'subFeatureFree3'] },
+    { name: 'Premium', price: '$9.99', priceYearly: '$99.99', features: ['subFeaturePremium1', 'subFeaturePremium2', 'subFeaturePremium3', 'subFeaturePremium4', 'subFeaturePremium5'], isRecommended: true },
 ];
 
 export const mockStreamingContent: StreamingContent[] = [

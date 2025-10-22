@@ -5,6 +5,7 @@ import SubscriptionCard from './SubscriptionCard';
 import TrendingNews from './TrendingNews';
 import ThisDayInHistory from './ThisDayInHistory';
 import CommunityPoll from './CommunityPoll';
+import InteractiveAd from './InteractiveAd';
 
 interface ArticleViewAsideProps {
   article: Article;
@@ -29,6 +30,7 @@ const ArticleViewAside: React.FC<ArticleViewAsideProps> = (props) => {
       <TrendingNews articles={trendingArticles} onArticleClick={onArticleClick} />
       <ThisDayInHistory settings={settings} />
       <CommunityPoll />
+      {settings.subscriptionTier === 'Free' && <InteractiveAd />}
     </div>
   );
 };

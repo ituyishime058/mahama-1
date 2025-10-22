@@ -26,16 +26,6 @@ const iconMap: { [key: string]: React.FC<any> } = {
 
 const InnovationTimeline: React.FC = () => {
   const { t } = useTranslation();
-  const innovationKeys: { [key: string]: { title: string, desc: string } } = {
-    "World Wide Web Invented": { title: "wwwTitle", desc: "wwwDesc" },
-    "GPS Becomes Fully Operational": { title: "gpsTitle", desc: "gpsDesc" },
-    "Google Founded": { title: "googleTitle", desc: "googleDesc" },
-    "Human Genome Project": { title: "genomeTitle", desc: "genomeDesc" },
-    "Social Media Emerges": { title: "socialTitle", desc: "socialDesc" },
-    "First iPhone Released": { title: "iphoneTitle", desc: "iphoneDesc" },
-    "Deep Learning Breakthrough": { title: "deepLearningTitle", desc: "deepLearningDesc" },
-    "Generative AI Goes Mainstream": { title: "genAiTitle", desc: "genAiDesc" },
-  };
 
   return (
     <section className="my-16">
@@ -47,15 +37,14 @@ const InnovationTimeline: React.FC = () => {
         {innovations.map((item, index) => {
           const Icon = iconMap[item.icon] || SparklesIcon;
           const isEven = index % 2 === 0;
-          const keys = innovationKeys[item.title] || { title: item.title, desc: item.description };
           return (
             <div key={item.year} className={`relative flex items-center ${isEven ? 'justify-end md:justify-start' : 'justify-end'}`}>
               
               <div className={`w-full md:w-1/2 ${isEven ? 'md:pr-8' : 'md:pl-8'}`}>
                 <div className={`bg-white dark:bg-slate-800 p-6 rounded-lg shadow-lg`}>
                   <p className="font-bold text-deep-red dark:text-gold text-right">{item.year}</p>
-                  <h3 className="text-xl font-bold">{t(keys.title)}</h3>
-                  <p className="text-slate-600 dark:text-slate-400 mt-2">{t(keys.desc)}</p>
+                  <h3 className="text-xl font-bold">{t(item.titleKey)}</h3>
+                  <p className="text-slate-600 dark:text-slate-400 mt-2">{t(item.descriptionKey)}</p>
                 </div>
               </div>
 

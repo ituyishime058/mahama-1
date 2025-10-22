@@ -1,7 +1,6 @@
-
 import React from 'react';
 
-export type Language = 'English' | 'French' | 'Swahili' | 'Kinyarwanda';
+export type Language = 'English' | 'French' | 'Swahili' | 'Kinyarwanda' | 'Spanish' | 'German' | 'Portuguese';
 export type Theme = 'light' | 'dark' | 'system';
 export type SubscriptionTier = 'Free' | 'Premium';
 export type AiTtsVoice = 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir';

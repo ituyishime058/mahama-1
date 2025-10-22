@@ -266,7 +266,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({
                     onSetLens={setActiveLens}
                     comparisonList={[]} onAddToCompare={() => {}}                />
                 
-                <main className={!isZenMode ? 'lg:pl-24' : ''}>
+                <main className={`${!isZenMode ? 'lg:pl-24' : ''} space-y-8`}>
                     <AuthorInfo author={article.author} date={article.date} content={displayArticle.content} />
 
                     {isArticleTranslating && (
