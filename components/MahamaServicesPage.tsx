@@ -5,14 +5,46 @@ import HealthIcon from './icons/HealthIcon';
 import EducationIcon from './icons/EducationIcon';
 import MarketIcon from './icons/MarketIcon';
 import TransportIcon from './icons/TransportIcon';
+import WorkSkillsIcon from './icons/WorkSkillsIcon';
+import UsersIcon from './icons/UsersIcon';
+import BuildingIcon from './icons/BuildingIcon';
+import ShieldCheckIcon from './icons/ShieldCheckIcon';
 import { useTranslation } from '../hooks/useTranslation';
 import type { WeatherData } from '../types';
 
 const directoryData = {
-    Health: [{name: "Mahama Health Center", details: "Open 24/7, General services"}, {name: "Unity Pharmacy", details: "Mon-Sat, 8am-8pm"}],
-    Education: [{name: "Mahama Primary School", details: "Grades 1-6"}, {name: "Kirehe Secondary School", details: "Located nearby"}],
-    Markets: [{name: "Central Market", details: "Open daily, fresh produce & goods"}, {name: "Evening Market", details: "Tues/Thurs/Sat, 4pm onwards"}],
-    Transport: [{name: "Mahama Bus Stop", details: "Routes to Kigali & Kayonza"}, {name: "Moto Taxi Stand", details: "Main crossroads"}],
+    Health: [
+        { name: "Mahama Health Center", details: "Open 24/7, General services" }, 
+        { name: "Unity Pharmacy", details: "Mon-Sat, 8am-8pm" }
+    ],
+    Education: [
+        { name: "Mahama Primary School", details: "Grades 1-6" }, 
+        { name: "Kirehe Secondary School", details: "Located nearby" }
+    ],
+    Markets: [
+        { name: "Central Market", details: "Open daily, fresh produce & goods" }, 
+        { name: "Evening Market", details: "Tues/Thurs/Sat, 4pm onwards" }
+    ],
+    Transport: [
+        { name: "Mahama Bus Stop", details: "Routes to Kigali & Kayonza" }, 
+        { name: "Moto Taxi Stand", details: "Main crossroads" }
+    ],
+    'Work & Skills': [
+        { name: "Vocational Training Center", details: "Courses in tailoring, IT, and construction." },
+        { name: "Job Opportunity Board", details: "Located at the community center noticeboard." },
+    ],
+    'Community Groups': [
+        { name: "Youth Sports League", details: "Football and basketball teams. Sign-ups at the youth center." },
+        { name: "Women's Empowerment Association", details: "Weekly meetings on Wednesdays at the community hall." },
+    ],
+    'Official Services': [
+        { name: "Camp Administration Office", details: "For registration and official inquiries. Open weekdays 9am-4pm." },
+        { name: "Legal Aid Clinic", details: "Free legal advice on Tuesdays at the community hall." },
+    ],
+    'Safety & Security': [
+        { name: "Main Security Post", details: "Located at the camp entrance, open 24/7." },
+        { name: "Emergency Hotline", details: "Dial 112 for any emergencies." },
+    ],
 };
 
 const eventsData = [
@@ -31,6 +63,10 @@ const categoryIcons: { [key: string]: React.FC<any> } = {
     Education: EducationIcon,
     Markets: MarketIcon,
     Transport: TransportIcon,
+    'Work & Skills': WorkSkillsIcon,
+    'Community Groups': UsersIcon,
+    'Official Services': BuildingIcon,
+    'Safety & Security': ShieldCheckIcon,
 };
 
 const MahamaServicesPage: React.FC<{onClose: () => void; weatherData: WeatherData | null; isWeatherLoading: boolean}> = ({ onClose, weatherData, isWeatherLoading }) => {
@@ -41,9 +77,9 @@ const MahamaServicesPage: React.FC<{onClose: () => void; weatherData: WeatherDat
         const Icon = categoryIcons[category];
         const isActive = activeCategory === category;
         return (
-            <button onClick={() => setActiveCategory(category)} className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-lg transition-all ${isActive ? 'bg-deep-red/10 dark:bg-gold/10 scale-105' : 'bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'}`}>
+            <button onClick={() => setActiveCategory(category)} className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-all text-center ${isActive ? 'bg-deep-red/10 dark:bg-gold/10 scale-105' : 'bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'}`}>
                 <Icon className={`w-8 h-8 ${isActive ? 'text-deep-red dark:text-gold' : 'text-slate-500'}`} />
-                <span className={`font-semibold ${isActive ? 'text-deep-red dark:text-gold' : ''}`}>{category}</span>
+                <span className={`font-semibold text-sm ${isActive ? 'text-deep-red dark:text-gold' : ''}`}>{category}</span>
             </button>
         )
     };
@@ -64,7 +100,7 @@ const MahamaServicesPage: React.FC<{onClose: () => void; weatherData: WeatherDat
                     {/* Directory */}
                     <section className="p-6 bg-white dark:bg-slate-800/50 rounded-lg">
                         <h2 className="text-2xl font-bold mb-4">Local Directory</h2>
-                        <div className="flex gap-4 mb-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                             {Object.keys(directoryData).map(cat => <ServiceCategoryButton key={cat} category={cat} />)}
                         </div>
                         <div className="space-y-3 min-h-[150px]">

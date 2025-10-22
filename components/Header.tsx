@@ -10,7 +10,7 @@ import type { User, Notification, Settings, Language } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import UserIcon from './icons/UserIcon';
 import RingLoader from './RingLoader';
-import MahamaServicesIcon from './icons/MahamaServicesIcon';
+import CommunityHubIcon from './icons/CommunityHubIcon';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -109,8 +109,8 @@ const Header: React.FC<HeaderProps> = ({
                 <SearchIcon />
             </button>
             <button onClick={onMahamaServicesClick} aria-label={t('mahamaServices')} className="relative group bg-gradient-to-r from-gold to-deep-red text-white font-semibold px-3 py-2 rounded-full text-sm hover:shadow-lg hover:shadow-gold/20 transition-all duration-300 transform hover:scale-105 flex items-center gap-2 animate-glow">
-                <MahamaServicesIcon className="w-5 h-5"/>
-                <span className="hidden sm:inline">{t('servicesButton')}</span>
+                <CommunityHubIcon className="w-5 h-5"/>
+                <span className="hidden sm:inline">{t('mahamaServices')}</span>
             </button>
             
             <div className="relative" ref={langDropdownRef}>
