@@ -515,12 +515,7 @@ const App: React.FC = () => {
                 {isMahamaServicesPageOpen ? (
                      <MahamaServicesPage
                         onClose={handleCloseContent}
-                        trendingArticles={allArticles.slice(1, 6)}
-                        onArticleClick={handleReadMore}
                         settings={settings}
-                        onGoPremium={() => setActiveModal('subscribe')}
-                        weatherData={weatherData}
-                        isWeatherLoading={isWeatherLoading}
                     />
                 ) : activeArticle ? (
                     <ArticlePage 
